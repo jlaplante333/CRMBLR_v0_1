@@ -1,0 +1,338 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  /* Primary Teal */
+  --primary: #0D9488;
+  --primary-dark: #0F766E;
+  --primary-light: #5EEAD4;
+  --primary-bg: #F0FDFA;
+  
+  /* Secondary */
+  --green: #16A34A;
+  --blue: #0284C7;
+  
+  /* Grays */
+  --gray-50: #F8FAFC;
+  --gray-200: #E2E8F0;
+  --gray-500: #64748B;
+  --gray-700: #334155;
+  --gray-900: #1E293B;
+  
+  /* Typography */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Override base styles for login page */
+.page-login * {
+  font-family: var(--font-family);
+}
+
+/* Typography */
+.logo {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: var(--primary);
+  text-transform: lowercase;
+  letter-spacing: -0.025em;
+  margin-bottom: 0.5rem;
+}
+
+.tagline {
+  font-size: 1.125rem;
+  color: var(--gray-700);
+  line-height: 1.75;
+  margin-bottom: 2rem;
+  max-width: 32rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.tagline .highlight {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* Layout & Background */
+.page-login {
+  background: linear-gradient(135deg, var(--primary-bg) 0%, #FFFFFF 100%);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+.page-login .site-header {
+  display: none;
+}
+
+.page-login .site-footer {
+  display: none;
+}
+
+.auth-container {
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 10px 25px -5px rgba(13, 148, 136, 0.1);
+  border: 1px solid rgba(13, 148, 136, 0.1);
+  padding: 3rem;
+  max-width: 28rem;
+  margin: 2rem auto;
+  width: 90%;
+  box-sizing: border-box;
+}
+
+/* Split layout override for login */
+.page-login .split {
+  display: flex;
+  min-height: 100vh;
+  margin: 0;
+}
+
+.page-login .split-left {
+  flex: 1;
+  background: linear-gradient(135deg, var(--primary-bg) 0%, #FFFFFF 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.page-login .split-right {
+  width: 480px;
+  background: white;
+  box-shadow: -10px 0 25px -5px rgba(13, 148, 136, 0.05);
+  overflow-y: auto;
+}
+
+.page-login .pane-header {
+  padding: 2rem 2rem 1rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--gray-900);
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.page-login .pane-body {
+  padding: 2rem;
+}
+
+/* Hero section */
+.hero-section {
+  text-align: center;
+  max-width: 480px;
+}
+
+.hero-visual {
+  width: 100%;
+  height: 180px;
+  background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+  border-radius: 1rem;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  color: white;
+  font-weight: 700;
+  letter-spacing: -0.05em;
+  text-transform: lowercase;
+}
+
+/* Buttons */
+.page-login .btn, 
+.page-login button, 
+.page-login input[type="submit"] {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: var(--font-family);
+  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.btn-primary, 
+#btn-signin, 
+#btn-signup {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.btn-primary:hover, 
+#btn-signin:hover, 
+#btn-signup:hover {
+  background: var(--primary-dark);
+  box-shadow: 0 4px 6px -1px rgba(13, 148, 136, 0.2);
+}
+
+#tab-signin, 
+#tab-signup {
+  background: white;
+  color: var(--gray-700);
+  border: 1px solid var(--gray-200);
+  flex: 1;
+}
+
+#tab-signin:hover, 
+#tab-signup:hover {
+  background: var(--primary-bg);
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+#tab-signin.active,
+#tab-signup.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+/* Google Sign-in button styling */
+.g_id_signin {
+  margin: 1.5rem 0;
+}
+
+/* Form Elements */
+.page-login input[type="email"], 
+.page-login input[type="password"], 
+.page-login input[type="text"] {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--gray-200);
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  box-sizing: border-box;
+  font-family: var(--font-family);
+  transition: all 0.2s;
+}
+
+.page-login input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
+}
+
+.page-login input::placeholder {
+  color: var(--gray-500);
+}
+
+/* Divider */
+.divider {
+  position: relative;
+  margin: 2rem 0;
+  text-align: center;
+  color: var(--gray-500);
+  font-size: 0.875rem;
+}
+
+.divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--gray-200);
+  z-index: 0;
+}
+
+.divider span {
+  background: white;
+  padding: 0 1rem;
+  position: relative;
+  z-index: 1;
+}
+
+/* HR override */
+.page-login hr {
+  border: 0;
+  border-top: 1px solid var(--gray-200);
+  margin: 2rem 0;
+  position: relative;
+}
+
+.page-login hr::after {
+  content: 'or';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 0 1rem;
+  color: var(--gray-500);
+  font-size: 0.875rem;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .page-login .split {
+    flex-direction: column;
+  }
+  
+  .page-login .split-left {
+    min-height: auto;
+    padding: 3rem 1rem;
+  }
+  
+  .page-login .split-right {
+    width: 100%;
+    box-shadow: none;
+    border-top: 1px solid var(--gray-200);
+  }
+  
+  .hero-visual {
+    height: 120px;
+    font-size: 2rem;
+  }
+  
+  .logo {
+    font-size: 1.875rem;
+  }
+  
+  .tagline {
+    font-size: 1rem;
+  }
+}
+
+/* Accessibility */
+.page-login button:focus, 
+.page-login input:focus, 
+.page-login a:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Smooth transitions */
+.page-login .btn, 
+.page-login button, 
+.page-login input, 
+.page-login a {
+  transition: all 0.2s ease;
+}
+
+/* Success/Error States */
+.success-message {
+  color: var(--green);
+  background: #F0FDF4;
+  border: 1px solid var(--green);
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.error-message {
+  color: #DC2626;
+  background: #FEF2F2;
+  border: 1px solid #DC2626;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+}

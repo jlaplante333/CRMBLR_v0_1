@@ -6,18 +6,21 @@
 {% block content %}
   <div class="split">
     <section class="pane split-left">
-      <div class="pane-body" style="display:flex; align-items:center; justify-content:center;">
-        <div style="max-width:480px; padding:16px; text-align:center">
-          <div style="width:100%; height:180px; background:#f3f4f6; border:1px solid var(--border); border-radius:12px; margin-bottom:16px"></div>
-          <h1 style="margin:0 0 8px;">Welcome to CRMBLR</h1>
-          <p style="color:var(--muted); margin:0">Build conversational CRM workflows with a split-screen workspace and voice.</p>
+      <div class="pane-body">
+        <div class="hero-section">
+          <div class="hero-visual">crmblr</div>
+          <h1 class="logo">crmblr</h1>
+          <p class="tagline">
+            Build <span class="highlight">conversational CRM workflows</span> 
+            with a split-screen workspace and voice.
+          </p>
         </div>
       </div>
     </section>
     <aside class="pane split-right">
-      <div class="pane-header">Sign in / Sign up</div>
+      <div class="pane-header">Welcome back</div>
       <div class="pane-body">
-        <p>Continue with Google or email.</p>
+        <p style="color: var(--gray-700); margin-bottom: 1.5rem;">Continue with Google or sign in with your email.</p>
         <div id="g_id_onload"
              data-client_id="{{ google_client_id }}"
              data-context="signin"
@@ -27,23 +30,23 @@
         </div>
         <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="signin_with" data-shape="rect" data-logo_alignment="left"></div>
 
-        <hr style="margin: 20px 0; border:0; border-top:1px solid var(--border)" />
+        <hr />
 
         <div>
           <div style="display:flex; gap:8px; margin-bottom:8px">
             <button id="tab-signin" class="btn" type="button">Sign in</button>
             <button id="tab-signup" class="btn" type="button">Sign up</button>
           </div>
-          <form id="form-signin" onsubmit="return false" style="display:block; max-width:360px">
-            <input id="si-email" type="email" placeholder="Email" required style="width:100%; padding:10px; margin:6px 0; border:1px solid var(--border); border-radius:8px" />
-            <input id="si-password" type="password" placeholder="Password" required style="width:100%; padding:10px; margin:6px 0; border:1px solid var(--border); border-radius:8px" />
-            <button id="btn-signin" class="btn" type="button">Sign in</button>
+          <form id="form-signin" onsubmit="return false" style="display:block;">
+            <input id="si-email" type="email" placeholder="Email" required />
+            <input id="si-password" type="password" placeholder="Password" required />
+            <button id="btn-signin" class="btn-primary" type="button">Sign in</button>
           </form>
-          <form id="form-signup" onsubmit="return false" style="display:none; max-width:360px">
-            <input id="su-name" type="text" placeholder="Name (optional)" style="width:100%; padding:10px; margin:6px 0; border:1px solid var(--border); border-radius:8px" />
-            <input id="su-email" type="email" placeholder="Email" required style="width:100%; padding:10px; margin:6px 0; border:1px solid var(--border); border-radius:8px" />
-            <input id="su-password" type="password" placeholder="Password" required style="width:100%; padding:10px; margin:6px 0; border:1px solid var(--border); border-radius:8px" />
-            <button id="btn-signup" class="btn" type="button">Create account</button>
+          <form id="form-signup" onsubmit="return false" style="display:none;">
+            <input id="su-name" type="text" placeholder="Name (optional)" />
+            <input id="su-email" type="email" placeholder="Email" required />
+            <input id="su-password" type="password" placeholder="Password" required />
+            <button id="btn-signup" class="btn-primary" type="button">Create account</button>
           </form>
         </div>
       </div>
@@ -76,9 +79,18 @@
       function show(which){
         formSignin.style.display = which === 'in' ? 'block' : 'none';
         formSignup.style.display = which === 'up' ? 'block' : 'none';
+        if (which === 'in') {
+          tabSignin.classList.add('active');
+          tabSignup.classList.remove('active');
+        } else {
+          tabSignup.classList.add('active');
+          tabSignin.classList.remove('active');
+        }
       }
       tabSignin.addEventListener('click', function(){ show('in'); });
       tabSignup.addEventListener('click', function(){ show('up'); });
+      // Set initial state
+      tabSignin.classList.add('active');
 
       async function signin(){
         var email = document.getElementById('si-email').value.trim();
