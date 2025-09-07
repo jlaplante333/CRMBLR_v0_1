@@ -1,0 +1,74 @@
+<div class="event-cards" style="display:flex; flex-direction:column; gap:10px">
+  {% for e in events %}
+  <div class="card" id="event-{{ e.id }}" style="border:1px solid var(--border); border-radius:8px; overflow:hidden">
+    <div class="card-header" style="padding:6px 10px; display:flex; justify-content:space-between; align-items:center; background:#f9fafb">
+      <div style="font-weight:600">
+        {{ e.tool or 'event' }} • {{ e.phase or 'info' }}
+      </div>
+      <div style="font-size:12px; color:var(--muted)">
+        {{ e.ts | int if e.ts else '' }}
+      </div>
+    </div>
+    <div class="card-body" style="padding:8px 10px; display:flex; flex-direction:column; gap:6px">
+      {% if e.phase == 'error' and e.error %}
+        <div style="color:#b91c1c; font-weight:600">Error: {{ e.error }}</div>
+      {% endif %}
+
+      {% if e.tool in ['create_doc','update_doc','delete_doc'] and e.response and e.response.result %}
+        <div>
+          {{ e.tool }} {{ e.response.result }}
+          {% if e.response._id %}
+            • id: <code>{{ e.response._id }}</code>
+          {% endif %}
+          {% if e.response._index %}
+            • index: <code>{{ e.response._index }}</code>
+          {% endif %}
+        </div>
+      {% elif e.tool == 'list_docs' and e.response and e.response.hits %}
+        {% set rows = e.response.hits.hits or [] %}
+        {% if rows %}
+          {% set first = rows[0]._source or {} %}
+          {% set _keys = first.keys() | list %}
+          <div style="overflow:auto">
+            <table class="table" style="width:100%; border-collapse:collapse; font-size:12px">
+              <thead>
+                <tr>
+                  {% for k in _keys %}
+                    {% if loop.index0 < 5 %}
+                      <th style="text-align:left; border-bottom:1px solid var(--border); padding:4px 6px">{{ k }}</th>
+                    {% endif %}
+                  {% endfor %}
+                </tr>
+              </thead>
+              <tbody>
+                {% for r in rows %}
+                <tr>
+                  {% for k in _keys %}
+                    {% if loop.index0 < 5 %}
+                      <td style="border-bottom:1px solid var(--border); padding:4px 6px">{{ r._source[k] }}</td>
+                    {% endif %}
+                  {% endfor %}
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div>Empty collection.</div>
+        {% endif %}
+      {% endif %}
+
+      <details>
+        <summary style="cursor:pointer">Request</summary>
+        <pre style="white-space:pre-wrap; font-size:12px; margin:6px 0 0">{{ e.request | tojson(indent=2) }}</pre>
+      </details>
+      {% if e.response %}
+      <details open>
+        <summary style="cursor:pointer">Response</summary>
+        <pre style="white-space:pre-wrap; font-size:12px; margin:6px 0 0">{{ e.response | tojson(indent=2) }}</pre>
+      </details>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>

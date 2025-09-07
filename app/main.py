@@ -14,6 +14,8 @@ from .auth import (
     verify_password,
 )
 import json
+import time
+from collections import deque
 import requests
 from google.oauth2 import id_token as google_id_token
 from google.auth.transport import requests as google_requests
@@ -24,6 +26,28 @@ app = FastAPI(title="CRMBLR")
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 templates.env.auto_reload = True
+if "tojson" not in templates.env.filters:
+    templates.env.filters["tojson"] = lambda v, indent=None: json.dumps(v, indent=indent, ensure_ascii=False)
+
+# --- Simple in-memory event buffer for UI panel ---
+events = deque(maxlen=200)
+_eid = 0
+
+
+def _next_event_id():
+    global _eid
+    _eid += 1
+    return _eid
+
+
+def record_event(**e):
+    evt = {
+        "id": _next_event_id(),
+        "ts": time.time(),
+        **e,
+    }
+    events.append(evt)
+    return evt
 
 
 @app.on_event("startup")
@@ -61,6 +85,16 @@ def workspace(request: Request):
     return templates.TemplateResponse(
         "split.html",
         {"request": request},
+    )
+
+
+@app.get("/ui/events", response_class=HTMLResponse)
+def ui_events(request: Request):
+    # Newest first for display
+    data = list(reversed(events))
+    return templates.TemplateResponse(
+        "partials/events_cards.html",
+        {"request": request, "events": data},
     )
 
 
@@ -189,6 +223,8 @@ def execute_tool(payload: dict, user=Depends(require_user)):
     name = payload.get("name")
     args = payload.get("arguments") or {}
     try:
+        # Log start of tool execution
+        record_event(tool=name, phase="started", request=args)
         if name == "list_docs":
             collection = args.get("collection")
             index = _user_index(user, collection)
@@ -196,20 +232,25 @@ def execute_tool(payload: dict, user=Depends(require_user)):
             frm = int(args.get("from") or 0)
             query = args.get("query") or {"match_all": {}}
             if not es_client.indices.exists(index=index):
-                return {"ok": True, "result": {"hits": {"total": 0, "hits": []}}}
+                res = {"hits": {"total": 0, "hits": []}}
+                record_event(tool=name, phase="ok", request=args, response=res)
+                return {"ok": True, "result": res}
             res = es_client.search(index=index, body={"query": query}, size=size, from_=frm)
+            record_event(tool=name, phase="ok", request=args, response=res)
             return {"ok": True, "result": res}
         elif name == "create_doc":
             collection = args.get("collection")
             index = _user_index(user, collection)
             doc = args["doc"]
             res = es_client.index(index=index, document=doc, refresh="wait_for")
+            record_event(tool=name, phase="ok", request=args, response=res)
             return {"ok": True, "result": res}
         elif name == "get_doc":
             collection = args.get("collection")
             index = _user_index(user, collection)
             _id = args["id"]
             res = es_client.get(index=index, id=_id)
+            record_event(tool=name, phase="ok", request=args, response=res)
             return {"ok": True, "result": res}
         elif name == "update_doc":
             collection = args.get("collection")
@@ -220,16 +261,22 @@ def execute_tool(payload: dict, user=Depends(require_user)):
             source = es_client.get(index=index, id=_id).get("_source", {})
             source.update(doc)
             res = es_client.index(index=index, id=_id, document=source, refresh="wait_for")
+            record_event(tool=name, phase="ok", request=args, response=res)
             return {"ok": True, "result": res}
         elif name == "delete_doc":
             collection = args.get("collection")
             index = _user_index(user, collection)
             _id = args["id"]
             res = es_client.delete(index=index, id=_id, ignore=[404], refresh="wait_for")
+            record_event(tool=name, phase="ok", request=args, response=res)
             return {"ok": True, "result": res}
         else:
             return JSONResponse({"ok": False, "error": f"Unknown tool {name}"}, status_code=400)
     except Exception as e:
+        try:
+            record_event(tool=name, phase="error", request=args, error=str(e))
+        except Exception:
+            pass
         return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
 
 
