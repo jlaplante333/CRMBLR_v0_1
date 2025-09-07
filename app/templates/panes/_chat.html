@@ -62,6 +62,93 @@
     function micOn(){ mic.classList.remove('mic--hidden'); }
     function micOff(){ mic.classList.add('mic--hidden'); }
 
+    const toolArgBuf = Object.create(null); // tool_call_id -> string buffer
+
+    function registerTools(){
+      if (!dc) return;
+      const tools = [
+        {
+          name: "list_docs",
+          description: "List documents in a collection",
+          parameters: {
+            type: "object",
+            properties: {
+              collection: { type: "string" },
+              query: { type: "object" },
+              size: { type: "integer", minimum: 1, default: 50 },
+              from: { type: "integer", minimum: 0, default: 0 }
+            },
+            required: ["collection"],
+            additionalProperties: true
+          }
+        },
+        {
+          name: "create_doc",
+          description: "Create a document in an Elasticsearch index",
+          parameters: {
+            type: "object",
+            properties: {
+              collection: { type: "string" },
+              doc: { type: "object" }
+            },
+            required: ["collection", "doc"],
+            additionalProperties: true
+          }
+        },
+        {
+          name: "get_doc",
+          description: "Get a document by id",
+          parameters: {
+            type: "object",
+            properties: {
+              collection: { type: "string" },
+              id: { type: "string" }
+            },
+            required: ["collection", "id"]
+          }
+        },
+        {
+          name: "update_doc",
+          description: "Update a document by id (merge fields)",
+          parameters: {
+            type: "object",
+            properties: {
+              collection: { type: "string" },
+              id: { type: "string" },
+              doc: { type: "object" }
+            },
+            required: ["collection", "id", "doc"],
+            additionalProperties: true
+          }
+        },
+        {
+          name: "delete_doc",
+          description: "Delete a document by id",
+          parameters: {
+            type: "object",
+            properties: {
+              collection: { type: "string" },
+              id: { type: "string" }
+            },
+            required: ["collection", "id"]
+          }
+        }
+      ];
+      try {
+        dc.send(JSON.stringify({ type: 'session.update', session: { tools } }));
+      } catch (e) { console.warn('Failed to register tools', e); }
+    }
+
+    async function callBackendTool(name, args){
+      // Log start
+      try { window.__appendToolLog && window.__appendToolLog({ name, args, status: 'started' }); } catch(_){ }
+      const r = await fetch('/tool', { method:'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, body: JSON.stringify({ name, arguments: args }) });
+      const data = await r.json();
+      if (!r.ok || !data.ok){ throw new Error(data.error || 'tool error'); }
+      try { window.__appendToolLog && window.__appendToolLog({ name, args, status: 'ok', result: data.result }); } catch(_){ }
+      return data.result;
+    }
+
     function handleServerEvent(obj){
       console.log('Server event:', obj);
       switch (obj.type){
@@ -150,6 +237,39 @@
         case 'response.done':
           setStatus('Ready');
           break;
+        // Tool calling (collect args, then execute)
+        case 'response.function_call_arguments.delta': {
+          const id = obj.call_id || obj.item_id || obj.id || 'default';
+          const chunk = obj.delta || obj.arguments || '';
+          toolArgBuf[id] = (toolArgBuf[id] || '') + chunk;
+          break;
+        }
+        case 'response.function_call_arguments.done': {
+          try {
+            const id = obj.call_id || obj.item_id || obj.id || 'default';
+            const name = obj.name || obj.tool_name;
+            const argsStr = toolArgBuf[id] || obj.arguments || '{}';
+            const args = JSON.parse(argsStr || '{}');
+            callBackendTool(name, args)
+              .then(result => {
+                const text = `[${name}] success: ${JSON.stringify(result)}`;
+                // Show in UI
+                window.__chatAddMessage(text, 'user');
+                // Feed result back to model
+                try {
+                  dc.send(JSON.stringify({ type: 'conversation.item.create', item: { type: 'message', role: 'user', content: [ { type: 'input_text', text } ] } }));
+                  dc.send(JSON.stringify({ type: 'response.create' }));
+                } catch (e) { console.error('feed result failed', e); }
+              })
+              .catch(err => {
+                const text = `[${name}] error: ${err.message}`;
+                window.__chatAddMessage(text, 'user');
+                try { window.__appendToolLog && window.__appendToolLog({ name, args, status: 'error', error: err.message }); } catch(_){ }
+                try { dc.send(JSON.stringify({ type: 'conversation.item.create', item: { type: 'message', role: 'user', content: [ { type: 'input_text', text } ] } })); dc.send(JSON.stringify({ type: 'response.create' })); } catch(_){}
+              });
+          } catch (e){ console.error('tool call parse/exec failed', e); }
+          break;
+        }
         default:
           break;
       }
@@ -174,6 +294,7 @@
         dc.addEventListener('open', () => {
           console.log('DataChannel open');
           inputEl.disabled = false; sendBtn.disabled = false;
+          registerTools();
         });
         dc.addEventListener('message', (e) => {
           try { handleServerEvent(JSON.parse(e.data)); } catch(_) { console.log('Server raw:', e.data); }
@@ -238,4 +359,3 @@
     inputEl.addEventListener('keydown', function(e){ if (e.key === 'Enter') sendText(); });
   })();
 </script>
-

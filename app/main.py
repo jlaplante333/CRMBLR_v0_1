@@ -69,11 +69,21 @@ def mint_ephemeral_token(user=Depends(require_user)):
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
         return JSONResponse({"error": "OPENAI_API_KEY not configured"}, status_code=500)
+    # Load instructions from file, if present
+    instr_path = os.getenv("INSTRUCTION_FILE", os.path.join(os.path.dirname(__file__), "instruction.md"))
+    instructions = None
+    try:
+        with open(instr_path, "r", encoding="utf-8") as f:
+            instructions = f.read()
+    except Exception:
+        instructions = None
+
     session_config = {
         "session": {
             "type": "realtime",
             "model": "gpt-realtime",
             "audio": {"output": {"voice": "marin"}},
+            **({"instructions": instructions} if instructions else {}),
         }
     }
     try:
@@ -89,6 +99,61 @@ def mint_ephemeral_token(user=Depends(require_user)):
         return Response(resp.text, status_code=resp.status_code, media_type="application/json")
     except requests.RequestException as e:
         return JSONResponse({"error": "Failed to generate token"}, status_code=500)
+
+
+def _user_index(user: dict, collection: str) -> str:
+    sub = user.get("sub") or user.get("email") or "anon"
+    safe = (collection or "default").strip().lower()
+    return f"users-{sub}-{safe}"
+
+
+@app.post("/tool")
+def execute_tool(payload: dict, user=Depends(require_user)):
+    name = payload.get("name")
+    args = payload.get("arguments") or {}
+    try:
+        if name == "list_docs":
+            collection = args.get("collection")
+            index = _user_index(user, collection)
+            size = int(args.get("size") or 50)
+            frm = int(args.get("from") or 0)
+            query = args.get("query") or {"match_all": {}}
+            if not es_client.indices.exists(index=index):
+                return {"ok": True, "result": {"hits": {"total": 0, "hits": []}}}
+            res = es_client.search(index=index, body={"query": query}, size=size, from_=frm)
+            return {"ok": True, "result": res}
+        elif name == "create_doc":
+            collection = args.get("collection")
+            index = _user_index(user, collection)
+            doc = args["doc"]
+            res = es_client.index(index=index, document=doc, refresh="wait_for")
+            return {"ok": True, "result": res}
+        elif name == "get_doc":
+            collection = args.get("collection")
+            index = _user_index(user, collection)
+            _id = args["id"]
+            res = es_client.get(index=index, id=_id)
+            return {"ok": True, "result": res}
+        elif name == "update_doc":
+            collection = args.get("collection")
+            index = _user_index(user, collection)
+            _id = args["id"]
+            doc = args["doc"]
+            # Upsert-like behavior via index overwrite
+            source = es_client.get(index=index, id=_id).get("_source", {})
+            source.update(doc)
+            res = es_client.index(index=index, id=_id, document=source, refresh="wait_for")
+            return {"ok": True, "result": res}
+        elif name == "delete_doc":
+            collection = args.get("collection")
+            index = _user_index(user, collection)
+            _id = args["id"]
+            res = es_client.delete(index=index, id=_id, ignore=[404], refresh="wait_for")
+            return {"ok": True, "result": res}
+        else:
+            return JSONResponse({"ok": False, "error": f"Unknown tool {name}"}, status_code=400)
+    except Exception as e:
+        return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
 
 
 @app.get("/login", response_class=HTMLResponse)

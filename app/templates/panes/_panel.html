@@ -1,7 +1,41 @@
 <aside class="pane split-right">
   <div class="pane-header">Panel</div>
   <div class="pane-body">
-    <p>Tools and context panel. Voice controls are in the Chat pane.</p>
+    <h3 style="margin-top:0">Function Calls</h3>
+    <ul id="tool-log" style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px"></ul>
   </div>
 </aside>
 
+<script>
+  (function(){
+    function appendToolLog(entry){
+      var list = document.getElementById('tool-log');
+      if (!list) return;
+      var li = document.createElement('li');
+      li.style.border = '1px solid var(--border)';
+      li.style.borderRadius = '8px';
+      li.style.padding = '8px 10px';
+      var title = document.createElement('div');
+      title.style.fontWeight = '600';
+      title.textContent = (entry.name || 'tool') + ' • ' + (entry.status || 'started');
+      var args = document.createElement('pre');
+      args.style.margin = '6px 0 0';
+      args.style.whiteSpace = 'pre-wrap';
+      args.style.fontSize = '12px';
+      args.textContent = entry.args ? JSON.stringify(entry.args, null, 2) : '';
+      var res = document.createElement('pre');
+      res.style.margin = '6px 0 0';
+      res.style.whiteSpace = 'pre-wrap';
+      res.style.fontSize = '12px';
+      if (entry.error){ res.textContent = 'Error: ' + entry.error; res.style.color = '#b91c1c'; }
+      else if (entry.result){ res.textContent = JSON.stringify(entry.result, null, 2); }
+      li.appendChild(title);
+      if (entry.args) li.appendChild(args);
+      if (entry.result || entry.error) li.appendChild(res);
+      list.prepend(li); // latest on top
+      // Trim to last 50 entries
+      while (list.children.length > 50) list.removeChild(list.lastChild);
+    }
+    window.__appendToolLog = appendToolLog;
+  })();
+</script>
