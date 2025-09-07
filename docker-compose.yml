@@ -21,7 +21,7 @@ services:
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
     ports:
-      - "8001:8000"
+      - "8000:8000"
     depends_on:
       - es
     restart: on-failure

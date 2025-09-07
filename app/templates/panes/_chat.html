@@ -63,11 +63,13 @@
     function micOff(){ mic.classList.add('mic--hidden'); }
 
     const toolArgBuf = Object.create(null); // tool_call_id -> string buffer
+    const toolMetaByItem = Object.create(null); // item_id -> { name, call_id }
 
     function registerTools(){
       if (!dc) return;
       const tools = [
         {
+          type: "function",
           name: "list_docs",
           description: "List documents in a collection",
           parameters: {
@@ -83,6 +85,7 @@
           }
         },
         {
+          type: "function",
           name: "create_doc",
           description: "Create a document in an Elasticsearch index",
           parameters: {
@@ -96,6 +99,7 @@
           }
         },
         {
+          type: "function",
           name: "get_doc",
           description: "Get a document by id",
           parameters: {
@@ -108,6 +112,7 @@
           }
         },
         {
+          type: "function",
           name: "update_doc",
           description: "Update a document by id (merge fields)",
           parameters: {
@@ -122,6 +127,7 @@
           }
         },
         {
+          type: "function",
           name: "delete_doc",
           description: "Delete a document by id",
           parameters: {
@@ -135,7 +141,7 @@
         }
       ];
       try {
-        dc.send(JSON.stringify({ type: 'session.update', session: { tools } }));
+        dc.send(JSON.stringify({ type: 'session.update', session: { tools, tool_choice: 'auto' } }));
       } catch (e) { console.warn('Failed to register tools', e); }
     }
 
@@ -152,6 +158,10 @@
     function handleServerEvent(obj){
       console.log('Server event:', obj);
       switch (obj.type){
+        case 'error': {
+          try { window.__appendToolLog && window.__appendToolLog({ name: 'error', status: 'error', error: JSON.stringify(obj.error || obj) }); } catch(_){ }
+          break;
+        }
         case 'session.created':
           setStatus('Connected');
           break;
@@ -209,9 +219,14 @@
         }
         case 'response.output_item.added': {
           var item = obj.item || {}; // sometimes included
-          var id = (item && item.id) || obj.item_id;
-          var li3 = window.__chatAddMessage('', 'bot', id);
-          assistantItems[id] = li3;
+          if (item.type === 'function_call'){
+            toolMetaByItem[item.id] = { name: item.name, call_id: item.call_id };
+            try { window.__appendToolLog && window.__appendToolLog({ name: item.name || 'function', status: 'started', args: {} }); } catch(_){ }
+          } else {
+            var id = (item && item.id) || obj.item_id;
+            var li3 = window.__chatAddMessage('', 'bot', id);
+            assistantItems[id] = li3;
+          }
           break;
         }
         case 'response.output_audio_transcript.delta': {
@@ -239,15 +254,17 @@
           break;
         // Tool calling (collect args, then execute)
         case 'response.function_call_arguments.delta': {
-          const id = obj.call_id || obj.item_id || obj.id || 'default';
+          const id = obj.item_id || obj.id || obj.call_id || 'default';
           const chunk = obj.delta || obj.arguments || '';
           toolArgBuf[id] = (toolArgBuf[id] || '') + chunk;
           break;
         }
         case 'response.function_call_arguments.done': {
           try {
-            const id = obj.call_id || obj.item_id || obj.id || 'default';
-            const name = obj.name || obj.tool_name;
+            const id = obj.item_id || obj.id || obj.call_id || 'default';
+            const meta = toolMetaByItem[id] || {};
+            const name = meta.name || obj.name || obj.tool_name;
+            const callId = meta.call_id || obj.call_id;
             const argsStr = toolArgBuf[id] || obj.arguments || '{}';
             const args = JSON.parse(argsStr || '{}');
             callBackendTool(name, args)
@@ -255,17 +272,30 @@
                 const text = `[${name}] success: ${JSON.stringify(result)}`;
                 // Show in UI
                 window.__chatAddMessage(text, 'user');
-                // Feed result back to model
+                // Feed result back to model as function_call_output
                 try {
-                  dc.send(JSON.stringify({ type: 'conversation.item.create', item: { type: 'message', role: 'user', content: [ { type: 'input_text', text } ] } }));
-                  dc.send(JSON.stringify({ type: 'response.create' }));
+                  if (callId){
+                    dc.send(JSON.stringify({ type: 'conversation.item.create', item: { type: 'function_call_output', call_id: callId, output: JSON.stringify(result) } }));
+                    dc.send(JSON.stringify({ type: 'response.create' }));
+                  } else {
+                    dc.send(JSON.stringify({ type: 'conversation.item.create', item: { type: 'message', role: 'user', content: [ { type: 'input_text', text } ] } }));
+                    dc.send(JSON.stringify({ type: 'response.create' }));
+                  }
                 } catch (e) { console.error('feed result failed', e); }
               })
               .catch(err => {
                 const text = `[${name}] error: ${err.message}`;
                 window.__chatAddMessage(text, 'user');
                 try { window.__appendToolLog && window.__appendToolLog({ name, args, status: 'error', error: err.message }); } catch(_){ }
-                try { dc.send(JSON.stringify({ type: 'conversation.item.create', item: { type: 'message', role: 'user', content: [ { type: 'input_text', text } ] } })); dc.send(JSON.stringify({ type: 'response.create' })); } catch(_){}
+                try {
+                  if (callId){
+                    dc.send(JSON.stringify({ type: 'conversation.item.create', item: { type: 'function_call_output', call_id: callId, output: JSON.stringify({ error: err.message }) } }));
+                    dc.send(JSON.stringify({ type: 'response.create' }));
+                  } else {
+                    dc.send(JSON.stringify({ type: 'conversation.item.create', item: { type: 'message', role: 'user', content: [ { type: 'input_text', text } ] } }));
+                    dc.send(JSON.stringify({ type: 'response.create' }));
+                  }
+                } catch(_){}
               });
           } catch (e){ console.error('tool call parse/exec failed', e); }
           break;

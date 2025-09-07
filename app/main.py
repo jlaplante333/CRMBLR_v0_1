@@ -78,11 +78,88 @@ def mint_ephemeral_token(user=Depends(require_user)):
     except Exception:
         instructions = None
 
+    # Define basic function tools available to the session from the start
+    tools = [
+        {
+            "type": "function",
+            "name": "list_docs",
+            "description": "List documents in a collection",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "collection": {"type": "string"},
+                    "query": {"type": "object"},
+                    "size": {"type": "integer"},
+                    "from": {"type": "integer"},
+                },
+                "required": ["collection"],
+                "additionalProperties": True,
+            },
+        },
+        {
+            "type": "function",
+            "name": "create_doc",
+            "description": "Create a document in a collection",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "collection": {"type": "string"},
+                    "doc": {"type": "object"},
+                },
+                "required": ["collection", "doc"],
+                "additionalProperties": True,
+            },
+        },
+        {
+            "type": "function",
+            "name": "get_doc",
+            "description": "Get a document by id",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "collection": {"type": "string"},
+                    "id": {"type": "string"},
+                },
+                "required": ["collection", "id"],
+            },
+        },
+        {
+            "type": "function",
+            "name": "update_doc",
+            "description": "Update a document by id (merge fields)",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "collection": {"type": "string"},
+                    "id": {"type": "string"},
+                    "doc": {"type": "object"},
+                },
+                "required": ["collection", "id", "doc"],
+                "additionalProperties": True,
+            },
+        },
+        {
+            "type": "function",
+            "name": "delete_doc",
+            "description": "Delete a document by id",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "collection": {"type": "string"},
+                    "id": {"type": "string"},
+                },
+                "required": ["collection", "id"],
+            },
+        },
+    ]
+
     session_config = {
         "session": {
             "type": "realtime",
             "model": "gpt-realtime",
             "audio": {"output": {"voice": "marin"}},
+            "tools": tools,
+            "tool_choice": "auto",
             **({"instructions": instructions} if instructions else {}),
         }
     }
