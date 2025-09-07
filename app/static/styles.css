@@ -109,3 +109,13 @@ body {
   .split { flex-direction: column }
   .split .pane { border-right: 0; border-bottom: 1px solid var(--border) }
 }
+
+/* Mic indicator */
+.mic { display:inline-flex; align-items:center; gap:6px }
+.mic--hidden { display:none }
+.mic-dot { width:10px; height:10px; border-radius:50%; background:#ef4444; position:relative; box-shadow:0 0 0 0 rgba(239,68,68,0.7); animation: mic-pulse 1.4s infinite }
+@keyframes mic-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(239,68,68,0.7) }
+  70% { box-shadow: 0 0 0 7px rgba(239,68,68,0) }
+  100% { box-shadow: 0 0 0 0 rgba(239,68,68,0) }
+}

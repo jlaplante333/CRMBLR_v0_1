@@ -1,0 +1,241 @@
+<section class="pane split-left">
+  <div class="pane-header" style="display:flex; align-items:center; gap:8px; justify-content:space-between">
+    <span style="display:flex; align-items:center; gap:8px">
+      <span>Chat</span>
+      <span id="mic-indicator" class="mic mic--hidden"><span class="mic-dot"></span><span class="mic-label">Listening…</span></span>
+    </span>
+    <span>
+      <button id="start-voice" type="button" class="btn">Start Voice</button>
+      <button id="stop-voice" type="button" class="btn" style="display:none">Stop</button>
+    </span>
+  </div>
+  <div class="pane-body">
+    <div class="chat">
+      <ul id="chat-messages" class="chat-messages" aria-live="polite">
+        <li class="chat-msg bot">Welcome to CRMBLR. Press “Start Voice”.</li>
+      </ul>
+      <div style="margin-top:8px; color: var(--muted); font-size:12px" id="voice-status"></div>
+      <form id="chat-form" class="chat-input" onsubmit="return false">
+        <input id="chat-input" type="text" placeholder="Type a message…" autocomplete="off" aria-label="Chat input" disabled />
+        <button id="chat-send" type="button" disabled>Send</button>
+      </form>
+      <audio id="oai-audio" autoplay></audio>
+    </div>
+  </div>
+</section>
+
+<script>
+  (function(){
+    var list = document.getElementById('chat-messages');
+    function addMessage(text, who, id){
+      var li = document.createElement('li');
+      li.className = 'chat-msg ' + (who || 'user');
+      if (id) li.dataset.itemId = id;
+      li.textContent = text;
+      list.appendChild(li);
+      list.parentElement.scrollTop = list.parentElement.scrollHeight;
+      return li;
+    }
+    window.__chatAddMessage = addMessage;
+  })();
+</script>
+
+<script>
+  (function(){
+    var startBtn = document.getElementById('start-voice');
+    var stopBtn = document.getElementById('stop-voice');
+    var statusEl = document.getElementById('voice-status');
+    var audioEl = document.getElementById('oai-audio');
+    var pc = null; var dc = null; var ms = null;
+    var inputEl = document.getElementById('chat-input');
+    var sendBtn = document.getElementById('chat-send');
+    var token = localStorage.getItem('crmb_lr_jwt');
+    if (!token){ window.location.href = '/login'; return; }
+
+    var assistantItems = Object.create(null); // assistant item_id -> <li>
+    var userItems = Object.create(null); // user item_id -> <li>
+    var userText = Object.create(null); // user item_id -> transcript buffer
+
+    function setStatus(t){ statusEl.textContent = t || ''; }
+
+    var mic = document.getElementById('mic-indicator');
+    function micOn(){ mic.classList.remove('mic--hidden'); }
+    function micOff(){ mic.classList.add('mic--hidden'); }
+
+    function handleServerEvent(obj){
+      console.log('Server event:', obj);
+      switch (obj.type){
+        case 'session.created':
+          setStatus('Connected');
+          break;
+        case 'input_audio_buffer.speech_started': {
+          var li = window.__chatAddMessage('Listening…', 'user');
+          userItems[obj.item_id] = li;
+          micOn();
+          break;
+        }
+        case 'input_audio_buffer.speech_stopped': {
+          var li2 = userItems[obj.item_id];
+          if (li2){ li2.textContent = 'Audio received'; }
+          micOff();
+          break;
+        }
+        case 'input_audio_buffer.committed': {
+          var lu = userItems[obj.item_id];
+          if (lu){ lu.textContent = 'Audio received'; }
+          micOff();
+          break;
+        }
+        case 'input_audio_buffer.transcript.delta': {
+          var current = userText[obj.item_id] || '';
+          var d = obj.delta || obj.transcript || '';
+          current += d;
+          userText[obj.item_id] = current;
+          var lu = userItems[obj.item_id] || window.__chatAddMessage('', 'user');
+          userItems[obj.item_id] = lu;
+          lu.textContent = current;
+          break;
+        }
+        case 'input_audio_buffer.transcript.done': {
+          if (obj.transcript){ userText[obj.item_id] = obj.transcript; }
+          var lu2 = userItems[obj.item_id];
+          if (lu2 && userText[obj.item_id]){ lu2.textContent = userText[obj.item_id]; }
+          micOff();
+          break;
+        }
+        case 'conversation.item.added': {
+          var it = obj.item || {};
+          if (it.role === 'user'){
+            var id = it.id || obj.item_id;
+            var lu3 = userItems[id] || window.__chatAddMessage('', 'user', id);
+            userItems[id] = lu3;
+            var t = userText[id];
+            if (t && (!lu3.textContent || lu3.textContent === 'Listening…' || lu3.textContent === 'Audio received')){
+              lu3.textContent = t;
+            }
+          } else if (it.role === 'assistant'){
+            var aid = it.id || obj.item_id;
+            var la = window.__chatAddMessage('', 'bot', aid);
+            assistantItems[aid] = la;
+          }
+          break;
+        }
+        case 'response.output_item.added': {
+          var item = obj.item || {}; // sometimes included
+          var id = (item && item.id) || obj.item_id;
+          var li3 = window.__chatAddMessage('', 'bot', id);
+          assistantItems[id] = li3;
+          break;
+        }
+        case 'response.output_audio_transcript.delta': {
+          var t = obj.delta || obj.transcript || '';
+          var target = assistantItems[obj.item_id];
+          if (target){ target.textContent += t; }
+          break;
+        }
+        case 'response.output_audio_transcript.done': {
+          var target2 = assistantItems[obj.item_id];
+          if (target2 && obj.transcript){ target2.textContent = obj.transcript; }
+          break;
+        }
+        case 'response.content_part.done': {
+          var p = obj.part || {};
+          if (p && p.transcript){
+            var target3 = assistantItems[obj.item_id] || window.__chatAddMessage('', 'bot', obj.item_id);
+            target3.textContent = p.transcript;
+            assistantItems[obj.item_id] = target3;
+          }
+          break;
+        }
+        case 'response.done':
+          setStatus('Ready');
+          break;
+        default:
+          break;
+      }
+    }
+
+    async function startVoice(){
+      try {
+        startBtn.disabled = true; setStatus('Connecting…');
+        const tokenResp = await fetch('/token', { headers: { Authorization: 'Bearer ' + token }});
+        if (!tokenResp.ok){ throw new Error('Failed to fetch token'); }
+        const data = await tokenResp.json();
+        const EPHEMERAL_KEY = data && (data.value || data.client_secret || data.token || data.key);
+        if (!EPHEMERAL_KEY){ throw new Error('No ephemeral key returned'); }
+
+        pc = new RTCPeerConnection();
+        pc.ontrack = (e) => { audioEl.srcObject = e.streams[0]; };
+
+        ms = await navigator.mediaDevices.getUserMedia({ audio: true });
+        pc.addTrack(ms.getTracks()[0]);
+
+        dc = pc.createDataChannel('oai-events');
+        dc.addEventListener('open', () => {
+          console.log('DataChannel open');
+          inputEl.disabled = false; sendBtn.disabled = false;
+        });
+        dc.addEventListener('message', (e) => {
+          try { handleServerEvent(JSON.parse(e.data)); } catch(_) { console.log('Server raw:', e.data); }
+        });
+
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+
+        const baseUrl = 'https://api.openai.com/v1/realtime/calls';
+        const model = 'gpt-realtime';
+        const sdpResponse = await fetch(`${baseUrl}?model=${model}`, {
+          method: 'POST',
+          body: offer.sdp,
+          headers: { Authorization: `Bearer ${EPHEMERAL_KEY}`, 'Content-Type': 'application/sdp' },
+        });
+        const answer = { type: 'answer', sdp: await sdpResponse.text() };
+        await pc.setRemoteDescription(answer);
+
+        stopBtn.style.display = '';
+        startBtn.style.display = 'none';
+        setStatus('Ready');
+      } catch (err){
+        console.error(err);
+        alert('Voice session failed: ' + err.message);
+        startBtn.disabled = false; setStatus('');
+      }
+    }
+
+    async function stopVoice(){
+      try {
+        setStatus('Disconnecting…');
+        if (dc){ dc.close(); dc = null; }
+        if (pc){ pc.close(); pc = null; }
+        if (ms){ ms.getTracks().forEach(t => t.stop()); ms = null; }
+      } finally {
+        stopBtn.style.display = 'none';
+        startBtn.style.display = '';
+        startBtn.disabled = false; setStatus('');
+        inputEl.disabled = true; sendBtn.disabled = true;
+        micOff();
+      }
+    }
+
+    startBtn.addEventListener('click', startVoice);
+    stopBtn.addEventListener('click', stopVoice);
+
+    async function sendText(){
+      var text = (inputEl.value || '').trim();
+      if (!text) return;
+      if (!dc || dc.readyState !== 'open'){ alert('Voice session not connected. Start Voice first.'); return; }
+      window.__chatAddMessage(text, 'user');
+      inputEl.value = '';
+      try {
+        dc.send(JSON.stringify({
+          type: 'conversation.item.create',
+          item: { type: 'message', role: 'user', content: [ { type: 'input_text', text } ] }
+        }));
+        dc.send(JSON.stringify({ type: 'response.create' }));
+      } catch (e){ console.error('send failed', e); }
+    }
+    sendBtn.addEventListener('click', sendText);
+    inputEl.addEventListener('keydown', function(e){ if (e.key === 'Enter') sendText(); });
+  })();
+</script>
+
