@@ -1,0 +1,18 @@
+<header class="site-header">
+  <div class="container container--fluid header-bar">
+    <a href="/" class="brand brand--logo" aria-label="CRMBLR home">
+      <img src="/static/crmblr-logo.svg" alt="crmblr" />
+    </a>
+    <div class="header-actions">
+      <button id="user-menu-btn" class="btn btn--secondary btn--sm header-avatar" type="button" aria-haspopup="true" aria-expanded="false" style="display:none">
+        <img id="hdr-avatar" alt="user" />
+        <span id="hdr-initials" class="badge"></span>
+      </button>
+      <div id="user-menu" class="menu" role="menu" style="display:none">
+        <div class="menu__item menu__meta" id="menu-email" role="none"></div>
+        <button class="menu__item" id="menu-theme" type="button" role="menuitem">Toggle theme</button>
+        <button class="menu__item" id="menu-disconnect" type="button" role="menuitem">Disconnect</button>
+      </div>
+    </div>
+  </div>
+</header>

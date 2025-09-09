@@ -1,0 +1,56 @@
+{% macro button(label, variant='primary', type='button', id=None, extra_classes='') -%}
+  {%- set classes = 'btn btn--' + variant + (' ' + extra_classes if extra_classes else '') -%}
+  <button class="{{ classes }}" type="{{ type }}"{% if id %} id="{{ id }}"{% endif %}>{{ label }}</button>
+{%- endmacro %}
+
+{% macro input(name, type='text', placeholder='', value='', required=False, id=None) -%}
+  <div class="field">
+    <input class="input" name="{{ name }}" type="{{ type }}" placeholder="{{ placeholder }}" value="{{ value }}"{% if required %} required{% endif %}{% if id %} id="{{ id }}"{% endif %} />
+  </div>
+{%- endmacro %}
+
+{% macro textarea(name, placeholder='', value='', rows=4, required=False, id=None) -%}
+  <div class="field">
+    <textarea class="textarea" name="{{ name }}" rows="{{ rows }}" placeholder="{{ placeholder }}"{% if required %} required{% endif %}{% if id %} id="{{ id }}"{% endif %}>{{ value }}</textarea>
+  </div>
+{%- endmacro %}
+
+{% macro select(name, options=[], value='', id=None, required=False) -%}
+  <div class="field">
+    <select class="select" name="{{ name }}"{% if id %} id="{{ id }}"{% endif %}{% if required %} required{% endif %}>
+      {% for opt in options %}
+        {# opt can be (value, label) or string #}
+        {% set ov = opt[0] if opt is sequence else opt %}
+        {% set ol = opt[1] if opt is sequence else opt %}
+        <option value="{{ ov }}"{% if ov == value %} selected{% endif %}>{{ ol }}</option>
+      {% endfor %}
+    </select>
+  </div>
+{%- endmacro %}
+
+{% macro checkbox(name, label_text, checked=False, id=None) -%}
+  <label class="check"> <input type="checkbox" name="{{ name }}"{% if id %} id="{{ id }}"{% endif %}{% if checked %} checked{% endif %}/> {{ label_text }}</label>
+{%- endmacro %}
+
+{% macro label(for_id, text) -%}
+  <label class="label" for="{{ for_id }}">{{ text }}</label>
+{%- endmacro %}
+
+{% macro divider(text='or') -%}
+  <div class="divider"><span>{{ text }}</span></div>
+{%- endmacro %}
+
+{% macro alert(text, kind='info') -%}
+  <div class="alert alert--{{ kind }}">{{ text }}</div>
+{%- endmacro %}
+
+{% macro badge(text, variant='secondary') -%}
+  <span class="badge badge--{{ variant }}">{{ text }}</span>
+{%- endmacro %}
+
+{% macro card(title=None) -%}
+  <div class="card">
+    {% if title %}<div class="card__header">{{ title }}</div>{% endif %}
+    <div class="card__body">{% if caller %}{% call caller() %}{% endcall %}{% endif %}</div>
+  </div>
+{%- endmacro %}

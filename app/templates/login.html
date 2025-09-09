@@ -4,23 +4,57 @@
 {% block main_class %}container container--fluid{% endblock %}
 
 {% block content %}
+  {% import 'components/macros.html' as ui %}
   <div class="split">
-    <section class="pane split-left">
-      <div class="pane-body">
-        <div class="hero-section">
-          <div class="hero-visual">crmblr</div>
-          <h1 class="logo">crmblr</h1>
-          <p class="tagline">
-            Build <span class="highlight">conversational CRM workflows</span> 
-            with a split-screen workspace and voice.
-          </p>
-        </div>
+    <section class="pane split-left login-left">
+      <div class="login-bg-illustration" aria-hidden="true">
+        <!-- Minimal, elegant table-themed SVG background -->
+        <svg class="bg-illustration" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">
+          <g fill="none" stroke="var(--border)" stroke-width="1.2" opacity="0.6">
+            <!-- Table outlines -->
+            <rect x="80" y="80" width="460" height="220" rx="12"/>
+            <rect x="660" y="140" width="420" height="200" rx="12"/>
+            <rect x="120" y="420" width="500" height="230" rx="12"/>
+            <!-- Header rows -->
+            <line x1="80" y1="120" x2="540" y2="120"/>
+            <line x1="660" y1="180" x2="1080" y2="180"/>
+            <line x1="120" y1="460" x2="620" y2="460"/>
+            <!-- Columns -->
+            <line x1="220" y1="80" x2="220" y2="300"/>
+            <line x1="780" y1="140" x2="780" y2="340"/>
+            <line x1="320" y1="420" x2="320" y2="650"/>
+            <!-- Row hints -->
+            <line x1="80" y1="160" x2="540" y2="160" opacity="0.6"/>
+            <line x1="80" y1="200" x2="540" y2="200" opacity="0.4"/>
+            <line x1="660" y1="220" x2="1080" y2="220" opacity="0.6"/>
+            <line x1="660" y1="260" x2="1080" y2="260" opacity="0.4"/>
+            <line x1="120" y1="500" x2="620" y2="500" opacity="0.6"/>
+            <line x1="120" y1="540" x2="620" y2="540" opacity="0.4"/>
+            <!-- Insert icons (subtle plus signs) -->
+            <g opacity="0.5">
+              <line x1="240" y1="230" x2="260" y2="230"/>
+              <line x1="250" y1="220" x2="250" y2="240"/>
+              <line x1="880" y1="300" x2="900" y2="300"/>
+              <line x1="890" y1="290" x2="890" y2="310"/>
+              <line x1="420" y1="610" x2="440" y2="610"/>
+              <line x1="430" y1="600" x2="430" y2="620"/>
+            </g>
+          </g>
+        </svg>
+      </div>
+      <div class="login-left-inner">
+        <img class="login-logo" src="/static/crmblr-logo.svg" alt="CRMBLR logo" />
+        <h3 class="login-title">A new kind of CRM</h3>
+   
+        <p class="login-subtitle">
+          crmblr adapts to your needs and create the perfect CRM for your business.
+        </p>
       </div>
     </section>
     <aside class="pane split-right">
-      <div class="pane-header">Welcome back</div>
+      <div class="pane-header">Welcome</div>
       <div class="pane-body">
-        <p style="color: var(--gray-700); margin-bottom: 1.5rem;">Continue with Google or sign in with your email.</p>
+       
         <div id="g_id_onload"
              data-client_id="{{ google_client_id }}"
              data-context="signin"
@@ -30,23 +64,23 @@
         </div>
         <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="signin_with" data-shape="rect" data-logo_alignment="left"></div>
 
-        <hr />
+        {{ ui.divider('or') }}
 
         <div>
-          <div style="display:flex; gap:8px; margin-bottom:8px">
-            <button id="tab-signin" class="btn" type="button">Sign in</button>
-            <button id="tab-signup" class="btn" type="button">Sign up</button>
+          <div class="stack">
+            {{ ui.button('Sign in', variant='primary', id='tab-signin') }}
+            {{ ui.button('Sign up', variant='primary', id='tab-signup') }}
           </div>
-          <form id="form-signin" onsubmit="return false" style="display:block;">
-            <input id="si-email" type="email" placeholder="Email" required />
-            <input id="si-password" type="password" placeholder="Password" required />
-            <button id="btn-signin" class="btn-primary" type="button">Sign in</button>
+          <form id="form-signin" onsubmit="return false" style="display:block; margin-top:8px;">
+            {{ ui.input('si-email', type='email', placeholder='Email', required=True, id='si-email') }}
+            {{ ui.input('si-password', type='password', placeholder='Password', required=True, id='si-password') }}
+            {{ ui.button('Sign in', variant='primary', id='btn-signin') }}
           </form>
-          <form id="form-signup" onsubmit="return false" style="display:none;">
-            <input id="su-name" type="text" placeholder="Name (optional)" />
-            <input id="su-email" type="email" placeholder="Email" required />
-            <input id="su-password" type="password" placeholder="Password" required />
-            <button id="btn-signup" class="btn-primary" type="button">Create account</button>
+          <form id="form-signup" onsubmit="return false" style="display:none; margin-top:8px;">
+            {{ ui.input('su-name', type='text', placeholder='Name (optional)', id='su-name') }}
+            {{ ui.input('su-email', type='email', placeholder='Email', required=True, id='su-email') }}
+            {{ ui.input('su-password', type='password', placeholder='Password', required=True, id='su-password') }}
+            {{ ui.button('Create account', variant='primary', id='btn-signup') }}
           </form>
         </div>
       </div>
@@ -104,7 +138,8 @@
       async function signup(){
         var email = document.getElementById('su-email').value.trim();
         var password = document.getElementById('su-password').value;
-        var name = document.getElementById('su-name').value.trim();
+        var nameEl = document.getElementById('su-name');
+        var name = nameEl ? nameEl.value.trim() : '';
         const r = await fetch('/auth/signup', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email, password, name }) });
         const data = await r.json();
         if (!r.ok){ alert(data.error || 'Sign up failed'); return; }

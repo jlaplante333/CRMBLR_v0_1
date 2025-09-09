@@ -4,17 +4,26 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>CRMBLR</title>
+    <script>
+      (function(){
+        try {
+          var pref = localStorage.getItem('crmb_theme');
+          if (pref === 'dark' || (!pref && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+          } else {
+            document.documentElement.setAttribute('data-theme', 'light');
+          }
+        } catch(e) {}
+      })();
+    </script>
     <link rel="stylesheet" href="/static/styles.css" />
+    <link rel="stylesheet" href="/static/components.css" />
     <link rel="stylesheet" href="/static/login-styles.css" />
     <script src="https://unpkg.com/htmx.org@1.9.12"></script>
-    <link rel="icon" href="/static/nibbins.svg" type="image/svg+xml" />
+    <link rel="icon" href="/static/crmblr-logo.svg" type="image/svg+xml" />
   </head>
   <body class="{% block body_class %}{% endblock %}">
-    <header class="site-header">
-      <div class="container">
-        <a href="/" class="brand" aria-label="CRMBLR home">CRMBLR</a>
-      </div>
-    </header>
+    {% include 'components/header.html' %}
     <main class="{% block main_class %}container{% endblock %}">
       {% block content %}{% endblock %}
     </main>
@@ -24,4 +33,79 @@
       </div>
     </footer>
   </body>
+  <script>
+    (function(){
+      var t = document.getElementById('theme-toggle');
+      if (t) {
+      function setTheme(mode){
+        document.documentElement.setAttribute('data-theme', mode);
+        try { localStorage.setItem('crmb_theme', mode); } catch(e){}
+      }
+      t.addEventListener('click', function(){
+        var cur = document.documentElement.getAttribute('data-theme') || 'light';
+        setTheme(cur === 'light' ? 'dark' : 'light');
+      });
+      }
+    })();
+    (function(){
+      var token = localStorage.getItem('crmb_lr_jwt');
+      var menuBtn = document.getElementById('user-menu-btn');
+      var menu = document.getElementById('user-menu');
+      var avatar = document.getElementById('hdr-avatar');
+      var initials = document.getElementById('hdr-initials');
+      var emailEl = document.getElementById('menu-email');
+      var themeBtn = document.getElementById('menu-theme');
+      var disconnectBtn = document.getElementById('menu-disconnect');
+
+      function setTheme(mode){
+        document.documentElement.setAttribute('data-theme', mode);
+        try { localStorage.setItem('crmb_theme', mode); } catch(e){}
+      }
+      if (themeBtn){
+        themeBtn.addEventListener('click', function(){
+          var cur = document.documentElement.getAttribute('data-theme') || 'light';
+          setTheme(cur === 'light' ? 'dark' : 'light');
+        });
+      }
+      if (disconnectBtn){
+        disconnectBtn.addEventListener('click', function(){
+          try { localStorage.removeItem('crmb_lr_jwt'); } catch(e){}
+          window.location.href = '/login';
+        });
+      }
+
+      function toggleMenu(show){
+        if (!menu) return;
+        var s = (typeof show === 'boolean') ? show : (menu.style.display === 'none' || !menu.style.display);
+        menu.style.display = s ? 'block' : 'none';
+        if (menuBtn) menuBtn.setAttribute('aria-expanded', s ? 'true' : 'false');
+      }
+      if (menuBtn){
+        menuBtn.addEventListener('click', function(e){ e.stopPropagation(); toggleMenu(true); });
+        document.addEventListener('click', function(){ toggleMenu(false); });
+      }
+
+      // Populate user
+      function setUserUI(u){
+        if (!menuBtn) return;
+        menuBtn.style.display = '';
+        if (u && u.email && emailEl){ emailEl.textContent = u.email; }
+        var name = (u && (u.name || u.email)) || '';
+        if (u && u.picture){
+          avatar.src = u.picture; avatar.style.display='block';
+          initials.style.display='none';
+        } else {
+          var parts = (name || '').trim().split(/\s+/).filter(Boolean);
+          var text = parts.length ? (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase() : 'U';
+          initials.textContent = text; initials.style.display='inline-flex';
+          avatar.style.display='none';
+        }
+      }
+      if (!token){ setUserUI(null); return; }
+      fetch('/me', { headers: { 'Authorization': 'Bearer ' + token } }).then(function(r){
+        if (!r.ok) { setUserUI(null); return; }
+        return r.json();
+      }).then(function(u){ setUserUI(u || null); }).catch(function(){ setUserUI(null); });
+    })();
+  </script>
   </html>

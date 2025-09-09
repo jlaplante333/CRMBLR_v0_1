@@ -1,20 +1,17 @@
 <section class="pane split-left">
-  <div class="pane-header" style="display:flex; align-items:center; gap:8px; justify-content:space-between">
-    <span style="display:flex; align-items:center; gap:8px">
-      <span>Chat</span>
-      <span id="mic-indicator" class="mic mic--hidden"><span class="mic-dot"></span><span class="mic-label">Listening…</span></span>
-    </span>
-    <span>
-      <button id="start-voice" type="button" class="btn">Start Voice</button>
-      <button id="stop-voice" type="button" class="btn" style="display:none">Stop</button>
-    </span>
-  </div>
   <div class="pane-body">
     <div class="chat">
-      <ul id="chat-messages" class="chat-messages" aria-live="polite">
-        <li class="chat-msg bot">Welcome to CRMBLR. Press “Start Voice”.</li>
-      </ul>
-      <div style="margin-top:8px; color: var(--muted); font-size:12px" id="voice-status"></div>
+      <div id="start-overlay" style="display:flex; align-items:center; justify-content:center; height: 260px; border:1px dashed var(--border); border-radius:12px; margin-bottom:12px">
+        <button id="btn-start" type="button" class="btn" style="font-weight:600; padding:12px 18px">Start</button>
+      </div>
+
+      <div id="chat-toolbar" style="display:none; align-items:center; gap:8px; margin-bottom:8px">
+        <span id="audio-state" style="font-size:12px; color:var(--muted)">Muted</span>
+        <button id="btn-mic-toggle" type="button" class="btn btn--secondary btn--sm">Unmute</button>
+        <span id="voice-status" style="margin-left:auto; color: var(--muted); font-size:12px"></span>
+      </div>
+
+      <ul id="chat-messages" class="chat-messages"></ul>
       <form id="chat-form" class="chat-input" onsubmit="return false">
         <input id="chat-input" type="text" placeholder="Type a message…" autocomplete="off" aria-label="Chat input" disabled />
         <button id="chat-send" type="button" disabled>Send</button>
@@ -28,6 +25,7 @@
   (function(){
     var list = document.getElementById('chat-messages');
     function addMessage(text, who, id){
+      if (!list) return null;
       var li = document.createElement('li');
       li.className = 'chat-msg ' + (who || 'user');
       if (id) li.dataset.itemId = id;
@@ -42,11 +40,13 @@
 
 <script>
   (function(){
-    var startBtn = document.getElementById('start-voice');
-    var stopBtn = document.getElementById('stop-voice');
+    var startOverlay = document.getElementById('start-overlay');
+    var startBtn = document.getElementById('btn-start');
+    var micToggle = document.getElementById('btn-mic-toggle');
+    var audioState = document.getElementById('audio-state');
     var statusEl = document.getElementById('voice-status');
     var audioEl = document.getElementById('oai-audio');
-    var pc = null; var dc = null; var ms = null;
+    var pc = null; var dc = null; var ms = null; var sender = null;
     var inputEl = document.getElementById('chat-input');
     var sendBtn = document.getElementById('chat-send');
     var token = localStorage.getItem('crmb_lr_jwt');
@@ -58,9 +58,13 @@
 
     function setStatus(t){ statusEl.textContent = t || ''; }
 
-    var mic = document.getElementById('mic-indicator');
-    function micOn(){ mic.classList.remove('mic--hidden'); }
-    function micOff(){ mic.classList.add('mic--hidden'); }
+    function setMutedUI(isMuted){
+      audioState.textContent = isMuted ? 'Muted' : 'Unmuted';
+      micToggle.textContent = isMuted ? 'Unmute' : 'Mute';
+    }
+    // Legacy mic indicator hooks (no visible indicator in UI)
+    function micOn(){ try { setMutedUI(false); } catch(_){} }
+    function micOff(){ try { setMutedUI(true); } catch(_){} }
 
     const toolArgBuf = Object.create(null); // tool_call_id -> string buffer
     const toolMetaByItem = Object.create(null); // item_id -> { name, call_id }
@@ -305,7 +309,7 @@
       }
     }
 
-    async function startVoice(){
+    async function startSession(){
       try {
         startBtn.disabled = true; setStatus('Connecting…');
         const tokenResp = await fetch('/token', { headers: { Authorization: 'Bearer ' + token }});
@@ -316,15 +320,21 @@
 
         pc = new RTCPeerConnection();
         pc.ontrack = (e) => { audioEl.srcObject = e.streams[0]; };
-
+        // Old initiation flow: acquire mic, attach track, but start muted
         ms = await navigator.mediaDevices.getUserMedia({ audio: true });
-        pc.addTrack(ms.getTracks()[0]);
+        var track = ms.getTracks()[0];
+        track.enabled = false; // default muted
+        sender = pc.addTrack(track);
 
         dc = pc.createDataChannel('oai-events');
         dc.addEventListener('open', () => {
           console.log('DataChannel open');
           inputEl.disabled = false; sendBtn.disabled = false;
           registerTools();
+          // Kick off an initial assistant response
+          try {
+            dc.send(JSON.stringify({ type: 'response.create' }));
+          } catch (e) { console.warn('initial response.create failed', e); }
         });
         dc.addEventListener('message', (e) => {
           try { handleServerEvent(JSON.parse(e.data)); } catch(_) { console.log('Server raw:', e.data); }
@@ -340,11 +350,16 @@
           body: offer.sdp,
           headers: { Authorization: `Bearer ${EPHEMERAL_KEY}`, 'Content-Type': 'application/sdp' },
         });
+        if (!sdpResponse.ok){
+          const errText = await sdpResponse.text().catch(()=> '');
+          throw new Error(`SDP exchange failed (${sdpResponse.status}): ${errText.slice(0,200)}`);
+        }
         const answer = { type: 'answer', sdp: await sdpResponse.text() };
         await pc.setRemoteDescription(answer);
 
-        stopBtn.style.display = '';
-        startBtn.style.display = 'none';
+        startOverlay.style.display = 'none';
+        document.getElementById('chat-toolbar').style.display = 'flex';
+        setMutedUI(true);
         setStatus('Ready');
       } catch (err){
         console.error(err);
@@ -353,28 +368,23 @@
       }
     }
 
-    async function stopVoice(){
+    async function toggleMic(){
       try {
-        setStatus('Disconnecting…');
-        if (dc){ dc.close(); dc = null; }
-        if (pc){ pc.close(); pc = null; }
-        if (ms){ ms.getTracks().forEach(t => t.stop()); ms = null; }
-      } finally {
-        stopBtn.style.display = 'none';
-        startBtn.style.display = '';
-        startBtn.disabled = false; setStatus('');
-        inputEl.disabled = true; sendBtn.disabled = true;
-        micOff();
-      }
+        if (!ms){ return; }
+        var t = ms.getTracks()[0];
+        if (!t) return;
+        t.enabled = !t.enabled;
+        setMutedUI(!t.enabled);
+      } catch (e){ console.error('toggle mic failed', e); }
     }
 
-    startBtn.addEventListener('click', startVoice);
-    stopBtn.addEventListener('click', stopVoice);
+    startBtn.addEventListener('click', startSession);
+    micToggle.addEventListener('click', toggleMic);
 
     async function sendText(){
       var text = (inputEl.value || '').trim();
       if (!text) return;
-      if (!dc || dc.readyState !== 'open'){ alert('Voice session not connected. Start Voice first.'); return; }
+      if (!dc || dc.readyState !== 'open'){ alert('Session not connected. Press Start.'); return; }
       window.__chatAddMessage(text, 'user');
       inputEl.value = '';
       try {
