@@ -11,33 +11,7 @@
 <!-- Legacy hook remains as a no-op so existing code won't break -->
 <script>
   (function(){
+    // Keep this as a no-op; do not auto-scroll so the user retains position
     window.__appendToolLog = function(){ /* no-op: server renders cards */ };
-    function scrollPanelToBottom(){
-      try {
-        var el = document.getElementById('tool-cards');
-        if (!el) return;
-        var cont = el.closest('.pane-body') || el.parentElement;
-        if (!cont) return;
-        cont.scrollTop = cont.scrollHeight;
-      } catch(_){}
-    }
-    // Initial scroll on load
-    scrollPanelToBottom();
-    // After HTMX updates, keep the panel pinned to newest items
-    if (window.htmx){
-      document.body.addEventListener('htmx:afterSettle', function(evt){
-        // Only react when the tool-cards section was updated
-        try {
-          if (!evt || !evt.detail) { scrollPanelToBottom(); return; }
-          var tgt = evt.detail.target;
-          if (tgt && (tgt.id === 'tool-cards' || tgt.querySelector && tgt.querySelector('#tool-cards'))){
-            scrollPanelToBottom();
-          }
-        } catch(_) { scrollPanelToBottom(); }
-      });
-    } else {
-      // Fallback: periodically ensure bottom (cheap)
-      setInterval(scrollPanelToBottom, 2000);
-    }
   })();
 </script>

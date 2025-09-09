@@ -27,6 +27,9 @@
         <button id="chat-send" type="button" disabled>Send</button>
       </form>
 
+      <!-- Model-suggested Quick Actions (rendered as subtle chips) -->
+      <div id="quick-actions" class="quick-actions" style="display:none; margin: 6px 0 10px; gap:6px; flex-wrap: wrap"></div>
+
       <!-- Newest messages appear at the top -->
       <ul id="chat-messages" class="chat-messages"></ul>
 
@@ -67,6 +70,7 @@
     var pc = null; var dc = null; var ms = null; var sender = null;
     var inputEl = document.getElementById('chat-input');
     var sendBtn = document.getElementById('chat-send');
+    var qaEl = document.getElementById('quick-actions');
     var token = localStorage.getItem('crmb_lr_jwt');
     if (!token){ window.location.href = '/login'; return; }
 
@@ -86,6 +90,48 @@
 
     const toolArgBuf = Object.create(null); // tool_call_id -> string buffer
     const toolMetaByItem = Object.create(null); // item_id -> { name, call_id }
+    var lastAssistantId = null;
+
+    function setQuickActions(actions){
+      try {
+        if (!qaEl) return;
+        qaEl.innerHTML = '';
+        if (!actions || !actions.length){ qaEl.style.display = 'none'; return; }
+        actions.slice(0,4).forEach(function(text){
+          var btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'btn btn--ghost btn--sm qa-chip';
+          btn.textContent = text.length > 60 ? (text.slice(0,57) + '…') : text;
+          btn.title = text;
+          btn.addEventListener('click', function(){ sendPrompt(text); btn.disabled = true; setTimeout(function(){ btn.disabled = false; }, 600); });
+          qaEl.appendChild(btn);
+        });
+        qaEl.style.display = 'flex';
+      } catch(_){}
+    }
+
+    function parsePrompts(text){
+      var out = [];
+      try {
+        var rx = /<<PROMPT:\s*(.*?)>>/g;
+        var m;
+        var seen = Object.create(null);
+        while ((m = rx.exec(text))) {
+          var s = (m[1] || '').trim();
+          if (!s) continue;
+          var key = s.toLowerCase();
+          if (seen[key]) continue;
+          seen[key] = true;
+          out.push(s);
+          if (out.length >= 4) break;
+        }
+      } catch(_){}
+      return out;
+    }
+
+    function stripPrompts(text){
+      try { return (text || '').replace(/<<PROMPT:[\s\S]*?>>/g, '').trim(); } catch(_) { return text; }
+    }
 
     function humanTool(name){
       var map = {
@@ -255,6 +301,7 @@
             var aid = it.id || obj.item_id;
             var la = window.__chatAddMessage('', 'bot', aid);
             assistantItems[aid] = la;
+            lastAssistantId = aid;
           }
           break;
         }
@@ -273,12 +320,12 @@
         case 'response.output_audio_transcript.delta': {
           var t = obj.delta || obj.transcript || '';
           var target = assistantItems[obj.item_id];
-          if (target){ target.textContent += t; }
+          if (target){ target.textContent += t; lastAssistantId = obj.item_id; }
           break;
         }
         case 'response.output_audio_transcript.done': {
           var target2 = assistantItems[obj.item_id];
-          if (target2 && obj.transcript){ target2.textContent = obj.transcript; }
+          if (target2 && obj.transcript){ target2.textContent = obj.transcript; lastAssistantId = obj.item_id; }
           break;
         }
         case 'response.content_part.done': {
@@ -287,10 +334,23 @@
             var target3 = assistantItems[obj.item_id] || window.__chatAddMessage('', 'bot', obj.item_id);
             target3.textContent = p.transcript;
             assistantItems[obj.item_id] = target3;
+            lastAssistantId = obj.item_id;
           }
           break;
         }
         case 'response.done':
+          try {
+            if (lastAssistantId){
+              var el = assistantItems[lastAssistantId];
+              if (el){
+                var raw = el.textContent || '';
+                var actions = parsePrompts(raw);
+                var clean = stripPrompts(raw);
+                el.textContent = clean;
+                setQuickActions(actions);
+              }
+            }
+          } catch(_){ }
           setStatus('Ready');
           break;
         // Tool calling (collect args, then execute)
@@ -439,6 +499,19 @@
       if (!dc || dc.readyState !== 'open'){ alert('Session not connected. Press Start.'); return; }
       window.__chatAddMessage(text, 'user');
       inputEl.value = '';
+      try {
+        dc.send(JSON.stringify({
+          type: 'conversation.item.create',
+          item: { type: 'message', role: 'user', content: [ { type: 'input_text', text } ] }
+        }));
+        dc.send(JSON.stringify({ type: 'response.create' }));
+      } catch (e){ console.error('send failed', e); }
+    }
+    async function sendPrompt(text){
+      text = (text || '').trim();
+      if (!text) return;
+      if (!dc || dc.readyState !== 'open'){ alert('Session not connected. Press Start.'); return; }
+      window.__chatAddMessage(text, 'user');
       try {
         dc.send(JSON.stringify({
           type: 'conversation.item.create',
