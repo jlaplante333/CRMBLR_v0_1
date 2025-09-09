@@ -1,8 +1,18 @@
 <section class="pane split-left">
   <div class="pane-body">
     <div class="chat">
-      <div id="start-overlay" style="display:flex; align-items:center; justify-content:center; height: 260px; border:1px dashed var(--border); border-radius:12px; margin-bottom:12px">
+      <div id="start-overlay" style="display:flex; align-items:center; justify-content:center; height: 200px; border:1px dashed var(--border); border-radius:12px; margin-bottom:12px">
         <button id="btn-start" type="button" class="btn" style="font-weight:600; padding:12px 18px">Start</button>
+      </div>
+
+      <div id="chat-help" style="margin-bottom:12px; color: var(--muted); font-size: 14px">
+        <strong>How to use CRMBLR</strong>
+        <div style="margin-top:6px">
+          - Click Start to connect voice and tools.<br />
+          - Type or speak your request (e.g., “find invoices from July”).<br />
+          - The right panel shows tool calls and results.<br />
+          - You can mute/unmute the mic anytime.
+        </div>
       </div>
 
       <div id="chat-toolbar" style="display:none; align-items:center; gap:8px; margin-bottom:8px">
@@ -11,11 +21,15 @@
         <span id="voice-status" style="margin-left:auto; color: var(--muted); font-size:12px"></span>
       </div>
 
-      <ul id="chat-messages" class="chat-messages"></ul>
-      <form id="chat-form" class="chat-input" onsubmit="return false">
+      <!-- Input fixed at the top of the chat; hidden until session starts -->
+      <form id="chat-form" class="chat-input" onsubmit="return false" style="display:none">
         <input id="chat-input" type="text" placeholder="Type a message…" autocomplete="off" aria-label="Chat input" disabled />
         <button id="chat-send" type="button" disabled>Send</button>
       </form>
+
+      <!-- Newest messages appear at the top -->
+      <ul id="chat-messages" class="chat-messages"></ul>
+
       <audio id="oai-audio" autoplay></audio>
     </div>
   </div>
@@ -30,8 +44,12 @@
       li.className = 'chat-msg ' + (who || 'user');
       if (id) li.dataset.itemId = id;
       li.textContent = text;
-      list.appendChild(li);
-      list.parentElement.scrollTop = list.parentElement.scrollHeight;
+      // Insert newest at the top
+      if (list.firstChild) {
+        list.insertBefore(li, list.firstChild);
+      } else {
+        list.appendChild(li);
+      }
       return li;
     }
     window.__chatAddMessage = addMessage;
@@ -69,9 +87,28 @@
     const toolArgBuf = Object.create(null); // tool_call_id -> string buffer
     const toolMetaByItem = Object.create(null); // item_id -> { name, call_id }
 
+    function humanTool(name){
+      var map = {
+        list_collections: 'List Collections',
+        list_docs: 'List Documents',
+        create_doc: 'Create Document',
+        get_doc: 'Get Document',
+        update_doc: 'Update Document',
+        delete_doc: 'Delete Document'
+      };
+      if (!name) return 'Tool';
+      return map[name] || String(name).replace(/_/g, ' ').replace(/\b\w/g, function(c){ return c.toUpperCase(); });
+    }
+
     function registerTools(){
       if (!dc) return;
       const tools = [
+        {
+          type: "function",
+          name: "list_collections",
+          description: "List collection names for the current user",
+          parameters: { type: "object", properties: {} }
+        },
         {
           type: "function",
           name: "list_docs",
@@ -273,9 +310,19 @@
             const args = JSON.parse(argsStr || '{}');
             callBackendTool(name, args)
               .then(result => {
-                const text = `[${name}] success: ${JSON.stringify(result)}`;
-                // Show in UI
-                window.__chatAddMessage(text, 'user');
+                // Hint only in chat instead of dumping full JSON
+                var label = humanTool(name);
+                var hint = `Ran ${label}`;
+                try {
+                  if (name === 'list_docs'){
+                    var total = (result && result.hits && result.hits.total && (result.hits.total.value || result.hits.total)) || 0;
+                    hint = `${label}: ${total} result${Number(total) === 1 ? '' : 's'}`;
+                  } else if (name === 'list_collections'){
+                    var cols = (result && result.collections) || [];
+                    hint = `${label}: ${cols.length} found`;
+                  }
+                } catch(_){ }
+                window.__chatAddMessage(hint, 'user');
                 // Feed result back to model as function_call_output
                 try {
                   if (callId){
@@ -288,7 +335,8 @@
                 } catch (e) { console.error('feed result failed', e); }
               })
               .catch(err => {
-                const text = `[${name}] error: ${err.message}`;
+                var label = humanTool(name);
+                const text = `${label}: ${err.message}`;
                 window.__chatAddMessage(text, 'user');
                 try { window.__appendToolLog && window.__appendToolLog({ name, args, status: 'error', error: err.message }); } catch(_){ }
                 try {
@@ -329,6 +377,9 @@
         dc = pc.createDataChannel('oai-events');
         dc.addEventListener('open', () => {
           console.log('DataChannel open');
+          // Show input only after session is ready
+          var form = document.getElementById('chat-form');
+          if (form) { form.style.display = 'flex'; }
           inputEl.disabled = false; sendBtn.disabled = false;
           registerTools();
           // Kick off an initial assistant response
@@ -358,6 +409,7 @@
         await pc.setRemoteDescription(answer);
 
         startOverlay.style.display = 'none';
+        var help = document.getElementById('chat-help'); if (help) help.style.display = 'none';
         document.getElementById('chat-toolbar').style.display = 'flex';
         setMutedUI(true);
         setStatus('Ready');

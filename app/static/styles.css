@@ -133,9 +133,14 @@ body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.5 system
 .chat-msg { padding:8px 10px; border:1px solid var(--border); border-radius:10px; max-width: 80% }
 .chat-msg.user { align-self: flex-end; background:#fff }
 .chat-msg.bot { align-self: flex-start; background:#fff }
-.chat-input { display:flex; gap:8px; margin-top:12px }
+.chat-input { display:flex; gap:8px; margin: 0 0 10px 0 }
 .chat-input input { flex:1; padding:10px 12px; border-radius: 8px; border:1px solid var(--border) }
 .chat-input button { padding:10px 14px; border-radius:8px; border:1px solid var(--border); background:#fff; cursor:pointer }
+
+/* Keep input at top, make messages scroll within chat */
+.split-left .pane-body { overflow: hidden; }
+.chat { min-height: 0; }
+.chat-messages { flex: 1; overflow: auto; }
 
 @media (max-width: 900px){
   .split { flex-direction: column }

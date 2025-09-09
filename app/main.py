@@ -28,6 +28,28 @@ templates = Jinja2Templates(directory="app/templates")
 templates.env.auto_reload = True
 if "tojson" not in templates.env.filters:
     templates.env.filters["tojson"] = lambda v, indent=None: json.dumps(v, indent=indent, ensure_ascii=False)
+if "human_tool" not in templates.env.filters:
+    def _human_tool(name: str) -> str:
+        mapping = {
+            "list_collections": "List Collections",
+            "list_docs": "List Documents",
+            "create_doc": "Create Document",
+            "get_doc": "Get Document",
+            "update_doc": "Update Document",
+            "delete_doc": "Delete Document",
+        }
+        if not name:
+            return "Event"
+        return mapping.get(name, str(name).replace("_", " ").title())
+    templates.env.filters["human_tool"] = _human_tool
+if "humants" not in templates.env.filters:
+    import datetime as _dt
+    def _humants(ts: float) -> str:
+        try:
+            return _dt.datetime.fromtimestamp(float(ts)).strftime("%Y-%m-%d %H:%M:%S")
+        except Exception:
+            return ""
+    templates.env.filters["humants"] = _humants
 
 # --- Simple in-memory event buffer for UI panel ---
 events = deque(maxlen=200)
@@ -114,6 +136,12 @@ def mint_ephemeral_token(user=Depends(require_user)):
 
     # Define basic function tools available to the session from the start
     tools = [
+        {
+            "type": "function",
+            "name": "list_collections",
+            "description": "List collection names for the current user",
+            "parameters": {"type": "object", "properties": {}, "additionalProperties": False},
+        },
         {
             "type": "function",
             "name": "list_docs",
@@ -225,7 +253,21 @@ def execute_tool(payload: dict, user=Depends(require_user)):
     try:
         # Log start of tool execution
         record_event(tool=name, phase="started", request=args)
-        if name == "list_docs":
+        if name == "list_collections":
+            sub = user.get("sub") or user.get("email") or "anon"
+            prefix = f"users-{sub}-"
+            collections = []
+            try:
+                infos = es_client.indices.get(index=f"{prefix}*")
+                for idx in infos.keys():
+                    if idx.startswith(prefix):
+                        collections.append(idx[len(prefix):])
+            except Exception:
+                collections = []
+            res = {"collections": sorted(collections)}
+            record_event(tool=name, phase="ok", request=args, response=res)
+            return {"ok": True, "result": res}
+        elif name == "list_docs":
             collection = args.get("collection")
             index = _user_index(user, collection)
             size = int(args.get("size") or 50)

@@ -2,11 +2,14 @@
   {% for e in events %}
   <div class="card" id="event-{{ e.id }}" style="border:1px solid var(--border); border-radius:8px; overflow:hidden">
     <div class="card-header" style="padding:6px 10px; display:flex; justify-content:space-between; align-items:center; background:#f9fafb">
-      <div style="font-weight:600">
-        {{ e.tool or 'event' }} • {{ e.phase or 'info' }}
+      <div style="display:flex; align-items:center; gap:8px">
+        <div style="font-weight:600">{{ (e.tool | human_tool) if e.tool else 'Event' }}</div>
+        {% if e.phase %}
+          <span class="badge badge--secondary">{{ e.phase }}</span>
+        {% endif %}
       </div>
       <div style="font-size:12px; color:var(--muted)">
-        {{ e.ts | int if e.ts else '' }}
+        {{ e.ts | humants }}
       </div>
     </div>
     <div class="card-body" style="padding:8px 10px; display:flex; flex-direction:column; gap:6px">
@@ -56,19 +59,51 @@
         {% else %}
           <div>Empty collection.</div>
         {% endif %}
+      {% elif e.tool == 'list_collections' and e.response and e.response.collections is defined %}
+        {% set cols = e.response.collections or [] %}
+        {% if cols %}
+          <div style="display:flex; flex-wrap: wrap; gap:6px">
+            {% for c in cols %}
+              <span class="badge badge--secondary">{{ c }}</span>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div>No collections found.</div>
+        {% endif %}
       {% endif %}
 
-      <details>
-        <summary style="cursor:pointer">Request</summary>
-        <pre style="white-space:pre-wrap; font-size:12px; margin:6px 0 0">{{ e.request | tojson(indent=2) }}</pre>
-      </details>
-      {% if e.response %}
-      <details open>
-        <summary style="cursor:pointer">Response</summary>
-        <pre style="white-space:pre-wrap; font-size:12px; margin:6px 0 0">{{ e.response | tojson(indent=2) }}</pre>
-      </details>
-      {% endif %}
+      <div style="display:flex; justify-content:flex-end; margin-top:6px">
+        <button class="btn btn--ghost btn--sm" onclick="__toggleLogs({{ e.id }})" aria-controls="logs-{{ e.id }}" id="btn-logs-{{ e.id }}">Show logs</button>
+      </div>
+      <div id="logs-{{ e.id }}" style="display:none; margin-top:6px">
+        <details>
+          <summary style="cursor:pointer">Request</summary>
+          <pre style="white-space:pre-wrap; font-size:12px; margin:6px 0 0">{{ e.request | tojson(indent=2) }}</pre>
+        </details>
+        {% if e.response %}
+        <details>
+          <summary style="cursor:pointer">Response</summary>
+          <pre style="white-space:pre-wrap; font-size:12px; margin:6px 0 0">{{ e.response | tojson(indent=2) }}</pre>
+        </details>
+        {% endif %}
+      </div>
     </div>
   </div>
   {% endfor %}
 </div>
+
+<script>
+  // Simple toggle for logs per-card; keeps details closed by default.
+  (function(){
+    window.__toggleLogs = function(id){
+      try {
+        var el = document.getElementById('logs-' + id);
+        var btn = document.getElementById('btn-logs-' + id);
+        if (!el) return;
+        var show = (el.style.display === 'none' || !el.style.display);
+        el.style.display = show ? 'block' : 'none';
+        if (btn) btn.textContent = show ? 'Hide logs' : 'Show logs';
+      } catch(_){ }
+    }
+  })();
+</script>
