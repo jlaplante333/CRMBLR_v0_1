@@ -6,7 +6,10 @@
   {% if not q %}
     <section class="hero" aria-label="CRMBLR search">
       <h1 class="logo">CRMBLR</h1>
-      <form class="search-form hero-form" action="/" method="get">
+      <form class="search-form hero-form search-box" action="/" method="get">
+        <span class="search-box__icon" aria-hidden="true">
+          <svg class="icon"><use href="/static/icons.svg#search"></use></svg>
+        </span>
         <input
           type="search"
           name="q"
@@ -18,11 +21,19 @@
           hx-target="#results"
           hx-trigger="input changed delay:250ms, search"
         />
+        <span class="search-box__clear">
+          <button id="btn-clear-home" class="btn btn--circle btn--ghost" type="button" aria-label="Clear search">
+            <svg class="icon"><use href="/static/icons.svg#x"></use></svg>
+          </button>
+        </span>
       </form>
     </section>
   {% else %}
     <section class="search search--compact">
-      <form class="search-form" action="/" method="get">
+      <form class="search-form search-box" action="/" method="get">
+        <span class="search-box__icon" aria-hidden="true">
+          <svg class="icon"><use href="/static/icons.svg#search"></use></svg>
+        </span>
         <input
           type="search"
           name="q"
@@ -34,6 +45,11 @@
           hx-target="#results"
           hx-trigger="input changed delay:250ms, search"
         />
+        <span class="search-box__clear">
+          <button id="btn-clear-compact" class="btn btn--circle btn--ghost" type="button" aria-label="Clear search">
+            <svg class="icon"><use href="/static/icons.svg#x"></use></svg>
+          </button>
+        </span>
       </form>
     </section>
   {% endif %}
@@ -68,4 +84,26 @@
       </ul>
     </section>
   {% endif %}
+
+<script>
+  (function(){
+    function wireClear(btnId, formSelector){
+      var btn = document.getElementById(btnId);
+      if (!btn) return;
+      btn.addEventListener('click', function(){
+        try {
+          var form = btn.closest(formSelector) || document.querySelector(formSelector);
+          var input = form && form.querySelector('input[name="q"]');
+          if (!input) return;
+          input.value = '';
+          input.focus();
+          var ev = new Event('input', { bubbles: true });
+          input.dispatchEvent(ev);
+        } catch(_){ }
+      });
+    }
+    wireClear('btn-clear-home', '.search-form');
+    wireClear('btn-clear-compact', '.search-form');
+  })();
+</script>
 {% endblock %}

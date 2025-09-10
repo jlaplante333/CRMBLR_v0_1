@@ -8,12 +8,20 @@
   --surface-2: #f2f4f7; /* elegant light gray */
 
   /* Brand palette */
-  --color-primary: #333333; /* teal-600 */
-  --color-primary-600: #0f766e; /* teal-700 */
-  --color-secondary: #2563eb; /* blue-600 */
-  --color-secondary-600: #1d4ed8; /* blue-700 */
+  --color-primary: #2563eb; /* blue-600 */
+  --color-primary-600: #1d4ed8; /* blue-700 */
+  --color-secondary: #16a34a; /* green-600 */
+  --color-secondary-600: #15803d; /* green-700 */
   --color-tertiary: #16a34a; /* green-600 */
   --color-tertiary-600: #15803d; /* green-700 */
+
+  /* Status palette */
+  --color-danger: #ef4444; /* red-500 */
+  --color-danger-600: #dc2626; /* red-600 */
+  --color-warn: #f59e0b;   /* amber-500 */
+  --color-warn-600: #d97706; /* amber-600 */
+  --color-info: #06b6d4;   /* cyan-500 */
+  --color-info-600: #0891b2; /* cyan-600 */
 
   --brand: var(--color-primary);
   --shadow: none; /* never use shadows */
@@ -27,7 +35,9 @@
   --border: #4b5563;
   --surface-1: #3b3b3b;
   --surface-2: #2f2f2f;
-
+  /* Use a clearer accent in dark mode */
+  --color-primary: #60a5fa; /* blue-400 */
+  --color-primary-600: #3b82f6; /* blue-500 */
   --brand: var(--color-primary);
 }
 
@@ -46,7 +56,26 @@
 
 * { box-sizing: border-box }
 html, body { height: 100% }
-body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.55 var(--font-sans, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif) }
+h1, h2, h3 { letter-spacing: -0.01em }
+h1 { font-weight: 700 }
+h2 { font-weight: 600 }
+h3 { font-weight: 600 }
+
+/* Typography tokens */
+:root {
+  --font-sans: Inter, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;
+  --chat-user-bg: #eef2ff; /* indigo-100 */
+  --chat-user-border: #c7d2fe; /* indigo-200 */
+  --chat-bot-bg: #eff6ff; /* blue-100 */
+  --chat-bot-border: #bfdbfe; /* blue-200 */
+}
+[data-theme="dark"] {
+  --chat-user-bg: rgba(99, 102, 241, 0.16); /* indigo tint */
+  --chat-user-border: #6366f1; /* indigo-500 */
+  --chat-bot-bg: rgba(96, 165, 250, 0.16); /* blue tint */
+  --chat-bot-border: #60a5fa; /* blue-400 */
+}
 
 .container { max-width: 960px; margin: 0 auto; padding: 0 16px }
 .container--fluid { max-width: 100%; padding: 0 }
@@ -70,10 +99,10 @@ body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.5 system
 .search-form { position: relative }
 .search-form input[type="search"] {
   width: 100%;
-  padding: 14px 18px;
+  padding: 14px 44px; /* room for icons; overridden by components */
   border-radius: 9999px;
   border: 1px solid var(--border);
-  background: #fff;
+  background: var(--surface-1);
   color: var(--fg);
   outline: none;
   box-shadow: none;
@@ -131,11 +160,12 @@ body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.5 system
 .chat { display:flex; flex-direction: column; height: 100% }
 .chat-messages { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px }
 .chat-msg { padding:8px 10px; border:1px solid var(--border); border-radius:10px; max-width: 80% }
-.chat-msg.user { align-self: flex-end; background:#fff }
-.chat-msg.bot { align-self: flex-start; background:#fff }
+.chat-msg.user { align-self: flex-end; background: var(--chat-user-bg); border-color: var(--chat-user-border) }
+.chat-msg.bot { align-self: flex-start; background: var(--chat-bot-bg); border-color: var(--chat-bot-border) }
 .chat-input { display:flex; gap:8px; margin: 0 0 10px 0 }
-.chat-input input { flex:1; padding:10px 12px; border-radius: 8px; border:1px solid var(--border) }
-.chat-input button { padding:10px 14px; border-radius:8px; border:1px solid var(--border); background:#fff; cursor:pointer }
+.chat-input input { flex:1; padding:10px 12px; border-radius: 8px; border:1px solid var(--border); background: var(--surface-1); color: var(--fg) }
+.chat-input button { padding:10px 14px; border-radius:8px; border:1px solid var(--border); cursor:pointer }
+.chat-input button:not(.btn) { background: var(--surface-1); color: var(--fg) }
 
 /* Keep input at top, make messages scroll within chat */
 .split-left .pane-body { overflow: hidden; }

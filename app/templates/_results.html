@@ -6,8 +6,14 @@
         <h3 class="title"><a href="#" target="_blank" rel="noopener noreferrer"></a></h3>
         <div class="price"></div>
         <div class="actions">
-          <a class="btn btn-link" href="#" target="_blank" rel="noopener noreferrer">Go to link</a>
-          <button class="btn btn-swap" type="button" data-action="swap">Swap</button>
+          <a class="btn btn--secondary btn--sm" data-role="open-link" href="#" target="_blank" rel="noopener noreferrer">
+            <svg class="icon" aria-hidden="true"><use href="/static/icons.svg#external-link"></use></svg>
+            <span>Open</span>
+          </a>
+          <button class="btn btn--ghost btn--sm" type="button" data-action="swap">
+            <svg class="icon" aria-hidden="true"><use href="/static/icons.svg#swap"></use></svg>
+            <span>Swap</span>
+          </button>
         </div>
       </div>
       <div class="product-card" data-slot="1">
@@ -15,8 +21,14 @@
         <h3 class="title"><a href="#" target="_blank" rel="noopener noreferrer"></a></h3>
         <div class="price"></div>
         <div class="actions">
-          <a class="btn btn-link" href="#" target="_blank" rel="noopener noreferrer">Go to link</a>
-          <button class="btn btn-swap" type="button" data-action="swap">Swap</button>
+          <a class="btn btn--secondary btn--sm" data-role="open-link" href="#" target="_blank" rel="noopener noreferrer">
+            <svg class="icon" aria-hidden="true"><use href="/static/icons.svg#external-link"></use></svg>
+            <span>Open</span>
+          </a>
+          <button class="btn btn--ghost btn--sm" type="button" data-action="swap">
+            <svg class="icon" aria-hidden="true"><use href="/static/icons.svg#swap"></use></svg>
+            <span>Swap</span>
+          </button>
         </div>
       </div>
       <div class="product-card" data-slot="2">
@@ -24,8 +36,14 @@
         <h3 class="title"><a href="#" target="_blank" rel="noopener noreferrer"></a></h3>
         <div class="price"></div>
         <div class="actions">
-          <a class="btn btn-link" href="#" target="_blank" rel="noopener noreferrer">Go to link</a>
-          <button class="btn btn-swap" type="button" data-action="swap">Swap</button>
+          <a class="btn btn--secondary btn--sm" data-role="open-link" href="#" target="_blank" rel="noopener noreferrer">
+            <svg class="icon" aria-hidden="true"><use href="/static/icons.svg#external-link"></use></svg>
+            <span>Open</span>
+          </a>
+          <button class="btn btn--ghost btn--sm" type="button" data-action="swap">
+            <svg class="icon" aria-hidden="true"><use href="/static/icons.svg#swap"></use></svg>
+            <span>Swap</span>
+          </button>
         </div>
       </div>
     </div>
@@ -45,7 +63,7 @@
           if (a){ a.textContent = item.title || ''; a.href = item.url || '#'; }
           var price = cardEl.querySelector('.price');
           if (price){ price.textContent = formatPrice(item.price); }
-          var link = cardEl.querySelector('.btn-link');
+          var link = cardEl.querySelector('[data-role="open-link"]');
           if (link){ link.href = item.url || '#'; }
           cardEl.dataset.itemId = item.id || '';
         }

@@ -1,7 +1,7 @@
 <div class="event-cards" style="display:flex; flex-direction:column; gap:10px">
   {% for e in events %}
-  <div class="card" id="event-{{ e.id }}" style="border:1px solid var(--border); border-radius:8px; overflow:hidden">
-    <div class="card-header" style="padding:6px 10px; display:flex; justify-content:space-between; align-items:center; background:#f9fafb">
+  <div class="card card--tinted" id="event-{{ e.id }}" data-idx="{{ loop.index0 }}" data-tool="{{ e.tool or 'event' }}" style="border:1px solid var(--border); border-radius:8px; overflow:hidden">
+    <div class="card-header" style="padding:6px 10px; display:flex; justify-content:space-between; align-items:center; background: var(--tint, #f9fafb)">
       <div style="display:flex; align-items:center; gap:8px">
         <div style="font-weight:600">{{ (e.tool | human_tool) if e.tool else 'Event' }}</div>
         {% if e.phase %}
@@ -123,5 +123,46 @@
         });
       } catch(_){ }
     }
+
+    // Light random tint per card, stable by id
+    function tintForCard(el){
+      try {
+        var tool = (el.getAttribute('data-tool') || 'event').toLowerCase();
+        // Map tools to fixed hues
+        var toolHue = {
+          'list_collections': 210, // blue
+          'list_docs': 235,        // indigo
+          'search_docs': 190,      // cyan
+          'create_doc': 140,       // green
+          'get_doc': 270,          // violet
+          'update_doc': 40,        // amber
+          'delete_doc': 0,         // red
+        };
+        var h = (toolHue[tool] !== undefined) ? toolHue[tool] : 220; // default cool gray-blue
+        var isDark = (document.documentElement.getAttribute('data-theme') === 'dark');
+        var tint = isDark ? 'hsla(' + h + ', 70%, 35%, 0.18)' : 'hsl(' + h + ', 95%, 97%)';
+        var border = isDark ? 'hsla(' + h + ', 80%, 60%, 0.5)' : 'hsl(' + h + ', 70%, 75%)';
+        return { tint: tint, border: border };
+      } catch(_){ return { tint: '', border: '' } }
+    }
+    function colorizeCards(){
+      try {
+        var cards = document.querySelectorAll('.card.card--tinted[id^="event-"]');
+        cards.forEach(function(el){
+          try {
+            var t = tintForCard(el);
+            if (t.tint) el.style.setProperty('--tint', t.tint);
+            if (t.border) {
+              el.style.setProperty('--tint-border', t.border);
+              el.style.borderColor = t.border;
+            }
+          } catch(_){ }
+        });
+      } catch(_){ }
+    }
+    colorizeCards();
+    // Re-apply on theme toggle
+    var m = new MutationObserver(function(){ colorizeCards(); });
+    m.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
   })();
 </script>

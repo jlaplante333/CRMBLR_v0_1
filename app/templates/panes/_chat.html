@@ -17,14 +17,24 @@
 
       <div id="chat-toolbar" style="display:none; align-items:center; gap:8px; margin-bottom:8px">
         <span id="audio-state" style="font-size:12px; color:var(--muted)">Muted</span>
-        <button id="btn-mic-toggle" type="button" class="btn btn--secondary btn--sm">Unmute</button>
+        <button id="btn-mic-toggle" type="button" class="btn btn--secondary btn--icon btn--sm" aria-pressed="false">
+          <svg class="icon" aria-hidden="true"><use href="/static/icons.svg#mic-off"></use></svg>
+          <span>Unmute</span>
+        </button>
+        <button id="btn-session-toggle" type="button" class="btn btn--primary btn--icon btn--sm" style="display:none">
+          <svg class="icon" aria-hidden="true"><use href="/static/icons.svg#pause"></use></svg>
+          <span>Pause</span>
+        </button>
         <span id="voice-status" style="margin-left:auto; color: var(--muted); font-size:12px"></span>
       </div>
 
       <!-- Input fixed at the top of the chat; hidden until session starts -->
       <form id="chat-form" class="chat-input" onsubmit="return false" style="display:none">
-        <input id="chat-input" type="text" placeholder="Type a message…" autocomplete="off" aria-label="Chat input" disabled />
-        <button id="chat-send" type="button" disabled>Send</button>
+        <input id="chat-input" class="input" type="text" placeholder="Type a message…" autocomplete="off" aria-label="Chat input" disabled />
+        <button id="chat-send" class="btn btn--primary btn--icon" type="button" disabled>
+          <svg class="icon" aria-hidden="true"><use href="/static/icons.svg#send"></use></svg>
+          <span>Send</span>
+        </button>
       </form>
 
       <!-- Model-suggested Quick Actions (rendered as subtle chips) -->
@@ -70,6 +80,7 @@
     var pc = null; var dc = null; var ms = null; var sender = null;
     var inputEl = document.getElementById('chat-input');
     var sendBtn = document.getElementById('chat-send');
+    var sessionBtn = document.getElementById('btn-session-toggle');
     var qaEl = document.getElementById('quick-actions');
     var token = localStorage.getItem('crmb_lr_jwt');
     if (!token){ window.location.href = '/login'; return; }
@@ -83,8 +94,17 @@
     function setStatus(t){ statusEl.textContent = t || ''; }
 
     function setMutedUI(isMuted){
-      audioState.textContent = isMuted ? 'Muted' : 'Unmuted';
-      micToggle.textContent = isMuted ? 'Unmute' : 'Mute';
+      audioState.textContent = isMuted ? 'Muted' : 'Live';
+      micToggle.setAttribute('aria-pressed', isMuted ? 'false' : 'true');
+      // Update button classes only
+      micToggle.className = 'btn ' + (isMuted ? 'btn--secondary' : 'btn--danger') + ' btn--icon btn--sm';
+      // Update icon and label in-place (avoid rebuilding DOM)
+      try {
+        var use = micToggle.querySelector('use');
+        if (use) { use.setAttribute('href', isMuted ? '/static/icons.svg#mic-off' : '/static/icons.svg#mic'); }
+        var label = micToggle.querySelector('span');
+        if (label) { label.textContent = isMuted ? 'Unmute' : 'Mute'; }
+      } catch(_){}
     }
     // Legacy mic indicator hooks (no visible indicator in UI)
     function micOn(){ try { setMutedUI(false); } catch(_){} }
@@ -324,6 +344,9 @@
           var it = obj.item || {};
           if (it.role === 'user'){
             var id = it.id || obj.item_id;
+            // If a pending anonymous user bubble exists (typed send), adopt it
+            var pending = document.querySelector('.chat-msg.user[data-pending-user="1"]');
+            if (pending){ pending.dataset.itemId = id; pending.removeAttribute('data-pending-user'); userItems[id] = pending; }
             var lu3 = userItems[id] || window.__chatAddMessage('', 'user', id);
             userItems[id] = lu3;
             var t = userText[id];
@@ -332,7 +355,7 @@
             }
           } else if (it.role === 'assistant'){
             var aid = it.id || obj.item_id;
-            var la = window.__chatAddMessage('', 'bot', aid);
+            var la = assistantItems[aid] || window.__chatAddMessage('', 'bot', aid);
             assistantItems[aid] = la;
             lastAssistantId = aid;
           }
@@ -345,7 +368,7 @@
             try { window.__appendToolLog && window.__appendToolLog({ name: item.name || 'function', status: 'started', args: {} }); } catch(_){ }
           } else {
             var id = (item && item.id) || obj.item_id;
-            var li3 = window.__chatAddMessage('', 'bot', id);
+            var li3 = assistantItems[id] || window.__chatAddMessage('', 'bot', id);
             assistantItems[id] = li3;
           }
           break;
@@ -411,19 +434,27 @@
         }
         case 'response.done':
           try {
-            if (lastAssistantId){
-              var el = assistantItems[lastAssistantId];
-              if (el){
-                var raw = assistantRaw[lastAssistantId] || el.textContent || '';
-                var actions = parsePrompts(raw);
-                var clean = stripPrompts(raw);
-                el.textContent = clean;
+            var ids = Object.keys(assistantItems || {});
+            var actionsSet = false;
+            ids.forEach(function(aid){
+              var el = assistantItems[aid]; if (!el) return;
+              var raw = assistantRaw[aid] || el.textContent || '';
+              var actions = parsePrompts(raw);
+              var clean = stripPrompts(raw || '');
+              el.textContent = sanitizeForDisplay(clean || '');
+              // Assign quick actions from the last assistant id, or first with actions
+              if (!actionsSet && actions && actions.length) {
                 setQuickActions(actions);
-                // Clear raw buffer once processed
-                assistantRaw[lastAssistantId] = clean;
-                assistantHadDelta[lastAssistantId] = false;
+                actionsSet = true;
               }
-            }
+              assistantRaw[aid] = el.textContent;
+              assistantHadDelta[aid] = false;
+              // Remove empty assistant bubbles produced by duplicate events
+              if (!el.textContent || !el.textContent.trim()){
+                if (el.parentNode) el.parentNode.removeChild(el);
+                delete assistantItems[aid];
+              }
+            });
           } catch(_){ }
           setStatus('Ready');
           break;
@@ -515,6 +546,7 @@
           var form = document.getElementById('chat-form');
           if (form) { form.style.display = 'flex'; }
           inputEl.disabled = false; sendBtn.disabled = false;
+          if (sessionBtn) { sessionBtn.style.display = 'inline-flex'; }
           registerTools();
           // Kick off an initial assistant response
           try {
@@ -567,11 +599,37 @@
     startBtn.addEventListener('click', startSession);
     micToggle.addEventListener('click', toggleMic);
 
+    function teardownSession(){
+      try { if (dc) { dc.close(); } } catch(_){}
+      try { if (pc) { pc.close(); } } catch(_){}
+      dc = null; pc = null; sender = null;
+      if (ms){ try { ms.getTracks().forEach(t => { t.enabled = false; }); } catch(_){} }
+      inputEl.disabled = true; sendBtn.disabled = true;
+      setMutedUI(true);
+      setStatus('Paused');
+    }
+    function markSessionPausedUI(paused){
+      try {
+        var use = sessionBtn && sessionBtn.querySelector('use');
+        var label = sessionBtn && sessionBtn.querySelector('span');
+        if (sessionBtn){ sessionBtn.className = 'btn btn--primary btn--icon btn--sm'; }
+        if (use){ use.setAttribute('href', paused ? '/static/icons.svg#play' : '/static/icons.svg#pause'); }
+        if (label){ label.textContent = paused ? 'Resume' : 'Pause'; }
+      } catch(_){}
+    }
+    async function toggleSession(){
+      if (dc && dc.readyState === 'open'){ teardownSession(); markSessionPausedUI(true); return; }
+      // Resume: reconnect without showing the overlay
+      try { await startSession(); markSessionPausedUI(false); } catch(_){}
+    }
+    if (sessionBtn){ sessionBtn.addEventListener('click', toggleSession); }
+
     async function sendText(){
       var text = (inputEl.value || '').trim();
       if (!text) return;
       if (!dc || dc.readyState !== 'open'){ alert('Session not connected. Press Start.'); return; }
-      window.__chatAddMessage(text, 'user');
+      var anon = window.__chatAddMessage(text, 'user');
+      try { anon.setAttribute('data-pending-user', '1'); } catch(_){ }
       inputEl.value = '';
       try {
         dc.send(JSON.stringify({
@@ -585,7 +643,8 @@
       text = (text || '').trim();
       if (!text) return;
       if (!dc || dc.readyState !== 'open'){ alert('Session not connected. Press Start.'); return; }
-      window.__chatAddMessage(text, 'user');
+      var anon = window.__chatAddMessage(text, 'user');
+      try { anon.setAttribute('data-pending-user', '1'); } catch(_){ }
       try {
         dc.send(JSON.stringify({
           type: 'conversation.item.create',
