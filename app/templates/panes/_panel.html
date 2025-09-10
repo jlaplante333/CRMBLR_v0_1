@@ -2,7 +2,7 @@
   <div class="pane-body">
     <div id="tool-cards"
          hx-get="/ui/events"
-         hx-trigger="load, every 2s"
+         hx-trigger="load"
          hx-swap="innerHTML"></div>
   </div>
   
@@ -11,7 +11,33 @@
 <!-- Legacy hook remains as a no-op so existing code won't break -->
 <script>
   (function(){
-    // Keep this as a no-op; do not auto-scroll so the user retains position
-    window.__appendToolLog = function(){ /* no-op: server renders cards */ };
+    // Debounced refresh of the tool cards on demand
+    var REFRESH_DELAY = 150; // ms
+    var scheduled = false;
+    function refreshNow(){
+      try {
+        if (!window.htmx) return;
+        window.htmx.ajax('GET', '/ui/events', { target: '#tool-cards', swap: 'innerHTML' });
+      } finally { scheduled = false; }
+    }
+    function scheduleRefresh(){
+      if (scheduled) return; scheduled = true;
+      setTimeout(refreshNow, REFRESH_DELAY);
+    }
+
+    // Hook called by chat pane during tool activity
+    window.__appendToolLog = function(){ try { scheduleRefresh(); } catch(_){} };
+
+    // Rehydrate open logs after HTMX swaps the cards list
+    if (window.htmx){
+      document.body.addEventListener('htmx:afterSettle', function(ev){
+        try {
+          var tgt = ev && ev.target;
+          if (tgt && tgt.id === 'tool-cards'){
+            if (window.__rehydrateLogs) window.__rehydrateLogs();
+          }
+        } catch(_){ }
+      });
+    }
   })();
 </script>

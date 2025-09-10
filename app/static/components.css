@@ -62,3 +62,79 @@
 .menu__item { display:block; width:100%; padding: 8px 10px; background: transparent; border:0; text-align: left; color: var(--fg); cursor: pointer }
 .menu__item:hover { background: var(--surface-2) }
 .menu__meta { color: var(--muted); font-size: 12px; padding: 10px; border-bottom: 1px solid var(--border) }
+
+/* Home page components */
+/* Search box (works with existing .search-form input) */
+.search-box { position: relative; max-width: 720px; margin: 0 auto }
+.search-box__input,
+.search-form input[type="search"] {
+  width: 100%;
+  padding: 14px 44px 14px 44px; /* room for icons */
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background: var(--surface-1);
+  color: var(--fg);
+}
+.search-box__icon { position:absolute; left:14px; top:50%; transform: translateY(-50%); color: var(--muted); font-size: 16px; pointer-events: none }
+.search-box__clear { position:absolute; right:10px; top:50%; transform: translateY(-50%); }
+
+/* Card grid (mapped to .result-list) */
+.card-grid,
+.result-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px }
+
+.card-item,
+.result-item { display: flex; flex-direction: column; gap: 8px; padding: 10px; border-radius: 12px; background: transparent; border: 1px solid transparent }
+.card-item:hover,
+.result-item:hover { border-color: var(--border); background: var(--surface-1) }
+
+.card-item__thumb,
+.result-item .thumb { width: 100%; aspect-ratio: 1 / 1; height: auto; object-fit: cover; border-radius: 10px; background: transparent }
+
+.card-item__title,
+.result-item .title { margin: 0; font-size: 14px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden }
+.card-item__title a { color: inherit; text-decoration: none }
+.card-item__title a:hover { text-decoration: underline }
+
+.card-item__meta,
+.result-item .meta { display:flex; flex-direction: column; gap: 4px; min-height: 0 }
+
+.card-item__price,
+.result-item .price { font-weight: 600; font-size: 13px; color: var(--fg) }
+
+/* Three-up chooser (mapped to .result-chooser) */
+.chooser,
+.result-chooser { margin-top: 12px }
+.chooser__row,
+.result-chooser .result-row { display:flex; gap: 12px }
+.chooser__card,
+.result-chooser .product-card { flex: 1 1 0%; display:flex; flex-direction:column; gap: 8px; padding: 12px; border-radius: 12px; background: transparent; border: 1px solid transparent; min-width: 0 }
+.chooser__card:hover,
+.result-chooser .product-card:hover { border-color: var(--border); background: var(--surface-1) }
+.chooser__thumb,
+.result-chooser .product-card .thumb { width:100%; aspect-ratio:1/1; height:auto; object-fit:cover; border-radius: 10px; background: transparent }
+.chooser__title,
+.result-chooser .product-card .title { font-size: 14px; line-height: 1.35; margin: 0 }
+.chooser__actions,
+.result-chooser .product-card .actions { display:flex; gap: 8px; margin-top: 4px }
+
+@media (max-width: 640px){
+  .chooser__row,
+  .result-chooser .result-row { flex-wrap: wrap }
+  .chooser__card,
+  .result-chooser .product-card { flex: 1 1 calc(50% - 6px) }
+}
+
+/* Section + empty states */
+.section { margin: 24px 0 0 }
+.section__title,
+.section-title { font-size: 16px; margin: 16px 0 8px; color: var(--muted) }
+
+.empty-state,
+.empty { padding: 24px; text-align: center; color: var(--muted); border: 1px dashed var(--border); border-radius: 12px; background: transparent }
+
+/* Skeletons (optional) */
+.skeleton { position: relative; overflow: hidden; background: var(--surface-2) }
+.skeleton::after { content: ""; position: absolute; inset: 0; translate: -100% 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent); animation: sk 1.5s infinite }
+@keyframes sk { 100% { translate: 100% 0 } }
+.skeleton--thumb { aspect-ratio: 1/1; border-radius: 10px }
+.skeleton--text { height: 12px; border-radius: 9999px }

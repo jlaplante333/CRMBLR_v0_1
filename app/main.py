@@ -33,6 +33,7 @@ if "human_tool" not in templates.env.filters:
         mapping = {
             "list_collections": "List Collections",
             "list_docs": "List Documents",
+            "search_docs": "Search Documents",
             "create_doc": "Create Document",
             "get_doc": "Get Document",
             "update_doc": "Update Document",
@@ -160,6 +161,36 @@ def mint_ephemeral_token(user=Depends(require_user)):
         },
         {
             "type": "function",
+            "name": "search_docs",
+            "description": "Search documents with conditions across one or more collections",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "collections": {"type": "array", "items": {"type": "string"}},
+                    "collection": {"type": "string"},
+                    "q": {"type": "string", "description": "Free-text query"},
+                    "where": {
+                        "type": "object",
+                        "properties": {
+                            "all": {"type": "array", "items": {"type": "object"}},
+                            "any": {"type": "array", "items": {"type": "object"}},
+                            "none": {"type": "array", "items": {"type": "object"}},
+                            "filters": {"type": "array", "items": {"type": "object"}}
+                        },
+                        "additionalProperties": True
+                    },
+                    "size": {"type": "integer", "default": 50},
+                    "from": {"type": "integer", "default": 0},
+                    "sort": {"type": "array", "items": {"type": "object"}},
+                    "fields": {"type": "array", "items": {"type": "string"}},
+                    "aggs": {"type": "object"},
+                    "highlight": {"type": "object"}
+                },
+                "additionalProperties": True
+            }
+        },
+        {
+            "type": "function",
             "name": "create_doc",
             "description": "Create a document in a collection",
             "parameters": {
@@ -265,6 +296,181 @@ def execute_tool(payload: dict, user=Depends(require_user)):
             except Exception:
                 collections = []
             res = {"collections": sorted(collections)}
+            record_event(tool=name, phase="ok", request=args, response=res)
+            return {"ok": True, "result": res}
+        elif name == "search_docs":
+            # Multi-collection, condition-based search translated to ES DSL
+            cols = args.get("collections") or ([] if args.get("collection") is None else [args.get("collection")])
+            indices = []
+            for c in cols:
+                if not c:
+                    continue
+                indices.append(_user_index(user, c))
+            if not indices:
+                # If nothing specified, default to a generic collection
+                indices = [_user_index(user, "default")]
+
+            # Build query from 'where' and 'q'
+            def _to_clause(cond):
+                try:
+                    field = cond.get("field")
+                    op = (cond.get("op") or "eq").lower()
+                    value = cond.get("value")
+                    values = cond.get("values")
+                    if op in ("eq", "term") and field is not None:
+                        return {"term": {field: value}}
+                    if op in ("in", "terms") and field is not None:
+                        return {"terms": {field: values if isinstance(values, list) else [value]}}
+                    if op in ("match",):
+                        return {"match": {field: value}}
+                    if op in ("phrase", "match_phrase"):
+                        return {"match_phrase": {field: value}}
+                    if op in ("contains", "wildcard"):
+                        # Wrap value with wildcards if not already present
+                        v = str(value or "")
+                        if "*" not in v and "?" not in v:
+                            v = f"*{v}*"
+                        return {"wildcard": {field: v}}
+                    if op == "prefix":
+                        return {"prefix": {field: value}}
+                    if op in ("gt", "gte", "lt", "lte", "range"):
+                        rng = {}
+                        for k in ("gt", "gte", "lt", "lte"):
+                            if cond.get(k) is not None:
+                                rng[k] = cond.get(k)
+                        if field is None:
+                            return {"range": {"_id": rng}}  # fallback; should specify field
+                        return {"range": {field: rng}}
+                    if op == "exists":
+                        return {"exists": {"field": field}}
+                    if op == "missing":
+                        return {"bool": {"must_not": [{"exists": {"field": field}}]}}
+                    # Fallback: query_string on field
+                    if field:
+                        return {"query_string": {"query": str(value or ""), "default_field": field}}
+                    return {"match_all": {}}
+                except Exception:
+                    return {"match_all": {}}
+
+            where = args.get("where") or {}
+            must = [ _to_clause(c) for c in (where.get("all") or []) ]
+            should = [ _to_clause(c) for c in (where.get("any") or []) ]
+            must_not = [ _to_clause(c) for c in (where.get("none") or []) ]
+            filters = [ _to_clause(c) for c in (where.get("filters") or []) ]
+
+            qfree = (args.get("q") or "").strip()
+            if qfree:
+                # Use simple_query_string over all fields
+                must.insert(0, {"simple_query_string": {"query": qfree, "default_operator": "and"}})
+
+            bool_q = {k: v for k, v in (
+                ("must", must),
+                ("should", should),
+                ("must_not", must_not),
+                ("filter", filters),
+            ) if v }
+            if should:
+                bool_q["minimum_should_match"] = 1
+
+            body = {"query": {"bool": bool_q or {"must": [{"match_all": {}}]}}}
+
+            size = int(args.get("size") or 50)
+            frm = int(args.get("from") or 0)
+            size = max(1, min(size, 500))
+            if args.get("fields"):
+                body["_source"] = {"includes": list(args.get("fields") or [])}
+            if args.get("aggs"):
+                body["aggs"] = args.get("aggs")
+            if args.get("highlight"):
+                body["highlight"] = args.get("highlight")
+            sort = []
+            for s in (args.get("sort") or []):
+                if isinstance(s, dict) and s.get("field"):
+                    sort.append({s["field"]: {"order": (s.get("order") or "desc").lower()}})
+            if sort:
+                body["sort"] = sort
+
+            # Only search indices that exist to avoid raising
+            indices_existing = [idx for idx in indices if es_client.indices.exists(index=idx)]
+            if not indices_existing:
+                res = {"hits": {"total": 0, "hits": []}}
+                record_event(tool=name, phase="ok", request=args, response=res)
+                return {"ok": True, "result": res}
+
+            res = es_client.search(index=",".join(indices_existing), body=body, size=size, from_=frm)
+
+            # Optional relationship expansion
+            try:
+                expand = args.get("expand") or []
+                if expand and isinstance(res.get("hits", {}).get("hits", []), list):
+                    hits = res["hits"]["hits"]
+                    for exp in expand:
+                            name_key = exp.get("name") or exp.get("as") or "rel"
+                            rel_collection = exp.get("collection")
+                            from_field = exp.get("from")
+                            to_field = exp.get("to") or "id"
+                            many = bool(exp.get("many"))
+                            if not rel_collection or not from_field:
+                                continue
+                            target_index = _user_index(user, rel_collection)
+                            if not es_client.indices.exists(index=target_index):
+                                continue
+                            # Gather unique ids to fetch (cap to avoid huge queries)
+                            ids = []
+                            for h in hits:
+                                src = h.get("_source", {})
+                                v = src.get(from_field)
+                                if v is None:
+                                    continue
+                                if isinstance(v, list):
+                                    ids.extend([x for x in v if x is not None])
+                                else:
+                                    ids.append(v)
+                            uniq = []
+                            seen = set()
+                            for x in ids:
+                                if x in seen:
+                                    continue
+                                seen.add(x)
+                                uniq.append(x)
+                                if len(uniq) >= 500:
+                                    break
+                            if not uniq:
+                                # attach empty structures
+                                for h in hits:
+                                    h.setdefault("_rel", {})[name_key] = ([] if many else None)
+                                continue
+                            q = {"query": {"terms": {to_field: uniq}}, "size": len(uniq)}
+                            if exp.get("fields"):
+                                q["_source"] = {"includes": list(exp.get("fields") or [])}
+                            rel = es_client.search(index=target_index, body=q)
+                            rel_hits = rel.get("hits", {}).get("hits", [])
+                            by_key = {}
+                            for rh in rel_hits:
+                                src = rh.get("_source", {})
+                                key = src.get(to_field)
+                                if key is None:
+                                    continue
+                                # also surface the ES id
+                                if "id" not in src:
+                                    src = {**src, "id": rh.get("_id")}
+                                by_key[key] = src
+                            # Attach to each hit
+                            for h in hits:
+                                src = h.get("_source", {})
+                                v = src.get(from_field)
+                                if many:
+                                    out = []
+                                    for k in (v or []):
+                                        if k in by_key:
+                                            out.append(by_key[k])
+                                    h.setdefault("_rel", {})[name_key] = out
+                                else:
+                                    h.setdefault("_rel", {})[name_key] = by_key.get(v)
+                    # end for exp
+            except Exception:
+                # Relationship expansion is best effort; ignore failures
+                pass
             record_event(tool=name, phase="ok", request=args, response=res)
             return {"ok": True, "result": res}
         elif name == "list_docs":

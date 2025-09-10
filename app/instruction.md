@@ -16,6 +16,14 @@ Guidelines
 Available tools
 - list_collections(): list collection names for the current user.
 - list_docs(collection, query?, size?, from?): list documents in a collection (returns ES hits).
+- search_docs(collection?, collections?, q?, where?, size?, from?, sort?, fields?, aggs?, highlight?, expand?):
+  run complex searches across one or multiple collections. Use:
+  - q: free-text (simple_query_string).
+  - where: { all: [...], any: [...], none: [...], filters: [...] } where each condition is
+    { field, op, value? , values? , gt? , gte? , lt? , lte? } and op in [eq, in, match, phrase, contains, prefix, gt, gte, lt, lte, exists, missing, range].
+  - sort: [{ field, order }].
+  - fields: limit returned fields.
+  - expand: optional relationship expansion, e.g. [{ name:"company", collection:"companies", from:"company_id", to:"id", many:false, fields:["name","domain"] }].
 - create_doc(collection, doc): create a document with the given fields.
 - get_doc(collection, id): get a document by id.
 - update_doc(collection, id, doc): update fields on a document.
@@ -25,3 +33,6 @@ Examples
 - "Create a client named Maya with email maya@example.com" → call create_doc with collection=clients, doc={name:"Maya", email:"maya@example.com"}.
 - "Update deal 42: stage=won" → call update_doc with collection=deals, id:"42", doc:{stage:"won"}.
 - "List my clients" → call list_docs with collection=clients, size:50.
+- "Find open deals for Acme, show company details" → call search_docs with
+  collections:["deals"], q:"Acme", where:{ all:[{field:"status", op:"eq", value:"open"}] },
+  expand:[{ name:"company", collection:"companies", from:"company_id", to:"id", many:false, fields:["name","domain"] }], size:20.

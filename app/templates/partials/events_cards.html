@@ -95,6 +95,9 @@
 <script>
   // Simple toggle for logs per-card; keeps details closed by default.
   (function(){
+    // Persist open state across HTMX swaps
+    window.__logOpen = window.__logOpen || Object.create(null);
+
     window.__toggleLogs = function(id){
       try {
         var el = document.getElementById('logs-' + id);
@@ -103,6 +106,21 @@
         var show = (el.style.display === 'none' || !el.style.display);
         el.style.display = show ? 'block' : 'none';
         if (btn) btn.textContent = show ? 'Hide logs' : 'Show logs';
+        window.__logOpen[id] = show;
+      } catch(_){ }
+    }
+
+    // Re-apply open state after HTMX replaces the cards container
+    window.__rehydrateLogs = function(){
+      try {
+        var state = window.__logOpen || {};
+        Object.keys(state).forEach(function(id){
+          if (!state[id]) return;
+          var el = document.getElementById('logs-' + id);
+          var btn = document.getElementById('btn-logs-' + id);
+          if (el){ el.style.display = 'block'; }
+          if (btn){ btn.textContent = 'Hide logs'; }
+        });
       } catch(_){ }
     }
   })();

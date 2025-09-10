@@ -75,6 +75,8 @@
     if (!token){ window.location.href = '/login'; return; }
 
     var assistantItems = Object.create(null); // assistant item_id -> <li>
+    var assistantRaw = Object.create(null);   // assistant item_id -> raw text buffer (un-sanitized)
+    var assistantHadDelta = Object.create(null); // assistant item_id -> saw any delta chunks
     var userItems = Object.create(null); // user item_id -> <li>
     var userText = Object.create(null); // user item_id -> transcript buffer
 
@@ -133,10 +135,20 @@
       try { return (text || '').replace(/<<PROMPT:[\s\S]*?>>/g, '').trim(); } catch(_) { return text; }
     }
 
+    // For streaming display: as soon as we see '<<', hide everything after it
+    function sanitizeForDisplay(raw){
+      try {
+        var s = String(raw || '');
+        var i = s.indexOf('<<');
+        return i >= 0 ? s.slice(0, i).trimEnd() : s;
+      } catch(_) { return raw; }
+    }
+
     function humanTool(name){
       var map = {
         list_collections: 'List Collections',
         list_docs: 'List Documents',
+        search_docs: 'Search Documents',
         create_doc: 'Create Document',
         get_doc: 'Get Document',
         update_doc: 'Update Document',
@@ -168,6 +180,27 @@
               from: { type: "integer", minimum: 0, default: 0 }
             },
             required: ["collection"],
+            additionalProperties: true
+          }
+        },
+        {
+          type: "function",
+          name: "search_docs",
+          description: "Search documents across collections with conditions",
+          parameters: {
+            type: "object",
+            properties: {
+              collections: { type: "array", items: { type: "string" } },
+              collection: { type: "string" },
+              q: { type: "string" },
+              where: { type: "object" },
+              size: { type: "integer", minimum: 1, default: 50 },
+              from: { type: "integer", minimum: 0, default: 0 },
+              sort: { type: "array", items: { type: "object" } },
+              fields: { type: "array", items: { type: "string" } },
+              aggs: { type: "object" },
+              highlight: { type: "object" }
+            },
             additionalProperties: true
           }
         },
@@ -319,22 +352,60 @@
         }
         case 'response.output_audio_transcript.delta': {
           var t = obj.delta || obj.transcript || '';
-          var target = assistantItems[obj.item_id];
-          if (target){ target.textContent += t; lastAssistantId = obj.item_id; }
+          var id = obj.item_id;
+          assistantRaw[id] = (assistantRaw[id] || '') + t;
+          assistantHadDelta[id] = true;
+          var target = assistantItems[id];
+          if (target){ target.textContent = sanitizeForDisplay(assistantRaw[id]); lastAssistantId = id; }
           break;
         }
         case 'response.output_audio_transcript.done': {
-          var target2 = assistantItems[obj.item_id];
-          if (target2 && obj.transcript){ target2.textContent = obj.transcript; lastAssistantId = obj.item_id; }
+          var id = obj.item_id;
+          if (!assistantHadDelta[id]){
+            // No deltas were seen; use the final transcript as the buffer
+            if (obj.transcript){ assistantRaw[id] = obj.transcript; }
+          }
+          var target2 = assistantItems[id];
+          if (target2){ target2.textContent = sanitizeForDisplay(assistantRaw[id]); lastAssistantId = id; }
+          break;
+        }
+        case 'response.output_text.delta': {
+          var t2 = obj.delta || obj.text || '';
+          var id2 = obj.item_id;
+          assistantRaw[id2] = (assistantRaw[id2] || '') + t2;
+          assistantHadDelta[id2] = true;
+          var el2 = assistantItems[id2];
+          if (el2){ el2.textContent = sanitizeForDisplay(assistantRaw[id2]); lastAssistantId = id2; }
+          break;
+        }
+        case 'response.output_text.done': {
+          var id3 = obj.item_id;
+          if (!assistantHadDelta[id3]){
+            var full = obj.text || obj.output_text || '';
+            if (full){ assistantRaw[id3] = full; }
+          }
+          var el3 = assistantItems[id3];
+          if (el3){ el3.textContent = sanitizeForDisplay(assistantRaw[id3]); lastAssistantId = id3; }
           break;
         }
         case 'response.content_part.done': {
           var p = obj.part || {};
-          if (p && p.transcript){
-            var target3 = assistantItems[obj.item_id] || window.__chatAddMessage('', 'bot', obj.item_id);
-            target3.textContent = p.transcript;
-            assistantItems[obj.item_id] = target3;
-            lastAssistantId = obj.item_id;
+          var id = obj.item_id;
+          if (p){
+            var text = '';
+            if (typeof p.text === 'string') text = p.text;
+            else if (typeof p.transcript === 'string') text = p.transcript;
+            if (text){
+              if (assistantHadDelta[id]){
+                // We already built the buffer via deltas; avoid re-appending full text
+              } else {
+                assistantRaw[id] = text;
+              }
+              var target3 = assistantItems[id] || window.__chatAddMessage('', 'bot', id);
+              target3.textContent = sanitizeForDisplay(assistantRaw[id]);
+              assistantItems[id] = target3;
+              lastAssistantId = id;
+            }
           }
           break;
         }
@@ -343,11 +414,14 @@
             if (lastAssistantId){
               var el = assistantItems[lastAssistantId];
               if (el){
-                var raw = el.textContent || '';
+                var raw = assistantRaw[lastAssistantId] || el.textContent || '';
                 var actions = parsePrompts(raw);
                 var clean = stripPrompts(raw);
                 el.textContent = clean;
                 setQuickActions(actions);
+                // Clear raw buffer once processed
+                assistantRaw[lastAssistantId] = clean;
+                assistantHadDelta[lastAssistantId] = false;
               }
             }
           } catch(_){ }
