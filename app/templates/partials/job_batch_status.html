@@ -1,0 +1,22 @@
+{% set s = job.status %}
+<div class="stack card" style="padding:8px 10px">
+  <div class="flex between center">
+    <div><strong>Bulk Upload</strong></div>
+    <div><span class="badge {% if s == 'done' %}badge--success{% elif s == 'error' %}badge--danger{% else %}badge--secondary{% endif %}">{{ (s or 'queued')|title }}</span></div>
+  </div>
+  <div class="stack" style="gap:6px">
+    {% for f in job.files %}
+      <div class="flex between center">
+        <div class="muted">{{ f.filename }}</div>
+        <div>{{ f.indexed or 0 }} rows</div>
+      </div>
+    {% endfor %}
+  </div>
+  <div class="flex between center" style="margin-top:6px; font-weight:600">
+    <div>Total</div>
+    <div>{{ job.indexed_rows or 0 }} rows</div>
+  </div>
+  {% if s not in ['done', 'error'] %}
+    <div hx-get="/ui/job/{{ job.id }}" hx-trigger="every 1s" hx-swap="outerHTML"></div>
+  {% endif %}
+</div>

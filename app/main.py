@@ -1,9 +1,23 @@
 import os
-from fastapi import FastAPI, Request, Depends
+from fastapi import FastAPI, Request, Depends, UploadFile, File, BackgroundTasks, Form
 from fastapi.responses import HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from .search import es_client, ensure_index, search_products, get_index_name, recent_products, count_products
+from .search import (
+    es_client,
+    ensure_index,
+    search_products,
+    get_index_name,
+    recent_products,
+    count_products,
+    ensure_datasets_indices,
+    slugify,
+    infer_schema,
+    build_es_mapping,
+    ensure_user_collection_index,
+    stream_csv_rows,
+    bulk_index,
+)
 from .auth import (
     ensure_users_index,
     require_user,
@@ -80,6 +94,10 @@ def on_startup():
         ensure_users_index()
     except Exception:
         # If ES not ready, we still let the app start
+        pass
+    try:
+        ensure_datasets_indices()
+    except Exception:
         pass
 
 
@@ -380,6 +398,363 @@ def _user_index(user: dict, collection: str) -> str:
     sub = user.get("sub") or user.get("email") or "anon"
     safe = (collection or "default").strip().lower()
     return f"users-{sub}-{safe}"
+
+
+# --- Upload & ingest (CSV) ---
+_TMP_UPLOADS: dict = {}
+_JOBS: dict = {}
+
+
+@app.get("/ui/upload", response_class=HTMLResponse)
+def ui_upload(request: Request, user=Depends(require_user)):
+    return templates.TemplateResponse("partials/upload.html", {"request": request})
+
+
+@app.post("/ui/upload", response_class=HTMLResponse)
+async def ui_upload_preview(request: Request, files: list[UploadFile] = File(...), user=Depends(require_user)):
+    previews = []
+    import uuid, os, io, csv
+    for f in files:
+        if not f.filename:
+            continue
+        name = f.filename
+        ext = os.path.splitext(name)[1].lower()
+        if ext not in (".csv",):
+            continue
+        # Save to tmp
+        tmp_id = str(uuid.uuid4())
+        tmp_path = os.path.join("/tmp", f"crmb_upload_{tmp_id}{ext}")
+        content = await f.read()
+        with open(tmp_path, "wb") as out:
+            out.write(content)
+        # Sample first N rows
+        sample_rows = []
+        try:
+            with open(tmp_path, "r", encoding="utf-8", newline="") as rf:
+                reader = csv.DictReader(rf)
+                for i, row in enumerate(reader):
+                    if i >= 200:
+                        break
+                    sample_rows.append(row)
+        except Exception:
+            pass
+        types = infer_schema(sample_rows)
+        collection = slugify(os.path.splitext(name)[0])
+        previews.append({
+            "tmp_path": tmp_path,
+            "filename": name,
+            "collection": collection,
+            "types": types,
+            "rows_sampled": len(sample_rows),
+        })
+    return templates.TemplateResponse("partials/schema_preview.html", {"request": request, "previews": previews})
+
+
+def _ingest_job(job_id: str):
+    job = _JOBS.get(job_id)
+    if not job:
+        return
+    user_id = job.get("user_id")
+    tmp_path = job.get("tmp_path")
+    collection = job.get("collection")
+    types = job.get("types") or {}
+    id_field = job.get("id_field") or None
+    try:
+        mapping = build_es_mapping(types)
+        index = ensure_user_collection_index(user_id, collection, mapping)
+        total = 0
+        indexed = 0
+        errors = 0
+        def docs():
+            nonlocal total
+            for row in stream_csv_rows(tmp_path):
+                total += 1
+                _id = None
+                if id_field and id_field in row and row[id_field]:
+                    _id = str(row[id_field])
+                yield (_id, row)
+        ok, err = bulk_index(index, docs())
+        indexed = ok
+        errors = err
+        _JOBS[job_id].update({"status": "done", "total_rows": total, "indexed_rows": indexed, "errors": errors})
+    except Exception as e:
+        _JOBS[job_id].update({"status": "error", "error": str(e)})
+
+
+@app.post("/ui/ingest", response_class=HTMLResponse)
+async def ui_ingest(background: BackgroundTasks, request: Request, tmp_path: str = Form(...), collection: str = Form(...), id_field: str = Form(None), user=Depends(require_user)):
+    import uuid
+    job_id = str(uuid.uuid4())
+    # Re-infer schema quickly from small sample to build mapping
+    import csv
+    sample_rows = []
+    try:
+        with open(tmp_path, "r", encoding="utf-8", newline="") as rf:
+            reader = csv.DictReader(rf)
+            for i, row in enumerate(reader):
+                if i >= 200:
+                    break
+                sample_rows.append(row)
+    except Exception:
+        pass
+    types = infer_schema(sample_rows)
+    _JOBS[job_id] = {
+        "id": job_id,
+        "status": "queued",
+        "user_id": user.get("sub") or user.get("email") or "anon",
+        "tmp_path": tmp_path,
+        "collection": collection,
+        "types": types,
+        "id_field": id_field or None,
+        "total_rows": 0,
+        "indexed_rows": 0,
+        "errors": 0,
+    }
+    background.add_task(_ingest_job, job_id)
+    return templates.TemplateResponse("partials/job_status.html", {"request": request, "job": _JOBS[job_id]})
+
+
+@app.get("/ui/job/{job_id}", response_class=HTMLResponse)
+def ui_job_status(request: Request, job_id: str, user=Depends(require_user)):
+    job = _JOBS.get(job_id)
+    if not job:
+        return HTMLResponse("<div class=\"muted\">Unknown job</div>", status_code=404)
+    tpl = "partials/job_status.html"
+    if job.get("kind") == "batch":
+        tpl = "partials/job_batch_status.html"
+    return templates.TemplateResponse(tpl, {"request": request, "job": job})
+
+
+@app.post("/ui/ingest_batch", response_class=HTMLResponse)
+async def ui_ingest_batch(background: BackgroundTasks, request: Request, files: list[UploadFile] = File(...), user=Depends(require_user)):
+    import uuid, os
+    if not files:
+        return HTMLResponse("<div class=\"muted\">No files selected</div>")
+    tmp_files = []
+    for f in files:
+        if not f.filename:
+            continue
+        name = f.filename
+        ext = os.path.splitext(name)[1].lower()
+        if ext not in (".csv",):
+            continue
+        tmp_id = str(uuid.uuid4())
+        tmp_path = os.path.join("/tmp", f"crmb_upload_{tmp_id}{ext}")
+        content = await f.read()
+        with open(tmp_path, "wb") as out:
+            out.write(content)
+        tmp_files.append({"filename": name, "tmp_path": tmp_path})
+    if not tmp_files:
+        return HTMLResponse("<div class=\"muted\">No valid CSV files</div>")
+    job_id = str(uuid.uuid4())
+    _JOBS[job_id] = {
+        "id": job_id,
+        "kind": "batch",
+        "status": "queued",
+        "user_id": user.get("sub") or user.get("email") or "anon",
+        "files": tmp_files,
+        "total_files": len(tmp_files),
+        "processed_files": 0,
+        "total_rows": 0,
+        "indexed_rows": 0,
+        "errors": 0,
+        "error_samples": [],
+    }
+    background.add_task(_ingest_batch_job, job_id)
+    return templates.TemplateResponse("partials/job_batch_status.html", {"request": request, "job": _JOBS[job_id]})
+
+
+def _ingest_batch_job(job_id: str):
+    job = _JOBS.get(job_id)
+    if not job:
+        return
+    user_id = job.get("user_id")
+    files = job.get("files") or []
+    import os, csv, logging
+    log = logging.getLogger("ingest")
+    for i, f in enumerate(files):
+        tmp_path = f.get("tmp_path")
+        filename = f.get("filename") or os.path.basename(tmp_path)
+        try:
+            # Sample to infer mapping
+            sample_rows = []
+            try:
+                with open(tmp_path, "r", encoding="utf-8", newline="") as rf:
+                    reader = csv.DictReader(rf)
+                    for j, row in enumerate(reader):
+                        if j >= 200:
+                            break
+                        sample_rows.append(row)
+            except Exception:
+                pass
+            types = infer_schema(sample_rows)
+            collection = slugify(os.path.splitext(filename)[0])
+            mapping = build_es_mapping(types)
+            # Recreate per batch to avoid stale incompatible mappings across runs
+            index = ensure_user_collection_index(user_id, collection, mapping, recreate=True)
+            # Stream and index
+            total_before = job.get("total_rows", 0)
+            # Precompute coercion sets
+            num_fields = {k for k, t in (types or {}).items() if t in ("long", "float")}
+            num_is_float = {k for k, t in (types or {}).items() if t == "float"}
+            num_is_long = {k for k, t in (types or {}).items() if t == "long"}
+            def docs():
+                for row in stream_csv_rows(tmp_path):
+                    job["total_rows"] = job.get("total_rows", 0) + 1
+                    # Coerce numeric fields; convert 'NaN' and invalids to None to avoid ES errors
+                    try:
+                        for k in list(num_fields):
+                            if k not in row:
+                                continue
+                            v = row.get(k)
+                            if v is None:
+                                continue
+                            s = str(v).strip()
+                            if s == "" or s.lower() in ("nan", "null", "none"):
+                                row[k] = None
+                                continue
+                            if k in num_is_long:
+                                try:
+                                    row[k] = int(float(s))
+                                except Exception:
+                                    row[k] = None
+                            elif k in num_is_float:
+                                try:
+                                    row[k] = float(s)
+                                except Exception:
+                                    row[k] = None
+                    except Exception:
+                        pass
+                    yield (None, row)
+            ok, err = bulk_index(index, docs())
+            # Track per-file result
+            f["indexed"] = ok
+            f["errors"] = err
+            job["indexed_rows"] = job.get("indexed_rows", 0) + ok
+            job["errors"] = job.get("errors", 0) + err
+            if err:
+                try:
+                    log.warning("Ingest errors for %s: %s errors", filename, err)
+                except Exception:
+                    pass
+            job["processed_files"] = i + 1
+            job["status"] = "running" if i + 1 < len(files) else "done"
+        except Exception as e:
+            job["errors"] = job.get("errors", 0) + 1
+            if len(job.get("error_samples", [])) < 5:
+                job.setdefault("error_samples", []).append(f"{filename}: {str(e)}")
+            try:
+                log.exception("Failed to ingest file %s", filename)
+            except Exception:
+                pass
+            job["processed_files"] = i + 1
+            job["status"] = "running" if i + 1 < len(files) else "done"
+        finally:
+            try:
+                os.remove(tmp_path)
+            except Exception:
+                pass
+
+
+@app.post("/ui/ingest_batch_simple", response_class=HTMLResponse)
+async def ui_ingest_batch_simple(request: Request, files: list[UploadFile] = File(...), user=Depends(require_user)):
+    import uuid, os, csv, logging
+    log = logging.getLogger("ingest")
+    if not files:
+        return HTMLResponse("<div></div>")
+    user_id = user.get("sub") or user.get("email") or "anon"
+    results = []
+    errors_total = 0
+    error_samples: list[str] = []
+    for f in files:
+        if not f.filename:
+            continue
+        name = f.filename
+        ext = os.path.splitext(name)[1].lower()
+        if ext not in (".csv",):
+            continue
+        tmp_id = str(uuid.uuid4())
+        tmp_path = os.path.join("/tmp", f"crmb_upload_{tmp_id}{ext}")
+        content = await f.read()
+        with open(tmp_path, "wb") as out:
+            out.write(content)
+        indexed = 0
+        errs = 0
+        try:
+            # Infer types
+            sample_rows = []
+            try:
+                with open(tmp_path, "r", encoding="utf-8", newline="") as rf:
+                    reader = csv.DictReader(rf)
+                    for j, row in enumerate(reader):
+                        if j >= 200:
+                            break
+                        sample_rows.append(row)
+            except Exception:
+                pass
+            types = infer_schema(sample_rows)
+            mapping = build_es_mapping(types)
+            collection = slugify(os.path.splitext(name)[0])
+            index = ensure_user_collection_index(user_id, collection, mapping, recreate=True)
+            # Coercion helpers
+            num_fields = {k for k, t in (types or {}).items() if t in ("long", "float")}
+            num_is_float = {k for k, t in (types or {}).items() if t == "float"}
+            num_is_long = {k for k, t in (types or {}).items() if t == "long"}
+
+            def docs():
+                for row in stream_csv_rows(tmp_path):
+                    # Coerce numeric fields
+                    try:
+                        for k in list(num_fields):
+                            if k not in row:
+                                continue
+                            v = row.get(k)
+                            if v is None:
+                                continue
+                            s = str(v).strip()
+                            if s == "" or s.lower() in ("nan", "null", "none"):
+                                row[k] = None
+                                continue
+                            if k in num_is_long:
+                                try:
+                                    row[k] = int(float(s))
+                                except Exception:
+                                    row[k] = None
+                            elif k in num_is_float:
+                                try:
+                                    row[k] = float(s)
+                                except Exception:
+                                    row[k] = None
+                    except Exception:
+                        pass
+                    yield (None, row)
+
+            ok, err = bulk_index(index, docs())
+            indexed += ok
+            errs += err
+        except Exception as e:
+            errs += 1
+            if len(error_samples) < 5:
+                error_samples.append(f"{name}: {str(e)}")
+            try:
+                log.exception("Failed to ingest file %s", name)
+            except Exception:
+                pass
+        finally:
+            try:
+                os.remove(tmp_path)
+            except Exception:
+                pass
+        results.append({"filename": name, "indexed": indexed, "errors": errs})
+        errors_total += errs
+
+    summary = {
+        "files": results,
+        "indexed_total": sum(r.get("indexed", 0) for r in results),
+        "errors_total": errors_total,
+        "error_samples": error_samples,
+    }
+    return templates.TemplateResponse("partials/ingest_result.html", {"request": request, "result": summary})
 
 
 @app.post("/tool")

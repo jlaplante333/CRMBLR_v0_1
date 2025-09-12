@@ -1,0 +1,43 @@
+{% if previews and previews|length %}
+  {% for p in previews %}
+    <div class="card" style="margin-bottom:10px">
+      <div class="card-header">{{ p.filename }}</div>
+      <div class="card-body">
+        <form hx-post="/ui/ingest" hx-target="#job-{{ loop.index0 }}" hx-swap="outerHTML">
+          <input type="hidden" name="tmp_path" value="{{ p.tmp_path }}" />
+          <div class="grid" style="grid-template-columns: 1fr 1fr; gap: .75rem; align-items: end; margin-bottom: .5rem">
+            <label class="stack">
+              <span class="muted" style="font-size:12px">Collection name</span>
+              <input class="input" type="text" name="collection" value="{{ p.collection }}" />
+            </label>
+            <label class="stack">
+              <span class="muted" style="font-size:12px">Document ID field (optional)</span>
+              <select class="input" name="id_field">
+                <option value="">Auto-generate</option>
+                {% for f in p.types.keys() %}
+                  <option value="{{ f }}">{{ f }}</option>
+                {% endfor %}
+              </select>
+            </label>
+          </div>
+          <details style="margin-bottom:.5rem">
+            <summary class="muted">Schema preview ({{ p.rows_sampled }} rows sampled)</summary>
+            <div class="grid" style="grid-template-columns: 2fr 1fr; gap: 6px; margin-top:6px">
+              <div class="muted" style="font-weight:600">Field</div>
+              <div class="muted" style="font-weight:600">Type</div>
+              {% for f,t in p.types.items() %}
+                <div>{{ f }}</div>
+                <div><code>{{ t }}</code></div>
+              {% endfor %}
+            </div>
+          </details>
+          <button class="btn btn--primary" type="submit">Start ingestion</button>
+        </form>
+        <div id="job-{{ loop.index0 }}"></div>
+      </div>
+    </div>
+  {% endfor %}
+{% else %}
+  <div class="muted">No valid CSV files detected.</div>
+{% endif %}
+

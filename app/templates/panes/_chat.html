@@ -5,6 +5,23 @@
         <button id="btn-start" type="button" class="btn" style="font-weight:600; padding:12px 18px">Start</button>
       </div>
 
+      <div class="flex start center" style="gap:8px; margin-bottom:12px">
+        <button id="btn-upload" type="button" class="btn btn--secondary btn--icon">
+          
+          <span>Upload</span>
+        </button>
+        <form id="simple-upload-form"
+              hx-post="/ui/ingest_batch_simple"
+              hx-target="#modal-root"
+              hx-swap="innerHTML"
+              hx-encoding="multipart/form-data"
+              enctype="multipart/form-data"
+              style="display:none">
+          <input id="simple-upload-input" type="file" name="files" accept=".csv" multiple />
+        </form>
+      </div>
+      <div id="modal-root"></div>
+
       <div id="chat-help" style="margin-bottom:12px; color: var(--muted); font-size: 14px">
         <strong>How to use CRMBLR</strong>
         <div style="margin-top:6px">
@@ -71,6 +88,24 @@
 
 <script>
   (function(){
+    // Upload button opens file picker; on select, auto-submit via HTMX
+    try {
+      var btn = document.getElementById('btn-upload');
+      var form = document.getElementById('simple-upload-form');
+      var input = document.getElementById('simple-upload-input');
+      if (btn && form && input) {
+        btn.addEventListener('click', function(){ input.click(); });
+        input.addEventListener('change', function(){
+          if (input.files && input.files.length) {
+            if (window.htmx) {
+              window.htmx.trigger(form, 'submit');
+            } else {
+              form.submit();
+            }
+          }
+        });
+      }
+    } catch(_){}
     var startOverlay = document.getElementById('start-overlay');
     var startBtn = document.getElementById('btn-start');
     var micToggle = document.getElementById('btn-mic-toggle');

@@ -1,0 +1,26 @@
+{% set s = job.status %}
+<div class="stack card" style="padding:8px 10px">
+  <div class="flex between center">
+    <div><strong>Job:</strong> <code>{{ job.id }}</code></div>
+    <div>
+      <span class="badge {% if s == 'done' %}badge--success{% elif s == 'error' %}badge--danger{% else %}badge--secondary{% endif %}">{{ s|title }}</span>
+    </div>
+  </div>
+  <div class="muted" style="font-size:12px">Collection: {{ job.collection }}</div>
+  <div>
+    <div class="progress" style="height:8px; background: var(--bg-muted); border-radius: 4px; overflow:hidden">
+      {% set total = (job.total_rows or 0) %}
+      {% set idx = (job.indexed_rows or 0) %}
+      {% set pct = (0 if total == 0 else (idx * 100 // total)) %}
+      <div style="width: {{ pct }}%; height: 100%; background: var(--brand)"></div>
+    </div>
+    <div class="muted" style="font-size:12px; margin-top:4px">{{ idx }}/{{ total }} indexed, {{ job.errors or 0 }} errors</div>
+  </div>
+  {% if s not in ['done', 'error'] %}
+    <div hx-get="/ui/job/{{ job.id }}" hx-trigger="every 1s" hx-swap="outerHTML"></div>
+  {% endif %}
+  {% if s == 'error' and job.error %}
+    <div class="muted" style="color: var(--danger)">{{ job.error }}</div>
+  {% endif %}
+</div>
+

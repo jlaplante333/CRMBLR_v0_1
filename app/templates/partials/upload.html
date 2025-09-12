@@ -1,0 +1,18 @@
+<section class="card" style="margin-bottom: 12px">
+  <div class="card-header">Upload CSV</div>
+  <div class="card-body">
+    <form id="csv-upload-form"
+          hx-post="/ui/upload"
+          hx-target="#upload-preview"
+          hx-swap="innerHTML"
+          hx-encoding="multipart/form-data"
+          enctype="multipart/form-data">
+      <div class="stack" style="gap:.5rem">
+        <input type="file" name="files" accept=".csv" multiple required />
+        <div class="muted" style="font-size:12px">CSV only for now. Up to a few MB per file.</div>
+        <button class="btn btn--primary" type="submit">Preview</button>
+      </div>
+    </form>
+    <div id="upload-preview" class="stack" style="margin-top:10px"></div>
+  </div>
+</section>

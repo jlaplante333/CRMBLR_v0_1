@@ -1,0 +1,33 @@
+<div class="modal-overlay" style="position:fixed; inset:0; background: rgba(0,0,0,.4); z-index: 1000; display:flex; align-items:center; justify-content:center">
+  <div class="card" role="dialog" aria-modal="true" style="min-width: 340px; max-width: 520px">
+    <div class="card-header">{{ 'Upload Complete' if not result.errors_total else 'Upload Finished with Errors' }}</div>
+    <div class="card-body">
+      <div class="stack" style="gap:6px">
+        {% for f in result.files %}
+          <div class="flex between center">
+            <div class="muted">{{ f.filename }}</div>
+            <div>{{ f.indexed }} rows{% if f.errors %} <span class="badge badge--danger" title="{{ f.errors }} errors">!</span>{% endif %}</div>
+          </div>
+        {% endfor %}
+      </div>
+      <div class="flex between center" style="margin-top:8px; font-weight:600">
+        <div>Total</div>
+        <div>{{ result.indexed_total }} rows</div>
+      </div>
+      {% if result.error_samples and result.error_samples|length %}
+        <details style="margin-top:8px">
+          <summary class="muted">Errors (samples)</summary>
+          <ul class="muted" style="margin:6px 0 0 16px">
+            {% for e in result.error_samples %}
+              <li>{{ e }}</li>
+            {% endfor %}
+          </ul>
+        </details>
+      {% endif %}
+      <div class="flex end" style="margin-top:10px">
+        <button type="button" class="btn" onclick="(this.closest('.modal-overlay')||{}).remove();">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
