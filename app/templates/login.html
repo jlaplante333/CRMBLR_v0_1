@@ -55,6 +55,7 @@
       <div class="pane-header">Welcome</div>
       <div class="pane-body">
        
+        {% if google_client_id %}
         <div id="g_id_onload"
              data-client_id="{{ google_client_id }}"
              data-context="signin"
@@ -63,6 +64,7 @@
              data-itp_support="true">
         </div>
         <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="signin_with" data-shape="rect" data-logo_alignment="left"></div>
+        {% endif %}
 
         {{ ui.divider('or') }}
 
@@ -87,7 +89,9 @@
     </aside>
   </div>
 
+  {% if google_client_id %}
   <script src="https://accounts.google.com/gsi/client" async defer></script>
+  {% endif %}
   <script>
     async function onGoogleCredential(resp){
       try {

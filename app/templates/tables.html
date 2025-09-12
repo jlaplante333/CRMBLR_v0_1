@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block body_class %}page-tables{% endblock %}
+
+{% block content %}
+<section class="stack" style="gap: 1rem;">
+  <header class="flex between center">
+    <h2>Tables</h2>
+    <div id="tables-actions"></div>
+  </header>
+
+  <div class="grid" style="grid-template-columns: 260px 1fr; gap: 1rem;">
+    <aside>
+      <h3 class="muted" style="margin-top:0">Collections</h3>
+      <div id="collections"
+           hx-get="/ui/tables/collections"
+           hx-trigger="load"
+           hx-target="#collections"
+           hx-swap="innerHTML">
+        <div class="muted">Loading…</div>
+      </div>
+    </aside>
+    <section id="table-area">
+      <div class="muted">Select a collection to view documents.</div>
+    </section>
+  </div>
+</section>
+
+<script>
+  (function(){
+    try {
+      var t = localStorage.getItem('crmb_lr_jwt');
+      if (t && window.htmx) {
+        htmx.config.headers = htmx.config.headers || {};
+        htmx.config.headers['Authorization'] = 'Bearer ' + t;
+        // Ensure triggers run after headers applied
+        var el = document.getElementById('collections');
+        if (el && !el.dataset.loaded) {
+          el.dataset.loaded = '1';
+          htmx.ajax('GET', '/ui/tables/collections', { target: '#collections', swap: 'innerHTML' });
+        }
+      }
+    } catch(e) {}
+  })();
+</script>
+{% endblock %}

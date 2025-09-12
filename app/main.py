@@ -111,6 +111,111 @@ def workspace(request: Request):
     )
 
 
+# --- Tables (CRUD UI) ---
+@app.get("/tables", response_class=HTMLResponse)
+def tables_page(request: Request):
+    # Page loads; HTMX requests fetch data with Authorization header from localStorage
+    return templates.TemplateResponse("tables.html", {"request": request})
+
+
+@app.get("/ui/tables/collections", response_class=HTMLResponse)
+def ui_tables_collections(request: Request, user=Depends(require_user)):
+    sub = user.get("sub") or user.get("email") or "anon"
+    prefix = f"users-{sub}-"
+    collections = []
+    try:
+        infos = es_client.indices.get(index=f"{prefix}*")
+        for idx in infos.keys():
+            if idx.startswith(prefix):
+                collections.append(idx[len(prefix):])
+    except Exception:
+        collections = []
+    return templates.TemplateResponse("tables/collections.html", {"request": request, "collections": sorted(collections)})
+
+
+@app.get("/ui/tables/{collection}", response_class=HTMLResponse)
+def ui_tables_collection_docs(request: Request, collection: str, user=Depends(require_user)):
+    index = _user_index(user, collection)
+    hits = []
+    columns = []
+    try:
+        if es_client.indices.exists(index=index):
+            res = es_client.search(index=index, body={"query": {"match_all": {}}}, size=50)
+            hits = res.get("hits", {}).get("hits", [])
+            # Infer columns from sources
+            cols = []
+            seen = set()
+            for h in hits:
+                src = h.get("_source") or {}
+                for k in src.keys():
+                    if k.startswith("_"):
+                        continue
+                    if k not in seen:
+                        seen.add(k)
+                        cols.append(k)
+            columns = cols
+    except Exception:
+        hits = []
+        columns = []
+    return templates.TemplateResponse("tables/docs_table.html", {"request": request, "collection": collection, "hits": hits, "columns": columns})
+
+
+@app.get("/ui/tables/{collection}/new", response_class=HTMLResponse)
+def ui_tables_new_doc(request: Request, collection: str, user=Depends(require_user)):
+    return templates.TemplateResponse("tables/doc_form.html", {"request": request, "collection": collection, "title": f"New document in '{collection}'", "action": f"/ui/tables/{collection}", "value": "{\n  \"name\": \"\",\n  \"status\": \"\"\n}", "doc_id": None})
+
+
+@app.post("/ui/tables/{collection}")
+async def ui_tables_create_doc(request: Request, collection: str, user=Depends(require_user)):
+    form = await request.form()
+    doc_json = form.get("doc_json") or "{}"
+    try:
+        doc = json.loads(doc_json)
+    except Exception:
+        return JSONResponse({"error": "Invalid JSON"}, status_code=400)
+    index = _user_index(user, collection)
+    es_client.index(index=index, document=doc, refresh="wait_for")
+    # Return refreshed table
+    return ui_tables_collection_docs(request, collection, user)
+
+
+@app.get("/ui/tables/{collection}/{doc_id}/edit", response_class=HTMLResponse)
+def ui_tables_edit_doc(request: Request, collection: str, doc_id: str, user=Depends(require_user)):
+    index = _user_index(user, collection)
+    doc = {}
+    try:
+        res = es_client.get(index=index, id=doc_id)
+        doc = res.get("_source") or {}
+    except Exception:
+        doc = {}
+    return templates.TemplateResponse("tables/doc_form.html", {"request": request, "collection": collection, "title": f"Edit document {doc_id}", "action": f"/ui/tables/{collection}/{doc_id}", "value": json.dumps(doc, indent=2), "doc_id": doc_id})
+
+
+@app.post("/ui/tables/{collection}/{doc_id}")
+async def ui_tables_update_doc(request: Request, collection: str, doc_id: str, user=Depends(require_user)):
+    form = await request.form()
+    doc_json = form.get("doc_json") or "{}"
+    try:
+        doc = json.loads(doc_json)
+    except Exception:
+        return JSONResponse({"error": "Invalid JSON"}, status_code=400)
+    index = _user_index(user, collection)
+    # Merge/replace fields via update
+    es_client.update(index=index, id=doc_id, body={"doc": doc}, refresh="wait_for")
+    return ui_tables_collection_docs(request, collection, user)
+
+
+@app.delete("/ui/tables/{collection}/{doc_id}")
+def ui_tables_delete_doc(request: Request, collection: str, doc_id: str, user=Depends(require_user)):
+    index = _user_index(user, collection)
+    try:
+        es_client.delete(index=index, id=doc_id, refresh="wait_for")
+    except Exception:
+        pass
+    # HTMX expects HTML; return refreshed table
+    return ui_tables_collection_docs(request, collection, user)
+
+
 @app.get("/ui/events", response_class=HTMLResponse)
 def ui_events(request: Request):
     # Newest first for display

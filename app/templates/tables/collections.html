@@ -1,0 +1,17 @@
+<ul class="menu menu--list" role="listbox" aria-label="Collections">
+  {% if collections %}
+    {% for c in collections %}
+      <li>
+        <a href="#" class="menu__item"
+           hx-get="/ui/tables/{{ c }}"
+           hx-target="#table-area"
+           hx-swap="innerHTML">
+          {{ c }}
+        </a>
+      </li>
+    {% endfor %}
+  {% else %}
+    <li class="muted">No collections yet.</li>
+  {% endif %}
+</ul>
+

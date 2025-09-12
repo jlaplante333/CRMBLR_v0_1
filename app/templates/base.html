@@ -53,6 +53,26 @@
     })();
     (function(){
       var token = localStorage.getItem('crmb_lr_jwt');
+      // Make token available and attach to HTMX requests
+      try {
+        window.crmb_token = token || '';
+        if (window.htmx) {
+          htmx.config.headers = htmx.config.headers || {};
+          if (window.crmb_token) {
+            htmx.config.headers['Authorization'] = 'Bearer ' + window.crmb_token;
+          }
+          document.body.addEventListener('htmx:configRequest', function(evt){
+            if (window.crmb_token) {
+              evt.detail.headers['Authorization'] = 'Bearer ' + window.crmb_token;
+            }
+          });
+          document.body.addEventListener('htmx:responseError', function(evt){
+            if (evt.detail.xhr && evt.detail.xhr.status === 401) {
+              window.location.href = '/login';
+            }
+          });
+        }
+      } catch(e){}
       var menuBtn = document.getElementById('user-menu-btn');
       var menu = document.getElementById('user-menu');
       var avatar = document.getElementById('hdr-avatar');

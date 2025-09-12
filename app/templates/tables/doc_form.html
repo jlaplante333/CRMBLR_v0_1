@@ -1,0 +1,12 @@
+<form hx-post="{{ action }}" hx-target="#table-area" hx-swap="innerHTML" class="stack" style="gap:.5rem">
+  <label class="muted">{{ title }}</label>
+  <textarea name="doc_json" rows="8" style="width:100%" placeholder='{"field": "value"}'>{{ value|default('') }}</textarea>
+  {% if doc_id %}
+    <input type="hidden" name="id" value="{{ doc_id }}" />
+  {% endif %}
+  <div class="btn-group">
+    <button type="submit" class="btn btn--primary">Save</button>
+    <button type="button" class="btn" hx-get="/ui/tables/{{ collection }}" hx-target="#table-area" hx-swap="innerHTML">Cancel</button>
+  </div>
+</form>
+
