@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Files - CRMBLR</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <h1 class="text-2xl font-bold text-indigo-600">CRMBLR</h1>
+                    <span class="ml-2 text-sm text-gray-500">AI-Powered CRM for Nonprofits</span>
+                </div>
+                <!-- Progress Indicator -->
+                <div class="flex items-center space-x-2 text-sm">
+                    <span class="flex items-center text-green-600">
+                        <i class="fas fa-check-circle mr-1"></i>
+                        Info
+                    </span>
+                    <span class="text-gray-300">→</span>
+                    <span class="flex items-center text-indigo-600 font-medium">
+                        <i class="fas fa-upload mr-1"></i>
+                        Upload
+                    </span>
+                    <span class="text-gray-300">→</span>
+                    <span class="text-gray-400">Configure</span>
+                    <span class="text-gray-300">→</span>
+                    <span class="text-gray-400">Payment</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <!-- Organization Info Display -->
+        <div id="orgInfo" class="bg-white rounded-lg shadow-sm p-6 mb-8">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Organization Details</h3>
+            <div id="orgInfoContent" class="grid md:grid-cols-2 gap-4 text-sm text-gray-600">
+                <!-- Will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- File Upload Section -->
+        <div class="bg-white rounded-lg shadow-lg p-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Upload Your Data Files</h2>
+
+            <!-- Instructions -->
+            <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-info-circle text-blue-400"></i>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-blue-800">Upload Instructions</h3>
+                        <div class="mt-2 text-sm text-blue-700">
+                            <ul class="list-disc list-inside space-y-1">
+                                <li>Upload Excel (.xlsx, .xls) or CSV files containing your data</li>
+                                <li>Include files for contacts, donations, events, or any other data you track</li>
+                                <li>File names should be descriptive (e.g., "2024_donors.xlsx", "contact_list.csv")</li>
+                                <li>Maximum file size: 50MB per file</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Drag and Drop Upload Area -->
+            <div id="uploadArea" class="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center hover:border-indigo-400 transition-colors cursor-pointer">
+                <div class="space-y-4">
+                    <div class="text-6xl text-gray-400">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <div>
+                        <p class="text-xl font-medium text-gray-900">Drop files here or click to browse</p>
+                        <p class="text-sm text-gray-500 mt-1">Excel (.xlsx, .xls) and CSV files supported</p>
+                    </div>
+                </div>
+                <input id="fileInput" type="file" multiple accept=".xlsx,.xls,.csv" class="hidden">
+            </div>
+
+            <!-- File List -->
+            <div id="fileList" class="mt-6 space-y-3 hidden">
+                <h3 class="text-lg font-medium text-gray-900">Uploaded Files</h3>
+                <div id="fileListContent" class="space-y-2">
+                    <!-- Files will be listed here -->
+                </div>
+            </div>
+
+            <!-- Sample Data Templates -->
+            <div class="mt-8">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">
+                    Need help? Download sample templates
+                </h3>
+                <div class="grid md:grid-cols-3 gap-4">
+                    <a href="#" class="flex items-center p-3 border border-gray-200 rounded-lg hover:border-indigo-300 transition-colors">
+                        <i class="fas fa-download text-indigo-600 mr-3"></i>
+                        <div>
+                            <p class="font-medium text-gray-900">Contact Template</p>
+                            <p class="text-xs text-gray-500">Sample contact spreadsheet</p>
+                        </div>
+                    </a>
+                    <a href="#" class="flex items-center p-3 border border-gray-200 rounded-lg hover:border-indigo-300 transition-colors">
+                        <i class="fas fa-download text-indigo-600 mr-3"></i>
+                        <div>
+                            <p class="font-medium text-gray-900">Donation Template</p>
+                            <p class="text-xs text-gray-500">Sample donation tracking</p>
+                        </div>
+                    </a>
+                    <a href="#" class="flex items-center p-3 border border-gray-200 rounded-lg hover:border-indigo-300 transition-colors">
+                        <i class="fas fa-download text-indigo-600 mr-3"></i>
+                        <div>
+                            <p class="font-medium text-gray-900">Event Template</p>
+                            <p class="text-xs text-gray-500">Sample event management</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Continue Button -->
+            <div class="mt-8 flex justify-between">
+                <button onclick="window.history.back()" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Back
+                </button>
+                <button id="continueBtn" class="px-8 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    Continue to Configuration
+                    <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- AI Analysis Preview -->
+        <div id="analysisPreview" class="mt-8 bg-white rounded-lg shadow-lg p-8 hidden">
+            <h3 class="text-xl font-bold text-gray-900 mb-4">
+                <i class="fas fa-brain text-indigo-600 mr-2"></i>
+                AI Analysis Preview
+            </h3>
+            <div id="analysisContent">
+                <!-- Will be populated after file upload -->
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let uploadedFiles = [];
+        let orgData = {};
+
+        // Load organization data from previous step
+        window.addEventListener('DOMContentLoaded', function() {
+            const savedData = sessionStorage.getItem('onboardingData');
+            if (savedData) {
+                orgData = JSON.parse(savedData);
+                displayOrgInfo();
+            }
+        });
+
+        function displayOrgInfo() {
+            const content = document.getElementById('orgInfoContent');
+            content.innerHTML = `
+                <div>
+                    <span class="font-medium">Organization:</span> ${orgData.org_name || 'Not specified'}
+                </div>
+                <div>
+                    <span class="font-medium">Type:</span> ${orgData.org_type || 'Not specified'}
+                </div>
+                <div>
+                    <span class="font-medium">Contact:</span> ${orgData.contact_name || 'Not specified'}
+                </div>
+                <div>
+                    <span class="font-medium">Email:</span> ${orgData.contact_email || 'Not specified'}
+                </div>
+                <div>
+                    <span class="font-medium">Subdomain:</span> ${orgData.subdomain || 'Not specified'}.crmblr.com
+                </div>
+                <div>
+                    <span class="font-medium">Plan:</span> ${orgData.plan || 'Not specified'}
+                </div>
+            `;
+        }
+
+        // File upload handling
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const fileListContent = document.getElementById('fileListContent');
+        const continueBtn = document.getElementById('continueBtn');
+
+        // Click to upload
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('border-indigo-400', 'bg-indigo-50');
+        });
+
+        uploadArea.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('border-indigo-400', 'bg-indigo-50');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('border-indigo-400', 'bg-indigo-50');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            Array.from(files).forEach(file => {
+                if (file.size > 50 * 1024 * 1024) { // 50MB limit
+                    alert(`File ${file.name} is too large. Maximum size is 50MB.`);
+                    return;
+                }
+
+                if (!file.name.match(/\.(xlsx|xls|csv)$/i)) {
+                    alert(`File ${file.name} is not supported. Please upload Excel or CSV files only.`);
+                    return;
+                }
+
+                uploadedFiles.push(file);
+                addFileToList(file);
+            });
+
+            updateUI();
+        }
+
+        function addFileToList(file) {
+            const fileDiv = document.createElement('div');
+            fileDiv.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg';
+            fileDiv.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-file-excel text-green-600 mr-3"></i>
+                    <div>
+                        <p class="font-medium text-gray-900">${file.name}</p>
+                        <p class="text-sm text-gray-500">${formatFileSize(file.size)}</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                        <i class="fas fa-check mr-1"></i>
+                        Uploaded
+                    </span>
+                    <button onclick="removeFile('${file.name}')" class="text-red-600 hover:text-red-800">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `;
+            fileListContent.appendChild(fileDiv);
+        }
+
+        function removeFile(fileName) {
+            uploadedFiles = uploadedFiles.filter(file => file.name !== fileName);
+            updateFileList();
+            updateUI();
+        }
+
+        function updateFileList() {
+            fileListContent.innerHTML = '';
+            uploadedFiles.forEach(addFileToList);
+        }
+
+        function updateUI() {
+            if (uploadedFiles.length > 0) {
+                fileList.classList.remove('hidden');
+                continueBtn.disabled = false;
+
+                // Simulate AI analysis
+                setTimeout(showAnalysisPreview, 1000);
+            } else {
+                fileList.classList.add('hidden');
+                continueBtn.disabled = true;
+                document.getElementById('analysisPreview').classList.add('hidden');
+            }
+        }
+
+        function showAnalysisPreview() {
+            const analysisDiv = document.getElementById('analysisPreview');
+            const analysisContent = document.getElementById('analysisContent');
+
+            // Simple analysis based on file names
+            const suggestedModules = [];
+            const fileNames = uploadedFiles.map(f => f.name.toLowerCase()).join(' ');
+
+            if (fileNames.includes('contact') || fileNames.includes('member') || fileNames.includes('person')) {
+                suggestedModules.push('Contacts');
+            }
+            if (fileNames.includes('donation') || fileNames.includes('gift') || fileNames.includes('contribution')) {
+                suggestedModules.push('Donations');
+            }
+            if (fileNames.includes('event') || fileNames.includes('program')) {
+                suggestedModules.push('Events');
+            }
+            if (fileNames.includes('volunteer')) {
+                suggestedModules.push('Volunteers');
+            }
+
+            if (suggestedModules.length === 0) {
+                suggestedModules.push('Contacts'); // Default
+            }
+
+            analysisContent.innerHTML = `
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div class="flex items-start">
+                        <i class="fas fa-check-circle text-green-600 mt-1 mr-3"></i>
+                        <div>
+                            <h4 class="font-medium text-green-800">Analysis Complete</h4>
+                            <p class="text-sm text-green-700 mt-1">
+                                We've analyzed your files and suggest the following CRM modules:
+                            </p>
+                            <div class="mt-3 flex flex-wrap gap-2">
+                                ${suggestedModules.map(module =>
+                                    `<span class="bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full">${module}</span>`
+                                ).join('')}
+                            </div>
+                            <p class="text-sm text-green-700 mt-2">
+                                You can review and modify these suggestions in the next step.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            analysisDiv.classList.remove('hidden');
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Continue button
+        continueBtn.addEventListener('click', function() {
+            // Store file information for next step
+            const fileData = uploadedFiles.map(file => ({
+                name: file.name,
+                size: file.size,
+                type: file.type
+            }));
+
+            orgData.uploadedFiles = fileData;
+            sessionStorage.setItem('onboardingData', JSON.stringify(orgData));
+
+            // Navigate to configuration
+            window.location.href = '/onboard/configure';
+        });
+    </script>
+</body>
+</html>

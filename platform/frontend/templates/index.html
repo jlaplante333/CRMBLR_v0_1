@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRMBLR Platform - Template Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div class="container mx-auto px-4 py-12">
+        <div class="max-w-4xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-12">
+                <h1 class="text-4xl font-bold text-indigo-600 mb-4">
+                    <i class="fas fa-rocket mr-3"></i>
+                    CRMBLR Platform Demo
+                </h1>
+                <p class="text-xl text-gray-600 mb-8">
+                    MVP Frontend Templates & API Integration
+                </p>
+
+                <!-- Status Cards -->
+                <div class="grid md:grid-cols-2 gap-4 mb-8">
+                    <div class="bg-green-100 border border-green-300 rounded-lg p-4">
+                        <h3 class="font-semibold text-green-800">✅ API Server</h3>
+                        <p class="text-sm text-green-700">Running on port 8001</p>
+                        <a href="http://localhost:8001/docs" target="_blank" class="text-green-600 hover:underline text-sm">
+                            View API Docs →
+                        </a>
+                    </div>
+                    <div class="bg-blue-100 border border-blue-300 rounded-lg p-4">
+                        <h3 class="font-semibold text-blue-800">✅ Frontend Templates</h3>
+                        <p class="text-sm text-blue-700">Running on port 3000</p>
+                        <p class="text-xs text-blue-600">Static demo pages</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customer Onboarding Flow -->
+            <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">
+                    <i class="fas fa-user-plus text-indigo-600 mr-3"></i>
+                    Customer Onboarding Options
+                </h2>
+                <p class="text-gray-600 mb-6">
+                    Choose between basic MVP onboarding or AI-enhanced analysis.
+                </p>
+
+                <!-- Enhanced Onboarding -->
+                <div class="mb-8 p-6 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border-2 border-purple-200">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mr-4">
+                            <i class="fas fa-brain text-purple-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">AI-Enhanced Onboarding</h3>
+                            <p class="text-sm text-gray-600">Website + 990 analysis with intelligent CRM configuration</p>
+                        </div>
+                        <div class="ml-auto">
+                            <span class="bg-purple-500 text-white text-xs font-medium px-3 py-1 rounded-full">
+                                RECOMMENDED
+                            </span>
+                        </div>
+                    </div>
+                    <p class="text-gray-700 mb-4">
+                        Upload your website content, Form 990, and data files for comprehensive AI analysis.
+                        Get a fully customized CRM optimized for your specific nonprofit type and needs.
+                    </p>
+                    <a href="onboarding/enhanced_start.html" class="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+                        <i class="fas fa-magic mr-2"></i>
+                        Start AI-Enhanced Onboarding
+                    </a>
+                </div>
+
+                <!-- Basic Onboarding -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Basic MVP Onboarding</h3>
+                    <p class="text-gray-600 mb-4">
+                        Standard onboarding flow with manual configuration and basic file upload.
+                    </p>
+                </div>
+
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <a href="onboarding/start.html" class="block p-4 border border-gray-200 rounded-lg hover:border-indigo-300 hover:shadow-md transition-all">
+                        <div class="text-center">
+                            <div class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <i class="fas fa-info-circle text-indigo-600"></i>
+                            </div>
+                            <h3 class="font-semibold text-gray-900 mb-2">Step 1: Info</h3>
+                            <p class="text-sm text-gray-600">Organization details and plan selection</p>
+                        </div>
+                    </a>
+
+                    <a href="onboarding/upload.html" class="block p-4 border border-gray-200 rounded-lg hover:border-indigo-300 hover:shadow-md transition-all">
+                        <div class="text-center">
+                            <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <i class="fas fa-upload text-green-600"></i>
+                            </div>
+                            <h3 class="font-semibold text-gray-900 mb-2">Step 2: Upload</h3>
+                            <p class="text-sm text-gray-600">File upload and AI analysis</p>
+                        </div>
+                    </a>
+
+                    <a href="onboarding/configure.html" class="block p-4 border border-gray-200 rounded-lg hover:border-indigo-300 hover:shadow-md transition-all">
+                        <div class="text-center">
+                            <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <i class="fas fa-cog text-purple-600"></i>
+                            </div>
+                            <h3 class="font-semibold text-gray-900 mb-2">Step 3: Configure</h3>
+                            <p class="text-sm text-gray-600">CRM modules and branding</p>
+                        </div>
+                    </a>
+
+                    <a href="onboarding/payment.html" class="block p-4 border border-gray-200 rounded-lg hover:border-indigo-300 hover:shadow-md transition-all">
+                        <div class="text-center">
+                            <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <i class="fas fa-credit-card text-yellow-600"></i>
+                            </div>
+                            <h3 class="font-semibold text-gray-900 mb-2">Step 4: Payment</h3>
+                            <p class="text-sm text-gray-600">Billing and final setup</p>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                    <h4 class="font-semibold text-blue-900 mb-2">Progress Tracking</h4>
+                    <a href="onboarding/progress.html" class="inline-flex items-center text-blue-600 hover:underline">
+                        <i class="fas fa-chart-line mr-2"></i>
+                        View Progress Dashboard →
+                    </a>
+                </div>
+
+                <div class="mt-4 p-4 bg-purple-50 rounded-lg">
+                    <h4 class="font-semibold text-purple-900 mb-2">Live CRM Demo</h4>
+                    <a href="crm/make_literary_crm.html" class="inline-flex items-center text-purple-600 hover:underline">
+                        <i class="fas fa-external-link-alt mr-2"></i>
+                        View MAKE Literary Productions CRM →
+                    </a>
+                    <p class="text-xs text-purple-700 mt-1">Working CRM generated from enhanced onboarding</p>
+                </div>
+            </div>
+
+            <!-- API Integration -->
+            <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">
+                    <i class="fas fa-code text-indigo-600 mr-3"></i>
+                    API Integration
+                </h2>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="font-semibold text-gray-900 mb-3">Available Endpoints</h3>
+                        <ul class="space-y-2 text-sm">
+                            <li class="flex items-center">
+                                <span class="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
+                                <code class="bg-gray-100 px-2 py-1 rounded">/api/auth/*</code>
+                                <span class="ml-2 text-gray-600">Authentication</span>
+                            </li>
+                            <li class="flex items-center">
+                                <span class="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
+                                <code class="bg-gray-100 px-2 py-1 rounded">/api/platform/*</code>
+                                <span class="ml-2 text-gray-600">Platform management</span>
+                            </li>
+                            <li class="flex items-center">
+                                <span class="w-2 h-2 bg-purple-500 rounded-full mr-3"></span>
+                                <code class="bg-gray-100 px-2 py-1 rounded">/api/clients/*</code>
+                                <span class="ml-2 text-gray-600">Client operations</span>
+                            </li>
+                            <li class="flex items-center">
+                                <span class="w-2 h-2 bg-orange-500 rounded-full mr-3"></span>
+                                <code class="bg-gray-100 px-2 py-1 rounded">/api/data/*</code>
+                                <span class="ml-2 text-gray-600">Data processing</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h3 class="font-semibold text-gray-900 mb-3">Quick Links</h3>
+                        <div class="space-y-2">
+                            <a href="http://localhost:8001/docs" target="_blank" class="block p-3 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
+                                <div class="flex items-center">
+                                    <i class="fas fa-book text-blue-600 mr-3"></i>
+                                    <div>
+                                        <div class="font-medium">API Documentation</div>
+                                        <div class="text-sm text-gray-600">Interactive Swagger UI</div>
+                                    </div>
+                                </div>
+                            </a>
+
+                            <a href="http://localhost:8001/health" target="_blank" class="block p-3 bg-gray-50 rounded hover:bg-gray-100 transition-colors">
+                                <div class="flex items-center">
+                                    <i class="fas fa-heartbeat text-green-600 mr-3"></i>
+                                    <div>
+                                        <div class="font-medium">Health Check</div>
+                                        <div class="text-sm text-gray-600">System status</div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Development Notes -->
+            <div class="bg-white rounded-lg shadow-lg p-8">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">
+                    <i class="fas fa-tools text-indigo-600 mr-3"></i>
+                    Development Status
+                </h2>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="font-semibold text-green-800 mb-3">✅ Completed (Phase 1)</h3>
+                        <ul class="space-y-1 text-sm text-green-700">
+                            <li>• Multi-tenant authentication</li>
+                            <li>• Customer onboarding flow</li>
+                            <li>• Basic data import (CSV)</li>
+                            <li>• CRM generation engine</li>
+                            <li>• Platform management API</li>
+                            <li>• File upload & processing</li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h3 class="font-semibold text-blue-800 mb-3">🔄 Next Phase (Specialists)</h3>
+                        <ul class="space-y-1 text-sm text-blue-700">
+                            <li>• AI-powered data analysis</li>
+                            <li>• Complex file parsing (Excel)</li>
+                            <li>• Intelligent field mapping</li>
+                            <li>• Production error handling</li>
+                            <li>• Advanced data quality scoring</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="mt-6 p-4 bg-indigo-50 rounded-lg">
+                    <h4 class="font-semibold text-indigo-900 mb-2">Ready for Demonstration</h4>
+                    <p class="text-sm text-indigo-800">
+                        The MVP foundation is complete and ready to show potential AI specialists and data engineers.
+                        All core workflows are functional with manual processes that can be automated in Phase 2.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

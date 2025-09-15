@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get Started - CRMBLR</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex items-center">
+                <h1 class="text-2xl font-bold text-indigo-600">CRMBLR</h1>
+                <span class="ml-2 text-sm text-gray-500">AI-Powered CRM for Nonprofits</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <!-- Hero Section -->
+        <div class="text-center mb-12">
+            <h2 class="text-4xl font-bold text-gray-900 mb-4">
+                Transform Your Data Into a Powerful CRM
+            </h2>
+            <p class="text-xl text-gray-600 mb-8">
+                Upload your Excel files and we'll create a custom CRM tailored to your nonprofit's needs
+            </p>
+            <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                <div class="flex items-center justify-center space-x-8">
+                    <div class="text-center">
+                        <div class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                            <i class="fas fa-upload text-indigo-600"></i>
+                        </div>
+                        <p class="text-sm font-medium">Upload Files</p>
+                    </div>
+                    <div class="text-gray-400">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                            <i class="fas fa-brain text-indigo-600"></i>
+                        </div>
+                        <p class="text-sm font-medium">AI Analysis</p>
+                    </div>
+                    <div class="text-gray-400">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                            <i class="fas fa-rocket text-indigo-600"></i>
+                        </div>
+                        <p class="text-sm font-medium">CRM Ready</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Onboarding Form -->
+        <div class="bg-white rounded-lg shadow-lg p-8">
+            <h3 class="text-2xl font-bold text-gray-900 mb-6">Tell Us About Your Organization</h3>
+
+            <form id="onboardingForm" action="/onboard/upload" method="get">
+                <!-- Organization Information -->
+                <div class="grid md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Organization Name *
+                        </label>
+                        <input
+                            type="text"
+                            name="org_name"
+                            required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            placeholder="e.g., Helping Hands Nonprofit"
+                        >
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Organization Type *
+                        </label>
+                        <select
+                            name="org_type"
+                            required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        >
+                            <option value="">Select type...</option>
+                            <option value="nonprofit">Nonprofit Organization</option>
+                            <option value="foundation">Foundation</option>
+                            <option value="arts">Arts Organization</option>
+                            <option value="social_services">Social Services</option>
+                            <option value="community">Community Development</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Contact Email *
+                        </label>
+                        <input
+                            type="email"
+                            name="contact_email"
+                            required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            placeholder="admin@yourorg.org"
+                        >
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Contact Name *
+                        </label>
+                        <input
+                            type="text"
+                            name="contact_name"
+                            required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            placeholder="Your full name"
+                        >
+                    </div>
+                </div>
+
+                <!-- Current System -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        What are you currently using to manage your data?
+                    </label>
+                    <div class="space-y-2">
+                        <label class="flex items-center">
+                            <input type="checkbox" name="current_systems" value="excel" class="mr-2">
+                            <span class="text-sm">Excel/Google Sheets</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" name="current_systems" value="database" class="mr-2">
+                            <span class="text-sm">Database (Access, FileMaker, etc.)</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" name="current_systems" value="crm" class="mr-2">
+                            <span class="text-sm">Existing CRM (Salesforce, etc.)</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" name="current_systems" value="paper" class="mr-2">
+                            <span class="text-sm">Paper records</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" name="current_systems" value="other" class="mr-2">
+                            <span class="text-sm">Other system</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Data Types -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        What types of data do you track? (Check all that apply)
+                    </label>
+                    <div class="grid md:grid-cols-2 gap-2">
+                        <label class="flex items-center">
+                            <input type="checkbox" name="data_types" value="contacts" class="mr-2">
+                            <span class="text-sm">Contacts/People</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" name="data_types" value="donations" class="mr-2">
+                            <span class="text-sm">Donations/Gifts</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" name="data_types" value="events" class="mr-2">
+                            <span class="text-sm">Events/Programs</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" name="data_types" value="volunteers" class="mr-2">
+                            <span class="text-sm">Volunteers</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" name="data_types" value="grants" class="mr-2">
+                            <span class="text-sm">Grants/Funding</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" name="data_types" value="clients" class="mr-2">
+                            <span class="text-sm">Clients/Beneficiaries</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" name="data_types" value="inventory" class="mr-2">
+                            <span class="text-sm">Inventory/Assets</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" name="data_types" value="memberships" class="mr-2">
+                            <span class="text-sm">Memberships</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Preferred Subdomain -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Choose your CRM subdomain
+                    </label>
+                    <div class="flex items-center">
+                        <input
+                            type="text"
+                            name="subdomain"
+                            required
+                            pattern="[a-zA-Z0-9-]+"
+                            class="px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            placeholder="your-org"
+                        >
+                        <span class="px-3 py-2 bg-gray-100 border border-l-0 border-gray-300 rounded-r-md text-sm text-gray-600">
+                            .crmblr.com
+                        </span>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">
+                        Only letters, numbers, and hyphens allowed
+                    </p>
+                </div>
+
+                <!-- Plan Selection -->
+                <div class="mb-8">
+                    <label class="block text-sm font-medium text-gray-700 mb-4">
+                        Choose Your Plan
+                    </label>
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <!-- Small Plan -->
+                        <div class="border border-gray-200 rounded-lg p-4 hover:border-indigo-300 cursor-pointer transition-colors">
+                            <input type="radio" name="plan" value="small" id="plan-small" class="sr-only">
+                            <label for="plan-small" class="cursor-pointer">
+                                <div class="text-center">
+                                    <h4 class="text-lg font-semibold text-gray-900">Small</h4>
+                                    <p class="text-2xl font-bold text-indigo-600">$500</p>
+                                    <p class="text-sm text-gray-500 mb-3">One-time setup</p>
+                                    <ul class="text-sm text-gray-600 space-y-1">
+                                        <li>Up to 1,000 contacts</li>
+                                        <li>Basic modules</li>
+                                        <li>Email support</li>
+                                        <li>48-hour setup</li>
+                                    </ul>
+                                </div>
+                            </label>
+                        </div>
+
+                        <!-- Medium Plan -->
+                        <div class="border-2 border-indigo-500 rounded-lg p-4 bg-indigo-50 cursor-pointer">
+                            <input type="radio" name="plan" value="medium" id="plan-medium" class="sr-only" checked>
+                            <label for="plan-medium" class="cursor-pointer">
+                                <div class="text-center">
+                                    <div class="text-xs bg-indigo-500 text-white px-2 py-1 rounded-full inline-block mb-2">
+                                        POPULAR
+                                    </div>
+                                    <h4 class="text-lg font-semibold text-gray-900">Medium</h4>
+                                    <p class="text-2xl font-bold text-indigo-600">$1,200</p>
+                                    <p class="text-sm text-gray-500 mb-3">One-time setup</p>
+                                    <ul class="text-sm text-gray-600 space-y-1">
+                                        <li>Up to 5,000 contacts</li>
+                                        <li>All modules included</li>
+                                        <li>Priority support</li>
+                                        <li>24-hour setup</li>
+                                    </ul>
+                                </div>
+                            </label>
+                        </div>
+
+                        <!-- Large Plan -->
+                        <div class="border border-gray-200 rounded-lg p-4 hover:border-indigo-300 cursor-pointer transition-colors">
+                            <input type="radio" name="plan" value="large" id="plan-large" class="sr-only">
+                            <label for="plan-large" class="cursor-pointer">
+                                <div class="text-center">
+                                    <h4 class="text-lg font-semibold text-gray-900">Large</h4>
+                                    <p class="text-2xl font-bold text-indigo-600">$2,000</p>
+                                    <p class="text-sm text-gray-500 mb-3">One-time setup</p>
+                                    <ul class="text-sm text-gray-600 space-y-1">
+                                        <li>Unlimited contacts</li>
+                                        <li>Custom modules</li>
+                                        <li>Phone + email support</li>
+                                        <li>12-hour setup</li>
+                                    </ul>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CTA Button -->
+                <div class="text-center">
+                    <button
+                        type="submit"
+                        class="bg-indigo-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                    >
+                        Continue to File Upload
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Trust Signals -->
+        <div class="mt-12 text-center">
+            <p class="text-sm text-gray-500 mb-4">Trusted by nonprofits nationwide</p>
+            <div class="flex items-center justify-center space-x-8 opacity-60">
+                <span class="text-sm font-medium">🔒 Secure</span>
+                <span class="text-sm font-medium">⚡ Fast Setup</span>
+                <span class="text-sm font-medium">🎯 Custom Built</span>
+                <span class="text-sm font-medium">💬 Support Included</span>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Plan selection interactivity
+        document.querySelectorAll('input[name="plan"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                // Remove all selections
+                document.querySelectorAll('.border-2').forEach(el => {
+                    el.className = el.className.replace('border-2 border-indigo-500 bg-indigo-50', 'border border-gray-200');
+                });
+
+                // Add selection to chosen plan
+                if (this.checked) {
+                    const label = this.closest('div');
+                    label.className = label.className.replace('border border-gray-200', 'border-2 border-indigo-500 bg-indigo-50');
+                }
+            });
+        });
+
+        // Form submission
+        document.getElementById('onboardingForm').addEventListener('submit', function(e) {
+            // Store form data in sessionStorage for next step
+            const formData = new FormData(this);
+            const data = {};
+
+            for (let [key, value] of formData.entries()) {
+                if (data[key]) {
+                    if (Array.isArray(data[key])) {
+                        data[key].push(value);
+                    } else {
+                        data[key] = [data[key], value];
+                    }
+                } else {
+                    data[key] = value;
+                }
+            }
+
+            sessionStorage.setItem('onboardingData', JSON.stringify(data));
+        });
+    </script>
+</body>
+</html>

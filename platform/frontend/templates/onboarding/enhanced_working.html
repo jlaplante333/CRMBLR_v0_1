@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Working AI-Enhanced Onboarding - CRMBLR</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex items-center">
+                <h1 class="text-2xl font-bold text-indigo-600">CRMBLR</h1>
+                <span class="ml-2 text-sm text-gray-500">Working AI-Enhanced CRM Generation</span>
+                <div class="ml-auto">
+                    <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                        <i class="fas fa-check mr-1"></i>
+                        FUNCTIONAL
+                    </span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <!-- Results Display -->
+        <div id="resultsSection" class="hidden bg-white rounded-lg shadow-lg p-8 mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">
+                <i class="fas fa-brain text-purple-600 mr-3"></i>
+                AI Analysis Results
+            </h2>
+            <div id="resultsContent">
+                <!-- Results will be displayed here -->
+            </div>
+        </div>
+
+        <!-- Form Section -->
+        <div id="formSection" class="bg-white rounded-lg shadow-lg p-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">
+                AI-Enhanced CRM Generation
+            </h2>
+            <p class="text-gray-600 mb-8">
+                Fill out this form and we'll generate comprehensive AI analysis prompts for your nonprofit CRM.
+            </p>
+
+            <form id="enhancedForm">
+                <!-- Organization Info -->
+                <div class="grid md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Organization Name *
+                        </label>
+                        <input
+                            type="text"
+                            name="org_name"
+                            required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            placeholder="e.g., Helping Hands Nonprofit"
+                        >
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Website URL *
+                        </label>
+                        <input
+                            type="url"
+                            name="website_url"
+                            required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            placeholder="https://yourorganization.org"
+                        >
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Contact Email *
+                        </label>
+                        <input
+                            type="email"
+                            name="contact_email"
+                            required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            placeholder="admin@yourorg.org"
+                        >
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Contact Name *
+                        </label>
+                        <input
+                            type="text"
+                            name="contact_name"
+                            required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            placeholder="Your full name"
+                        >
+                    </div>
+                </div>
+
+                <!-- Website Content -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Website Content *
+                    </label>
+                    <textarea
+                        name="website_content"
+                        rows="6"
+                        required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        placeholder="Paste your website content here (mission, programs, impact stories, etc.)"
+                    ></textarea>
+                </div>
+
+                <!-- Form 990 Data -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        IRS Form 990 Information *
+                    </label>
+                    <textarea
+                        name="form_990_data"
+                        rows="6"
+                        required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        placeholder="Paste Form 990 information here (revenue, expenses, programs, staff size, etc.)"
+                    ></textarea>
+                </div>
+
+                <!-- Data Files Info -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Data Files Description
+                    </label>
+                    <textarea
+                        name="data_files_info"
+                        rows="3"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        placeholder="Describe the data files you have (e.g., 'contacts.csv with 500 donors', 'events.xlsx with program attendance', etc.)"
+                    ></textarea>
+                </div>
+
+                <!-- Plan Selection -->
+                <div class="mb-8">
+                    <label class="block text-sm font-medium text-gray-700 mb-4">
+                        Choose Your Plan
+                    </label>
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <div class="border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-indigo-300">
+                            <input type="radio" name="plan" value="small" id="plan-small" class="sr-only">
+                            <label for="plan-small" class="cursor-pointer">
+                                <div class="text-center">
+                                    <h5 class="font-semibold">Small - $1,500</h5>
+                                    <p class="text-sm text-gray-600">Basic AI analysis</p>
+                                </div>
+                            </label>
+                        </div>
+                        <div class="border-2 border-indigo-500 bg-indigo-50 rounded-lg p-4 cursor-pointer">
+                            <input type="radio" name="plan" value="medium" id="plan-medium" class="sr-only" checked>
+                            <label for="plan-medium" class="cursor-pointer">
+                                <div class="text-center">
+                                    <h5 class="font-semibold">Medium - $3,000</h5>
+                                    <p class="text-sm text-gray-600">Detailed AI analysis</p>
+                                </div>
+                            </label>
+                        </div>
+                        <div class="border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-indigo-300">
+                            <input type="radio" name="plan" value="large" id="plan-large" class="sr-only">
+                            <label for="plan-large" class="cursor-pointer">
+                                <div class="text-center">
+                                    <h5 class="font-semibold">Large - $5,000</h5>
+                                    <p class="text-sm text-gray-600">Premium AI analysis</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="text-center space-y-4">
+                    <div class="flex justify-center space-x-4">
+                        <button
+                            type="submit"
+                            id="submitBtn"
+                            class="bg-indigo-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors"
+                        >
+                            Generate AI Analysis Prompts
+                            <i class="fas fa-brain ml-2"></i>
+                        </button>
+
+                        <button
+                            type="button"
+                            id="createCrmBtn"
+                            onclick="createMakeLitCRM()"
+                            class="bg-green-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors"
+                        >
+                            Create Make-Lit CRM
+                            <i class="fas fa-rocket ml-2"></i>
+                        </button>
+                    </div>
+
+                    <!-- Debug buttons -->
+                    <div class="text-sm space-x-2">
+                        <button type="button" onclick="testAPI()" class="bg-gray-500 text-white px-4 py-2 rounded text-sm">
+                            Test API Connection
+                        </button>
+                        <button type="button" onclick="fillTestData()" class="bg-blue-500 text-white px-4 py-2 rounded text-sm">
+                            Fill Test Data
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        // Plan selection
+        document.querySelectorAll('input[name="plan"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                document.querySelectorAll('.border-2').forEach(el => {
+                    el.className = el.className.replace('border-2 border-indigo-500 bg-indigo-50', 'border border-gray-200');
+                });
+                if (this.checked) {
+                    const label = this.closest('div');
+                    label.className = label.className.replace('border border-gray-200', 'border-2 border-indigo-500 bg-indigo-50');
+                }
+            });
+        });
+
+        // Form submission
+        document.getElementById('enhancedForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            console.log('Form submission started');
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+
+            try {
+                // Collect form data
+                const formData = new FormData(this);
+                console.log('Form data collected');
+
+                // Create request payload
+                const requestData = {
+                    org_name: formData.get('org_name'),
+                    website_url: formData.get('website_url'),
+                    contact_email: formData.get('contact_email'),
+                    contact_name: formData.get('contact_name'),
+                    website_content: formData.get('website_content'),
+                    form_990_data: formData.get('form_990_data'),
+                    data_files_info: formData.get('data_files_info'),
+                    analysis_type: 'detailed',
+                    plan: formData.get('plan') || 'medium'
+                };
+
+                console.log('Request data:', requestData);
+
+                // Call API
+                console.log('Calling API...');
+                const response = await fetch('http://localhost:8001/api/enhanced/enhanced-onboarding-json', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                console.log('API response status:', response.status);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('API error response:', errorText);
+                    throw new Error(`API error: ${response.status} - ${errorText}`);
+                }
+
+                const result = await response.json();
+                console.log('API result:', result);
+                displayAPIResults(result, requestData);
+
+            } catch (error) {
+                console.error('Error:', error);
+                displayError(error.message);
+            }
+        });
+
+        function displayAPIResults(apiResult, requestData) {
+            const formSection = document.getElementById('formSection');
+            const resultsSection = document.getElementById('resultsSection');
+            const resultsContent = document.getElementById('resultsContent');
+
+            formSection.classList.add('hidden');
+            resultsSection.classList.remove('hidden');
+
+            resultsContent.innerHTML = `
+                <div class="space-y-8">
+                    <!-- Success Message -->
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-green-900 mb-3">
+                            <i class="fas fa-check-circle mr-2"></i>
+                            Enhanced Onboarding Started Successfully
+                        </h3>
+                        <p class="text-green-800">
+                            Client ID <strong>${apiResult.client_id}</strong> created for <strong>${requestData.org_name}</strong>.
+                            Your AI analysis prompt is ready!
+                        </p>
+                    </div>
+
+                    <!-- Client Information -->
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-blue-900 mb-4">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            Onboarding Details
+                        </h3>
+                        <div class="grid md:grid-cols-2 gap-4 text-sm">
+                            <div><strong>Client ID:</strong> ${apiResult.client_id}</div>
+                            <div><strong>Organization:</strong> ${requestData.org_name}</div>
+                            <div><strong>Status:</strong> <span class="text-blue-600">${apiResult.status}</span></div>
+                            <div><strong>Plan:</strong> ${requestData.plan.charAt(0).toUpperCase() + requestData.plan.slice(1)}</div>
+                        </div>
+                    </div>
+
+                    <!-- Organization Analysis Prompt -->
+                    <div class="border border-gray-200 rounded-lg p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900">
+                                <span class="bg-purple-100 text-purple-800 text-sm font-medium px-2.5 py-0.5 rounded-full mr-3">
+                                    STEP 1
+                                </span>
+                                AI Organization Analysis Prompt
+                            </h3>
+                            <button onclick="copyToClipboard('analysisPrompt')" class="bg-purple-600 text-white px-4 py-2 rounded text-sm hover:bg-purple-700">
+                                <i class="fas fa-copy mr-1"></i>
+                                Copy Prompt
+                            </button>
+                        </div>
+                        <textarea
+                            id="analysisPrompt"
+                            readonly
+                            class="w-full h-80 p-4 border border-gray-300 rounded-md text-sm font-mono"
+                        >${apiResult.organization_analysis_prompt}</textarea>
+                        <p class="text-sm text-gray-600 mt-2">
+                            <strong>Instructions:</strong> Copy this prompt and run it through Claude to get your comprehensive organization analysis.
+                        </p>
+                    </div>
+
+                    <!-- Uploaded Files Summary -->
+                    <div class="border border-gray-200 rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                            <i class="fas fa-file-alt mr-2"></i>
+                            Data Summary
+                        </h3>
+                        <div class="bg-gray-50 p-4 rounded text-sm">
+                            <pre>${JSON.stringify(apiResult.uploaded_files_summary, null, 2)}</pre>
+                        </div>
+                    </div>
+
+                    <!-- Next Steps -->
+                    <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-indigo-900 mb-4">
+                            <i class="fas fa-list-ol mr-2"></i>
+                            Next Steps
+                        </h3>
+                        <ol class="list-decimal list-inside space-y-2 text-indigo-800">
+                            ${apiResult.next_steps.map(step => `<li>${step}</li>`).join('')}
+                        </ol>
+                        <div class="mt-4 p-4 bg-indigo-100 rounded">
+                            <p class="text-sm text-indigo-800">
+                                <strong>Your Client ID:</strong> ${apiResult.client_id}<br>
+                                <strong>Contact:</strong> ${requestData.contact_email}<br>
+                                <strong>Timeline:</strong> Complete CRM deployed within 1 week
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="text-center space-x-4">
+                        <button onclick="generateCRMConfig('${apiResult.client_id}')" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">
+                            <i class="fas fa-arrow-right mr-2"></i>
+                            Generate CRM Configuration
+                        </button>
+                        <button onclick="location.reload()" class="bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-700">
+                            <i class="fas fa-refresh mr-2"></i>
+                            Start Over
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function displayError(errorMessage) {
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'Generate AI Analysis Prompts <i class="fas fa-brain ml-2"></i>';
+
+            alert(`Error: ${errorMessage}. Please check that the API server is running on http://localhost:8001`);
+        }
+
+        async function generateCRMConfig(clientId) {
+            // This would call the second API endpoint after analysis is complete
+            alert(`Next step: Use Client ID ${clientId} to generate CRM configuration after completing the analysis.`);
+        }
+
+        function generateOrganizationAnalysisPrompt(data) {
+            return `Analyze this nonprofit organization and complete the structured form below.
+
+WEBSITE CONTENT:
+${data.website_content}
+
+IRS FORM 990 DATA:
+${data.form_990_data}
+
+DATA FILES AVAILABLE:
+${data.data_files_info || 'No specific files described'}
+
+Please complete this analysis form with accurate information extracted from the provided data:
+
+ORGANIZATION ANALYSIS FORM:
+
+**Organization Basics:**
+- Organization Name: ${data.org_name}
+- Mission Statement: [Summarize from website content]
+- Founded Year: [If available in content]
+- Annual Budget: [From 990 data]
+- Staff Count: [From 990 if available]
+- Volunteer Count: [From website/990]
+
+**Programs & Services:**
+- Primary Programs: [List 3-5 main programs from website]
+- Service Delivery Model: [direct/advocacy/grantmaking/hybrid based on content]
+- Target Beneficiaries: [Who do they serve based on mission]
+- Geographic Scope: [local/regional/national/international]
+
+**Fundraising & Revenue:**
+- Revenue Sources: [Percentage breakdown from 990]
+- Donor Segments: [Types of donors mentioned in content]
+- Fundraising Events: [Events mentioned on website]
+- Grant Funding: [Yes/No based on 990]
+
+**Stakeholder Management:**
+- Has Volunteers: [Yes/No based on content]
+- Volunteer Programs: [Types from website]
+- Has Board: [Yes/No from 990]
+- Board Size: [Number from 990]
+- Has Committees: [Yes/No if mentioned]
+
+**Operations & Engagement:**
+- Runs Events: [Yes/No from website]
+- Event Types: [fundraising/program/community/educational]
+- Has Membership: [Yes/No if mentioned]
+- Membership Tiers: [If applicable]
+- Tracks Outcomes: [Yes/No if impact metrics mentioned]
+
+**Communication & Outreach:**
+- Communication Channels: [email/social/newsletter/website from content]
+- Social Media Presence: [Yes/No]
+- Newsletter Frequency: [If mentioned]
+
+**Data & Technology Needs:**
+- Current Systems: [Any mentioned systems]
+- Integration Needs: [External systems mentioned]
+- Reporting Requirements: [Reports they likely need]
+- Compliance Tracking: [Regulatory requirements]
+
+ANALYSIS INSTRUCTIONS:
+1. Extract factual information where available
+2. Make reasonable inferences based on organization type/size
+3. Note assumptions clearly
+4. Flag any areas needing clarification
+
+Format your response as a structured analysis for CRM configuration.`;
+        }
+
+        function generateCRMConfigurationPrompt(data) {
+            return `Based on the completed organization analysis, recommend an optimal CRM configuration for ${data.org_name}.
+
+ORGANIZATION ANALYSIS RESULTS:
+[Insert completed analysis from previous step]
+
+DATA FILES AVAILABLE:
+${data.data_files_info || 'Standard nonprofit data files'}
+
+Generate a comprehensive CRM recommendation including:
+
+**1. CORE MODULES (select from: contacts, donations, volunteers, events, grants, services, programs)**
+For each recommended module, explain:
+- Why it's needed for this organization
+- How it addresses their specific use case
+- Priority level (essential/important/optional)
+
+**2. CUSTOM CONFIGURATION**
+
+Custom Fields Needed:
+- Contacts: [additional fields beyond standard name/email/phone]
+- Donations: [custom fields for their fundraising model]
+- Events: [fields specific to their event types]
+- [Other modules as applicable]
+
+Custom Workflows:
+- Donor acknowledgment process
+- Volunteer onboarding
+- Event registration handling
+- [Other automation opportunities]
+
+Custom Reports:
+- Financial dashboards for their revenue model
+- Program impact tracking
+- Compliance reporting needs
+- [Organization-specific reports]
+
+**3. DATA IMPORT STRATEGY**
+Based on their available files:
+- Which files map to which modules
+- Field mapping recommendations
+- Data cleaning requirements
+- Potential duplicate handling
+
+**4. IMPLEMENTATION PLAN**
+- Setup complexity assessment: [simple/moderate/complex]
+- Estimated timeline: [24 hours/48 hours/1 week]
+- Recommended pricing tier: [${data.plan}]
+- Phased rollout if complex
+
+**5. CONFIDENCE & REVIEW**
+- Overall confidence score (0-100%)
+- Items requiring human review
+- Alternative configurations to consider
+- Risks or concerns
+
+Prioritize practical, actionable recommendations that will deliver immediate value to this organization.`;
+        }
+
+        function displayResults(analysisPrompt, crmPrompt, data) {
+            const formSection = document.getElementById('formSection');
+            const resultsSection = document.getElementById('resultsSection');
+            const resultsContent = document.getElementById('resultsContent');
+
+            formSection.classList.add('hidden');
+            resultsSection.classList.remove('hidden');
+
+            resultsContent.innerHTML = `
+                <div class="space-y-8">
+                    <!-- Summary -->
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-green-900 mb-3">
+                            <i class="fas fa-check-circle mr-2"></i>
+                            Analysis Prompts Generated Successfully
+                        </h3>
+                        <p class="text-green-800">
+                            Your AI analysis prompts are ready! Copy these prompts and run them through Claude
+                            to get a comprehensive CRM configuration for <strong>\${data.org_name}</strong>.
+                        </p>
+                    </div>
+
+                    <!-- Step 1: Organization Analysis -->
+                    <div class="border border-gray-200 rounded-lg p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900">
+                                <span class="bg-blue-100 text-blue-800 text-sm font-medium px-2.5 py-0.5 rounded-full mr-3">
+                                    STEP 1
+                                </span>
+                                Organization Analysis Prompt
+                            </h3>
+                            <button onclick="copyToClipboard('analysisPrompt')" class="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">
+                                <i class="fas fa-copy mr-1"></i>
+                                Copy Prompt
+                            </button>
+                        </div>
+                        <textarea
+                            id="analysisPrompt"
+                            readonly
+                            class="w-full h-64 p-4 border border-gray-300 rounded-md text-sm font-mono"
+                        >\${analysisPrompt}</textarea>
+                        <p class="text-sm text-gray-600 mt-2">
+                            <strong>Instructions:</strong> Copy this prompt and run it through Claude.
+                            Complete the structured analysis form, then proceed to Step 2.
+                        </p>
+                    </div>
+
+                    <!-- Step 2: CRM Configuration -->
+                    <div class="border border-gray-200 rounded-lg p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900">
+                                <span class="bg-purple-100 text-purple-800 text-sm font-medium px-2.5 py-0.5 rounded-full mr-3">
+                                    STEP 2
+                                </span>
+                                CRM Configuration Prompt
+                            </h3>
+                            <button onclick="copyToClipboard('crmPrompt')" class="bg-purple-600 text-white px-4 py-2 rounded text-sm hover:bg-purple-700">
+                                <i class="fas fa-copy mr-1"></i>
+                                Copy Prompt
+                            </button>
+                        </div>
+                        <textarea
+                            id="crmPrompt"
+                            readonly
+                            class="w-full h-64 p-4 border border-gray-300 rounded-md text-sm font-mono"
+                        >\${crmPrompt}</textarea>
+                        <p class="text-sm text-gray-600 mt-2">
+                            <strong>Instructions:</strong> After completing Step 1, insert the analysis results
+                            into this prompt and run through Claude for CRM configuration recommendations.
+                        </p>
+                    </div>
+
+                    <!-- Next Steps -->
+                    <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-indigo-900 mb-4">
+                            <i class="fas fa-list-ol mr-2"></i>
+                            Next Steps
+                        </h3>
+                        <ol class="list-decimal list-inside space-y-2 text-indigo-800">
+                            <li>Copy and run the <strong>Organization Analysis Prompt</strong> through Claude</li>
+                            <li>Complete the structured analysis form with Claude's help</li>
+                            <li>Insert analysis results into the <strong>CRM Configuration Prompt</strong></li>
+                            <li>Run the configuration prompt through Claude</li>
+                            <li>Review recommendations and approve final CRM setup</li>
+                            <li>We'll deploy your custom CRM within 1 week</li>
+                        </ol>
+                        <div class="mt-4 p-4 bg-indigo-100 rounded">
+                            <p class="text-sm text-indigo-800">
+                                <strong>Timeline:</strong> Complete analysis → Custom CRM deployed in 1 week<br>
+                                <strong>Plan:</strong> \${data.plan.charAt(0).toUpperCase() + data.plan.slice(1)}
+                                <strong>Contact:</strong> \${data.contact_email}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Start Over -->
+                    <div class="text-center">
+                        <button onclick="location.reload()" class="bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-700">
+                            <i class="fas fa-refresh mr-2"></i>
+                            Start Over
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function copyToClipboard(elementId) {
+            const element = document.getElementById(elementId);
+            element.select();
+            document.execCommand('copy');
+
+            // Show feedback
+            const button = event.target.closest('button');
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-check mr-1"></i>Copied!';
+            button.classList.add('bg-green-600');
+
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.classList.remove('bg-green-600');
+            }, 2000);
+        }
+
+        // Debug functions
+        async function testAPI() {
+            console.log('Testing API connection...');
+            try {
+                const response = await fetch('http://localhost:8001/health');
+                const result = await response.json();
+                console.log('API health check:', result);
+                alert('API is running! Check console for details.');
+            } catch (error) {
+                console.error('API test failed:', error);
+                alert('API test failed: ' + error.message);
+            }
+        }
+
+        function fillTestData() {
+            console.log('Filling test data...');
+            document.querySelector('input[name="org_name"]').value = 'Test Nonprofit Organization';
+            document.querySelector('input[name="website_url"]').value = 'https://example-nonprofit.org';
+            document.querySelector('input[name="contact_email"]').value = 'admin@example-nonprofit.org';
+            document.querySelector('input[name="contact_name"]').value = 'Test Administrator';
+            document.querySelector('textarea[name="website_content"]').value = 'We provide educational programs and community services to underserved populations in our region.';
+            document.querySelector('textarea[name="form_990_data"]').value = 'Annual Revenue: $250,000, Expenses: $200,000, Staff: 8 people, Founded: 2015';
+            document.querySelector('textarea[name="data_files_info"]').value = 'contacts.csv with 1000 donors, events.xlsx with program data, grants.csv with 50 applications';
+            console.log('Test data filled!');
+        }
+
+        async function createMakeLitCRM() {
+            console.log('Creating Make-Lit CRM...');
+
+            const createBtn = document.getElementById('createCrmBtn');
+            const originalText = createBtn.innerHTML;
+
+            try {
+                // Update button to show loading
+                createBtn.innerHTML = 'Creating CRM... <i class="fas fa-spinner fa-spin ml-2"></i>';
+                createBtn.disabled = true;
+
+                // Collect form data
+                const formData = {
+                    org_name: document.querySelector('input[name="org_name"]').value,
+                    website_url: document.querySelector('input[name="website_url"]').value,
+                    contact_email: document.querySelector('input[name="contact_email"]').value,
+                    contact_name: document.querySelector('input[name="contact_name"]').value,
+                    website_content: document.querySelector('textarea[name="website_content"]').value,
+                    form_990_data: document.querySelector('textarea[name="form_990_data"]').value,
+                    data_files_info: document.querySelector('textarea[name="data_files_info"]').value,
+                    analysis_type: document.querySelector('input[name="analysis_type"]:checked')?.value || 'detailed',
+                    plan: document.querySelector('input[name="plan"]:checked')?.value || 'medium'
+                };
+
+                console.log('Form data collected:', formData);
+
+                // Validate required fields
+                if (!formData.org_name || !formData.website_url || !formData.contact_email || !formData.contact_name) {
+                    throw new Error('Please fill in all required fields');
+                }
+
+                // Call Make-Lit CRM creation API
+                const response = await fetch('http://localhost:8001/api/enhanced/create-makelit-crm', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+                console.log('Make-Lit CRM creation result:', result);
+
+                if (result.success) {
+                    // Display success results
+                    const resultsSection = document.getElementById('resultsSection');
+                    const resultsContent = document.getElementById('resultsContent');
+
+                    resultsContent.innerHTML = `
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
+                            <h3 class="text-lg font-semibold text-green-800 mb-4">
+                                <i class="fas fa-check-circle mr-2"></i>
+                                Make-Lit CRM Created Successfully!
+                            </h3>
+                            <div class="space-y-3">
+                                <p><strong>Client ID:</strong> <code class="bg-gray-100 px-2 py-1 rounded">${result.client_id}</code></p>
+                                <p><strong>CRM URL:</strong> <a href="${result.crm_url}" target="_blank" class="text-blue-600 hover:underline">${result.crm_url}</a></p>
+                                <p><strong>Admin Email:</strong> <code class="bg-gray-100 px-2 py-1 rounded">${result.admin_credentials?.email || 'Not provided'}</code></p>
+                                <p><strong>Temp Password:</strong> <code class="bg-gray-100 px-2 py-1 rounded">${result.admin_credentials?.temp_password || 'Not provided'}</code></p>
+                                <p><strong>Deployment Status:</strong> <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-sm">${result.deployment_status}</span></p>
+                            </div>
+                        </div>
+
+                        ${result.configuration ? `
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+                            <h3 class="text-lg font-semibold text-blue-800 mb-4">
+                                <i class="fas fa-cog mr-2"></i>
+                                CRM Configuration
+                            </h3>
+                            <div class="space-y-2">
+                                <p><strong>Business Type:</strong> ${result.configuration.business_type}</p>
+                                <p><strong>Enabled Modules:</strong> ${result.configuration.enabled_modules?.join(', ') || 'Not specified'}</p>
+                                <p><strong>Primary Entities:</strong> ${result.configuration.primary_entities?.length || 0} custom entities configured</p>
+                            </div>
+                        </div>
+                        ` : ''}
+
+                        ${result.analysis_summary ? `
+                        <div class="bg-purple-50 border border-purple-200 rounded-lg p-6">
+                            <h3 class="text-lg font-semibold text-purple-800 mb-4">
+                                <i class="fas fa-brain mr-2"></i>
+                                AI Analysis Summary
+                            </h3>
+                            <div class="space-y-2 text-sm">
+                                <p><strong>Organization Type:</strong> ${result.analysis_summary.organization_type}</p>
+                                <p><strong>Recommended Modules:</strong> ${result.analysis_summary.recommended_modules?.join(', ') || 'Not specified'}</p>
+                                <p><strong>Custom Entities:</strong> ${result.analysis_summary.custom_entities?.length || 0} detected</p>
+                                <p><strong>Complexity Score:</strong> ${result.analysis_summary.complexity_score || 'Not calculated'}</p>
+                            </div>
+                        </div>
+                        ` : ''}
+
+                        <div class="mt-6 text-center">
+                            <a href="${result.crm_url}" target="_blank"
+                               class="bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors inline-block">
+                                Access Your CRM <i class="fas fa-external-link-alt ml-2"></i>
+                            </a>
+                        </div>
+                    `;
+
+                    resultsSection.classList.remove('hidden');
+                    resultsSection.scrollIntoView({ behavior: 'smooth' });
+
+                } else {
+                    throw new Error(result.error || 'Unknown error occurred');
+                }
+
+            } catch (error) {
+                console.error('Error creating Make-Lit CRM:', error);
+
+                // Display error
+                const resultsSection = document.getElementById('resultsSection');
+                const resultsContent = document.getElementById('resultsContent');
+
+                resultsContent.innerHTML = `
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-red-800 mb-4">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                            Error Creating CRM
+                        </h3>
+                        <p class="text-red-700">${error.message}</p>
+                        <div class="mt-4">
+                            <button onclick="location.reload()"
+                                    class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors">
+                                Try Again
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                resultsSection.classList.remove('hidden');
+                resultsSection.scrollIntoView({ behavior: 'smooth' });
+
+            } finally {
+                // Reset button
+                createBtn.innerHTML = originalText;
+                createBtn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

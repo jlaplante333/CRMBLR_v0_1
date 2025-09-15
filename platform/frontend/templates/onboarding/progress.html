@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM Generation Progress - CRMBLR</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <h1 class="text-2xl font-bold text-indigo-600">CRMBLR</h1>
+                    <span class="ml-2 text-sm text-gray-500">AI-Powered CRM for Nonprofits</span>
+                </div>
+                <div class="text-sm text-gray-600">
+                    <i class="fas fa-clock mr-1"></i>
+                    <span id="currentTime"></span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <!-- Hero Section -->
+        <div class="text-center mb-12">
+            <div class="text-6xl text-indigo-600 mb-4">
+                <i class="fas fa-cog fa-spin"></i>
+            </div>
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">
+                Your CRM is Being Created
+            </h2>
+            <p class="text-xl text-gray-600">
+                Our AI is analyzing your data and building your custom CRM. This usually takes 12-48 hours.
+            </p>
+        </div>
+
+        <!-- Progress Card -->
+        <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-900">Generation Progress</h3>
+                <div id="progressBadge" class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                    In Progress
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="mb-6">
+                <div class="flex justify-between text-sm text-gray-600 mb-2">
+                    <span>Progress</span>
+                    <span id="progressPercent">25%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div id="progressBar" class="bg-indigo-600 h-2 rounded-full transition-all duration-500" style="width: 25%"></div>
+                </div>
+            </div>
+
+            <!-- Progress Steps -->
+            <div id="progressSteps" class="space-y-4">
+                <!-- Will be populated by JavaScript -->
+            </div>
+
+            <!-- Estimated Completion -->
+            <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                <div class="flex items-center">
+                    <i class="fas fa-clock text-blue-600 mr-3"></i>
+                    <div>
+                        <h4 class="font-medium text-blue-900">Estimated Completion</h4>
+                        <p id="estimatedCompletion" class="text-sm text-blue-700">
+                            September 15, 2024 at 2:00 PM
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Project Details -->
+        <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+            <h3 class="text-xl font-bold text-gray-900 mb-6">Project Details</h3>
+            <div id="projectDetails" class="grid md:grid-cols-2 gap-6">
+                <!-- Will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- What's Happening -->
+        <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+            <h3 class="text-xl font-bold text-gray-900 mb-6">What's Happening Right Now</h3>
+            <div id="currentActivity" class="space-y-4">
+                <!-- Will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Next Steps -->
+        <div class="bg-white rounded-lg shadow-lg p-8">
+            <h3 class="text-xl font-bold text-gray-900 mb-6">What Happens Next</h3>
+            <div class="space-y-4">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center mr-4">
+                        <span class="text-indigo-600 font-semibold text-sm">1</span>
+                    </div>
+                    <div>
+                        <h4 class="font-medium text-gray-900">Email Notification</h4>
+                        <p class="text-sm text-gray-600">You'll receive an email when your CRM is ready with login instructions.</p>
+                    </div>
+                </div>
+
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center mr-4">
+                        <span class="text-indigo-600 font-semibold text-sm">2</span>
+                    </div>
+                    <div>
+                        <h4 class="font-medium text-gray-900">First Login</h4>
+                        <p class="text-sm text-gray-600">Log in with your temporary password and set up your permanent password.</p>
+                    </div>
+                </div>
+
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center mr-4">
+                        <span class="text-indigo-600 font-semibold text-sm">3</span>
+                    </div>
+                    <div>
+                        <h4 class="font-medium text-gray-900">Explore Your Data</h4>
+                        <p class="text-sm text-gray-600">Review the imported data and explore your new CRM modules.</p>
+                    </div>
+                </div>
+
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center mr-4">
+                        <span class="text-indigo-600 font-semibold text-sm">4</span>
+                    </div>
+                    <div>
+                        <h4 class="font-medium text-gray-900">Get Support</h4>
+                        <p class="text-sm text-gray-600">Contact our support team if you need help or have questions.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Support -->
+            <div class="mt-8 p-4 bg-gray-50 rounded-lg">
+                <h4 class="font-medium text-gray-900 mb-2">Need Help?</h4>
+                <p class="text-sm text-gray-600 mb-3">
+                    Our support team is here to help with any questions about your CRM setup.
+                </p>
+                <div class="flex space-x-4">
+                    <a href="mailto:support@crmblr.com" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                        <i class="fas fa-envelope mr-2"></i>
+                        Email Support
+                    </a>
+                    <a href="#" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                        <i class="fas fa-book mr-2"></i>
+                        Help Center
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let projectId = '';
+        let progressInterval;
+
+        // Initialize page
+        window.addEventListener('DOMContentLoaded', function() {
+            // Extract project ID from URL
+            const urlParts = window.location.pathname.split('/');
+            projectId = urlParts[urlParts.length - 1];
+
+            initializePage();
+            startProgressPolling();
+            updateCurrentTime();
+            setInterval(updateCurrentTime, 1000);
+        });
+
+        function initializePage() {
+            const orgData = JSON.parse(sessionStorage.getItem('onboardingData') || '{}');
+
+            displayProjectDetails(orgData);
+            updateProgressSteps();
+            updateCurrentActivity();
+        }
+
+        function displayProjectDetails(orgData) {
+            const projectDetails = document.getElementById('projectDetails');
+
+            projectDetails.innerHTML = `
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Organization:</span>
+                        <span class="font-medium">${orgData.org_name || 'Not specified'}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">CRM URL:</span>
+                        <span class="font-medium text-indigo-600">${orgData.subdomain || 'not-specified'}.crmblr.com</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Plan:</span>
+                        <span class="font-medium">${(orgData.plan || 'medium').charAt(0).toUpperCase() + (orgData.plan || 'medium').slice(1)}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Modules:</span>
+                        <span class="font-medium">${(orgData.selectedModules || ['contacts']).join(', ')}</span>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Files to Import:</span>
+                        <span class="font-medium">${(orgData.uploadedFiles || []).length} files</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Admin Email:</span>
+                        <span class="font-medium">${orgData.adminEmail || orgData.contact_email || 'Not specified'}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Project ID:</span>
+                        <span class="font-medium text-xs">${projectId}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Started:</span>
+                        <span class="font-medium">${new Date().toLocaleDateString()}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateProgressSteps() {
+            const steps = [
+                { name: 'Project Initialization', status: 'completed', time: '2 minutes ago' },
+                { name: 'Data Analysis', status: 'completed', time: '5 minutes ago' },
+                { name: 'Schema Generation', status: 'in_progress', time: 'In progress' },
+                { name: 'Data Import', status: 'pending', time: 'Waiting' },
+                { name: 'Module Configuration', status: 'pending', time: 'Waiting' },
+                { name: 'User Setup', status: 'pending', time: 'Waiting' },
+                { name: 'Final Testing', status: 'pending', time: 'Waiting' }
+            ];
+
+            const progressSteps = document.getElementById('progressSteps');
+
+            progressSteps.innerHTML = steps.map(step => `
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 w-6 h-6 rounded-full mr-4 flex items-center justify-center ${
+                        step.status === 'completed' ? 'bg-green-100' :
+                        step.status === 'in_progress' ? 'bg-blue-100' : 'bg-gray-100'
+                    }">
+                        ${step.status === 'completed'
+                            ? '<i class="fas fa-check text-green-600 text-sm"></i>'
+                            : step.status === 'in_progress'
+                            ? '<i class="fas fa-circle-notch fa-spin text-blue-600 text-sm"></i>'
+                            : '<i class="fas fa-circle text-gray-400 text-xs"></i>'
+                        }
+                    </div>
+                    <div class="flex-1 flex justify-between items-center">
+                        <span class="font-medium text-gray-900">${step.name}</span>
+                        <span class="text-sm text-gray-500">${step.time}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateCurrentActivity() {
+            const activities = [
+                'Analyzing uploaded spreadsheet structures...',
+                'Mapping contact fields to CRM schema...',
+                'Detecting data relationships and patterns...',
+                'Creating optimized database tables...',
+                'Configuring module permissions...'
+            ];
+
+            const currentActivity = document.getElementById('currentActivity');
+            const randomActivity = activities[Math.floor(Math.random() * activities.length)];
+
+            currentActivity.innerHTML = `
+                <div class="flex items-center p-4 bg-blue-50 rounded-lg">
+                    <div class="flex-shrink-0 mr-4">
+                        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-cog fa-spin text-blue-600"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="font-medium text-blue-900">Currently Processing</h4>
+                        <p class="text-sm text-blue-800">${randomActivity}</p>
+                        <p class="text-xs text-blue-600 mt-1">This may take several minutes...</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function startProgressPolling() {
+            // Simulate progress updates every 30 seconds
+            progressInterval = setInterval(() => {
+                // In a real application, this would poll the API for actual progress
+                simulateProgressUpdate();
+            }, 30000);
+
+            // Also update current activity every 45 seconds
+            setInterval(updateCurrentActivity, 45000);
+        }
+
+        function simulateProgressUpdate() {
+            const progressBar = document.getElementById('progressBar');
+            const progressPercent = document.getElementById('progressPercent');
+
+            let currentProgress = parseInt(progressBar.style.width) || 25;
+
+            // Slowly increment progress
+            if (currentProgress < 90) {
+                currentProgress += Math.floor(Math.random() * 10) + 5;
+                if (currentProgress > 90) currentProgress = 90; // Don't complete automatically
+
+                progressBar.style.width = currentProgress + '%';
+                progressPercent.textContent = currentProgress + '%';
+            }
+
+            // Update steps based on progress
+            updateProgressSteps();
+        }
+
+        function updateCurrentTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true
+            });
+            document.getElementById('currentTime').textContent = timeString;
+        }
+
+        // Cleanup interval when page unloads
+        window.addEventListener('beforeunload', function() {
+            if (progressInterval) {
+                clearInterval(progressInterval);
+            }
+        });
+
+        // Auto-refresh page every 10 minutes to get latest status
+        setTimeout(() => {
+            window.location.reload();
+        }, 10 * 60 * 1000);
+    </script>
+</body>
+</html>

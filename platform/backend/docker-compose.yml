@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: crmblr_platform
+      POSTGRES_USER: crmblr
+      POSTGRES_PASSWORD: crmblr_dev_password
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - crmblr_network
+
+  # Elasticsearch (Optional - for search features)
+  elasticsearch:
+    image: elasticsearch:8.11.0
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - crmblr_network
+    profiles:
+      - with-search
+
+  # Redis (Optional - for caching)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - crmblr_network
+    profiles:
+      - with-cache
+
+  # CRMBLR Backend
+  backend:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://crmblr:crmblr_dev_password@postgres:5432/crmblr_platform
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - REDIS_URL=redis://redis:6379
+      - SECRET_KEY=development-secret-key-change-in-production
+      - DEBUG=True
+    volumes:
+      - ./app:/app/app
+      - ./uploads:/tmp/crmblr_uploads
+    depends_on:
+      - postgres
+    networks:
+      - crmblr_network
+    profiles:
+      - backend
+
+networks:
+  crmblr_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  elasticsearch_data:
+  redis_data:

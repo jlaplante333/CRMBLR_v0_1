@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Enhanced Onboarding - CRMBLR</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex items-center">
+                <h1 class="text-2xl font-bold text-indigo-600">CRMBLR</h1>
+                <span class="ml-2 text-sm text-gray-500">AI-Enhanced CRM Generation</span>
+                <div class="ml-auto">
+                    <span class="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                        <i class="fas fa-brain mr-1"></i>
+                        AI Enhanced
+                    </span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <!-- Hero Section -->
+        <div class="text-center mb-12">
+            <h2 class="text-4xl font-bold text-gray-900 mb-4">
+                AI-Enhanced CRM Generation
+            </h2>
+            <p class="text-xl text-gray-600 mb-8">
+                We analyze your website, 990, and data files to create the perfect CRM for your nonprofit
+            </p>
+            <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                <div class="flex items-center justify-center space-x-6">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <i class="fas fa-globe text-blue-600 text-xl"></i>
+                        </div>
+                        <p class="text-sm font-medium">Website Analysis</p>
+                        <p class="text-xs text-gray-500">Mission, programs, impact</p>
+                    </div>
+                    <div class="text-gray-400">
+                        <i class="fas fa-plus"></i>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <i class="fas fa-file-invoice-dollar text-green-600 text-xl"></i>
+                        </div>
+                        <p class="text-sm font-medium">990 Analysis</p>
+                        <p class="text-xs text-gray-500">Revenue, structure, scale</p>
+                    </div>
+                    <div class="text-gray-400">
+                        <i class="fas fa-plus"></i>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <i class="fas fa-database text-purple-600 text-xl"></i>
+                        </div>
+                        <p class="text-sm font-medium">Data Files</p>
+                        <p class="text-xs text-gray-500">Contacts, donations, events</p>
+                    </div>
+                    <div class="text-gray-400">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <i class="fas fa-magic text-indigo-600 text-xl"></i>
+                        </div>
+                        <p class="text-sm font-medium">Custom CRM</p>
+                        <p class="text-xs text-gray-500">Optimized for your org</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enhanced Onboarding Form -->
+        <div class="bg-white rounded-lg shadow-lg p-8">
+            <h3 class="text-2xl font-bold text-gray-900 mb-6">Enhanced Onboarding Information</h3>
+
+            <form id="enhancedOnboardingForm">
+                <!-- Basic Organization Info -->
+                <div class="mb-8">
+                    <h4 class="text-lg font-semibold text-gray-900 mb-4">
+                        <i class="fas fa-info-circle text-indigo-600 mr-2"></i>
+                        Basic Organization Information
+                    </h4>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Organization Name *
+                            </label>
+                            <input
+                                type="text"
+                                name="org_name"
+                                required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                placeholder="e.g., Helping Hands Nonprofit"
+                            >
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Website URL *
+                            </label>
+                            <input
+                                type="url"
+                                name="website_url"
+                                required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                placeholder="https://yourorganization.org"
+                            >
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Contact Email *
+                            </label>
+                            <input
+                                type="email"
+                                name="contact_email"
+                                required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                placeholder="admin@yourorg.org"
+                            >
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Contact Name *
+                            </label>
+                            <input
+                                type="text"
+                                name="contact_name"
+                                required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                placeholder="Your full name"
+                            >
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Website Content -->
+                <div class="mb-8">
+                    <h4 class="text-lg font-semibold text-gray-900 mb-4">
+                        <i class="fas fa-globe text-blue-600 mr-2"></i>
+                        Website Content Analysis
+                    </h4>
+                    <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-lightbulb text-blue-400"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h5 class="text-sm font-medium text-blue-800">Instructions</h5>
+                                <div class="mt-2 text-sm text-blue-700">
+                                    <p>Copy and paste key content from your website including:</p>
+                                    <ul class="list-disc list-inside mt-2 space-y-1">
+                                        <li>Mission statement and about page</li>
+                                        <li>Programs and services descriptions</li>
+                                        <li>Impact stories and outcomes</li>
+                                        <li>Staff bios and organizational structure</li>
+                                        <li>Any volunteer or donation information</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <textarea
+                        name="website_content"
+                        rows="8"
+                        required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        placeholder="Paste your website content here for AI analysis..."
+                    ></textarea>
+                </div>
+
+                <!-- IRS Form 990 Data -->
+                <div class="mb-8">
+                    <h4 class="text-lg font-semibold text-gray-900 mb-4">
+                        <i class="fas fa-file-invoice-dollar text-green-600 mr-2"></i>
+                        IRS Form 990 Information
+                    </h4>
+                    <div class="bg-green-50 border-l-4 border-green-400 p-4 mb-4">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-info-circle text-green-400"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h5 class="text-sm font-medium text-green-800">Instructions</h5>
+                                <div class="mt-2 text-sm text-green-700">
+                                    <p>Provide key information from your most recent Form 990:</p>
+                                    <ul class="list-disc list-inside mt-2 space-y-1">
+                                        <li>Total revenue and expense breakdown</li>
+                                        <li>Program service revenue vs. contributions</li>
+                                        <li>Major donors and funding sources</li>
+                                        <li>Number of employees and volunteers</li>
+                                        <li>Board size and key personnel</li>
+                                        <li>Program descriptions and accomplishments</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <textarea
+                        name="form_990_data"
+                        rows="8"
+                        required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        placeholder="Paste relevant Form 990 information here for analysis..."
+                    ></textarea>
+                </div>
+
+                <!-- File Upload Section -->
+                <div class="mb-8">
+                    <h4 class="text-lg font-semibold text-gray-900 mb-4">
+                        <i class="fas fa-upload text-purple-600 mr-2"></i>
+                        Data Files Upload
+                    </h4>
+                    <div class="bg-purple-50 border-l-4 border-purple-400 p-4 mb-4">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-database text-purple-400"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h5 class="text-sm font-medium text-purple-800">Upload Your Data Files</h5>
+                                <div class="mt-2 text-sm text-purple-700">
+                                    <p>Upload CSV or Excel files containing:</p>
+                                    <ul class="list-disc list-inside mt-2 space-y-1">
+                                        <li>Contact lists (donors, members, beneficiaries)</li>
+                                        <li>Donation records and transaction history</li>
+                                        <li>Event attendee lists and registration data</li>
+                                        <li>Volunteer information and hours tracking</li>
+                                        <li>Grant records and funding history</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Drag and Drop Upload Area -->
+                    <div id="uploadArea" class="border-2 border-dashed border-purple-300 rounded-lg p-8 text-center hover:border-purple-400 transition-colors cursor-pointer">
+                        <div class="space-y-4">
+                            <div class="text-4xl text-purple-400">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                            </div>
+                            <div>
+                                <p class="text-lg font-medium text-gray-900">Drop files here or click to browse</p>
+                                <p class="text-sm text-gray-500 mt-1">CSV and Excel files up to 50MB each</p>
+                            </div>
+                        </div>
+                        <input id="fileInput" type="file" multiple accept=".csv,.xlsx,.xls" class="hidden">
+                    </div>
+
+                    <!-- File List -->
+                    <div id="fileList" class="mt-4 space-y-2 hidden">
+                        <h5 class="font-medium text-gray-900">Uploaded Files</h5>
+                        <div id="fileListContent" class="space-y-2">
+                            <!-- Files will be listed here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Processing Options -->
+                <div class="mb-8">
+                    <h4 class="text-lg font-semibold text-gray-900 mb-4">
+                        <i class="fas fa-brain text-indigo-600 mr-2"></i>
+                        AI Analysis Preferences
+                    </h4>
+                    <div class="space-y-4">
+                        <div class="flex items-center">
+                            <input id="detailed_analysis" name="analysis_type" type="radio" value="detailed" class="mr-3" checked>
+                            <label for="detailed_analysis" class="text-sm">
+                                <span class="font-medium">Detailed Analysis</span> - Comprehensive AI review with custom recommendations (Recommended)
+                            </label>
+                        </div>
+                        <div class="flex items-center">
+                            <input id="quick_analysis" name="analysis_type" type="radio" value="quick" class="mr-3">
+                            <label for="quick_analysis" class="text-sm">
+                                <span class="font-medium">Quick Analysis</span> - Basic configuration based on file types and organization info
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline & Expectations -->
+                <div class="mb-8 p-6 bg-gray-50 rounded-lg">
+                    <h4 class="text-lg font-semibold text-gray-900 mb-4">
+                        <i class="fas fa-clock text-gray-600 mr-2"></i>
+                        What Happens Next
+                    </h4>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <h5 class="font-medium text-gray-900 mb-2">Timeline</h5>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li><span class="font-medium">Day 1-2:</span> AI analyzes your data</li>
+                                <li><span class="font-medium">Day 3-4:</span> Custom CRM configuration</li>
+                                <li><span class="font-medium">Day 5-6:</span> Data import and setup</li>
+                                <li><span class="font-medium">Day 7:</span> Testing and delivery</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h5 class="font-medium text-gray-900 mb-2">You'll Receive</h5>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• Detailed analysis report</li>
+                                <li>• Custom CRM configuration plan</li>
+                                <li>• Data import strategy</li>
+                                <li>• Training materials</li>
+                                <li>• Direct access to your new CRM</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Plan Selection -->
+                <div class="mb-8">
+                    <h4 class="text-lg font-semibold text-gray-900 mb-4">
+                        Choose Your Plan
+                    </h4>
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <!-- Small Plan -->
+                        <div class="border border-gray-200 rounded-lg p-4 hover:border-indigo-300 cursor-pointer transition-colors">
+                            <input type="radio" name="plan" value="small" id="plan-small" class="sr-only">
+                            <label for="plan-small" class="cursor-pointer">
+                                <div class="text-center">
+                                    <h5 class="text-lg font-semibold text-gray-900">Small</h5>
+                                    <p class="text-2xl font-bold text-indigo-600">$1,500</p>
+                                    <p class="text-sm text-gray-500 mb-3">One-time setup</p>
+                                    <ul class="text-sm text-gray-600 space-y-1">
+                                        <li>Up to 1,000 contacts</li>
+                                        <li>Basic AI analysis</li>
+                                        <li>Standard modules</li>
+                                        <li>Email support</li>
+                                    </ul>
+                                </div>
+                            </label>
+                        </div>
+
+                        <!-- Medium Plan -->
+                        <div class="border-2 border-indigo-500 rounded-lg p-4 bg-indigo-50 cursor-pointer">
+                            <input type="radio" name="plan" value="medium" id="plan-medium" class="sr-only" checked>
+                            <label for="plan-medium" class="cursor-pointer">
+                                <div class="text-center">
+                                    <div class="text-xs bg-indigo-500 text-white px-2 py-1 rounded-full inline-block mb-2">
+                                        RECOMMENDED
+                                    </div>
+                                    <h5 class="text-lg font-semibold text-gray-900">Medium</h5>
+                                    <p class="text-2xl font-bold text-indigo-600">$3,000</p>
+                                    <p class="text-sm text-gray-500 mb-3">One-time setup</p>
+                                    <ul class="text-sm text-gray-600 space-y-1">
+                                        <li>Up to 5,000 contacts</li>
+                                        <li>Detailed AI analysis</li>
+                                        <li>Custom configuration</li>
+                                        <li>Priority support</li>
+                                    </ul>
+                                </div>
+                            </label>
+                        </div>
+
+                        <!-- Large Plan -->
+                        <div class="border border-gray-200 rounded-lg p-4 hover:border-indigo-300 cursor-pointer transition-colors">
+                            <input type="radio" name="plan" value="large" id="plan-large" class="sr-only">
+                            <label for="plan-large" class="cursor-pointer">
+                                <div class="text-center">
+                                    <h5 class="text-lg font-semibold text-gray-900">Large</h5>
+                                    <p class="text-2xl font-bold text-indigo-600">$5,000</p>
+                                    <p class="text-sm text-gray-500 mb-3">One-time setup</p>
+                                    <ul class="text-sm text-gray-600 space-y-1">
+                                        <li>Unlimited contacts</li>
+                                        <li>Premium AI analysis</li>
+                                        <li>Custom modules</li>
+                                        <li>Phone + email support</li>
+                                    </ul>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="text-center">
+                    <button
+                        type="submit"
+                        class="bg-indigo-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                    >
+                        Start AI-Enhanced Analysis
+                        <i class="fas fa-brain ml-2"></i>
+                    </button>
+                    <p class="text-sm text-gray-500 mt-2">
+                        Complete analysis and custom CRM delivered within 1 week
+                    </p>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        // File upload handling
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const fileListContent = document.getElementById('fileListContent');
+        let uploadedFiles = [];
+
+        // Click to upload
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('border-purple-400', 'bg-purple-50');
+        });
+
+        uploadArea.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('border-purple-400', 'bg-purple-50');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('border-purple-400', 'bg-purple-50');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            Array.from(files).forEach(file => {
+                if (file.size > 50 * 1024 * 1024) {
+                    alert(`File ${file.name} is too large. Maximum size is 50MB.`);
+                    return;
+                }
+
+                if (!file.name.match(/\.(csv|xlsx|xls)$/i)) {
+                    alert(`File ${file.name} is not supported. Please upload CSV or Excel files only.`);
+                    return;
+                }
+
+                uploadedFiles.push(file);
+                addFileToList(file);
+            });
+
+            if (uploadedFiles.length > 0) {
+                fileList.classList.remove('hidden');
+            }
+        }
+
+        function addFileToList(file) {
+            const fileDiv = document.createElement('div');
+            fileDiv.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg';
+            fileDiv.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-file-excel text-green-600 mr-3"></i>
+                    <div>
+                        <p class="font-medium text-gray-900">${file.name}</p>
+                        <p class="text-sm text-gray-500">${formatFileSize(file.size)}</p>
+                    </div>
+                </div>
+                <button onclick="removeFile('${file.name}')" class="text-red-600 hover:text-red-800">
+                    <i class="fas fa-trash"></i>
+                </button>
+            `;
+            fileListContent.appendChild(fileDiv);
+        }
+
+        function removeFile(fileName) {
+            uploadedFiles = uploadedFiles.filter(file => file.name !== fileName);
+            updateFileList();
+            if (uploadedFiles.length === 0) {
+                fileList.classList.add('hidden');
+            }
+        }
+
+        function updateFileList() {
+            fileListContent.innerHTML = '';
+            uploadedFiles.forEach(addFileToList);
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Plan selection
+        document.querySelectorAll('input[name="plan"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                document.querySelectorAll('.border-2').forEach(el => {
+                    el.className = el.className.replace('border-2 border-indigo-500 bg-indigo-50', 'border border-gray-200');
+                });
+
+                if (this.checked) {
+                    const label = this.closest('div');
+                    label.className = label.className.replace('border border-gray-200', 'border-2 border-indigo-500 bg-indigo-50');
+                }
+            });
+        });
+
+        // Form submission
+        document.getElementById('enhancedOnboardingForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            if (uploadedFiles.length === 0) {
+                alert('Please upload at least one data file.');
+                return;
+            }
+
+            // Collect form data
+            const formData = new FormData(this);
+
+            // Add file information
+            formData.append('uploaded_files_info', JSON.stringify(
+                uploadedFiles.map(file => ({
+                    name: file.name,
+                    size: file.size,
+                    type: file.type
+                }))
+            ));
+
+            // Show processing message
+            alert('Thank you! Your AI-enhanced analysis request has been submitted. You will receive detailed analysis prompts within 24 hours.');
+
+            // In production, this would submit to the API
+            console.log('Enhanced onboarding data:', Object.fromEntries(formData.entries()));
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment - CRMBLR</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <h1 class="text-2xl font-bold text-indigo-600">CRMBLR</h1>
+                    <span class="ml-2 text-sm text-gray-500">AI-Powered CRM for Nonprofits</span>
+                </div>
+                <!-- Progress Indicator -->
+                <div class="flex items-center space-x-2 text-sm">
+                    <span class="flex items-center text-green-600">
+                        <i class="fas fa-check-circle mr-1"></i>
+                        Info
+                    </span>
+                    <span class="text-gray-300">→</span>
+                    <span class="flex items-center text-green-600">
+                        <i class="fas fa-check-circle mr-1"></i>
+                        Upload
+                    </span>
+                    <span class="text-gray-300">→</span>
+                    <span class="flex items-center text-green-600">
+                        <i class="fas fa-check-circle mr-1"></i>
+                        Configure
+                    </span>
+                    <span class="text-gray-300">→</span>
+                    <span class="flex items-center text-indigo-600 font-medium">
+                        <i class="fas fa-credit-card mr-1"></i>
+                        Payment
+                    </span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="grid lg:grid-cols-2 gap-8">
+            <!-- Order Summary -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-6">Order Summary</h2>
+
+                <!-- Organization Details -->
+                <div id="orderSummary" class="space-y-4 mb-6">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+
+                <!-- Plan Details -->
+                <div class="border-t pt-4">
+                    <div id="planDetails" class="space-y-2">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Total -->
+                <div class="border-t pt-4 mt-4">
+                    <div class="flex justify-between items-center text-lg font-bold">
+                        <span>Total</span>
+                        <span id="totalAmount" class="text-indigo-600">$0</span>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">One-time setup fee. No recurring charges.</p>
+                </div>
+
+                <!-- What's Included -->
+                <div class="mt-6 p-4 bg-green-50 rounded-lg">
+                    <h3 class="font-semibold text-green-900 mb-2">What's Included</h3>
+                    <ul class="text-sm text-green-800 space-y-1">
+                        <li><i class="fas fa-check mr-2"></i>Custom CRM setup</li>
+                        <li><i class="fas fa-check mr-2"></i>Data import and mapping</li>
+                        <li><i class="fas fa-check mr-2"></i>User training materials</li>
+                        <li><i class="fas fa-check mr-2"></i>30 days of email support</li>
+                        <li><i class="fas fa-check mr-2"></i>Custom subdomain</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Payment Form -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-6">Payment Information</h2>
+
+                <form id="payment-form">
+                    <!-- Billing Information -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Billing Information</h3>
+
+                        <div class="grid md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    First Name
+                                </label>
+                                <input type="text" id="firstName" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    Last Name
+                                </label>
+                                <input type="text" id="lastName" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Email Address
+                            </label>
+                            <input type="email" id="billingEmail" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Organization Name
+                            </label>
+                            <input type="text" id="orgName" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+
+                        <div class="grid md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    City
+                                </label>
+                                <input type="text" id="city" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    State
+                                </label>
+                                <select id="state" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <option value="">Select State</option>
+                                    <option value="CA">California</option>
+                                    <option value="NY">New York</option>
+                                    <option value="TX">Texas</option>
+                                    <!-- Add more states as needed -->
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                ZIP Code
+                            </label>
+                            <input type="text" id="zipCode" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                    </div>
+
+                    <!-- Payment Method -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Payment Method</h3>
+
+                        <!-- Stripe Elements will be mounted here -->
+                        <div id="card-element" class="p-3 border border-gray-300 rounded-md">
+                            <!-- Stripe Elements will create form elements here -->
+                        </div>
+                        <div id="card-errors" role="alert" class="text-red-600 text-sm mt-2"></div>
+                    </div>
+
+                    <!-- Security Notice -->
+                    <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div class="flex items-start">
+                            <i class="fas fa-shield-alt text-blue-600 mt-1 mr-3"></i>
+                            <div>
+                                <h4 class="font-medium text-blue-900">Secure Payment</h4>
+                                <p class="text-sm text-blue-700 mt-1">
+                                    Your payment information is encrypted and processed securely through Stripe.
+                                    We never store your credit card details.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Terms and Conditions -->
+                    <div class="mb-6">
+                        <label class="flex items-start">
+                            <input type="checkbox" id="termsAccepted" required class="mt-1 mr-3">
+                            <span class="text-sm text-gray-600">
+                                I agree to the <a href="#" class="text-indigo-600 hover:underline">Terms of Service</a>
+                                and <a href="#" class="text-indigo-600 hover:underline">Privacy Policy</a>
+                            </span>
+                        </label>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" id="submit-payment" class="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span id="button-text">Complete Payment</span>
+                        <i id="button-spinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
+                    </button>
+
+                    <!-- Back Button -->
+                    <button type="button" onclick="window.history.back()" class="w-full mt-3 border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition-colors">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Back to Configuration
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Success Message (Hidden initially) -->
+        <div id="success-message" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="bg-white rounded-lg p-8 max-w-md mx-4 text-center">
+                <div class="text-6xl text-green-600 mb-4">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">Payment Successful!</h2>
+                <p class="text-gray-600 mb-6">
+                    Your CRM is being created now. You'll receive an email with login details within 24 hours.
+                </p>
+                <button onclick="goToProgress()" class="bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700">
+                    Track Progress
+                    <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let stripe, elements, card;
+        let orgData = {};
+
+        // Initialize page
+        window.addEventListener('DOMContentLoaded', function() {
+            const savedData = sessionStorage.getItem('onboardingData');
+            if (savedData) {
+                orgData = JSON.parse(savedData);
+                initializePage();
+            }
+
+            initializeStripe();
+        });
+
+        function initializePage() {
+            displayOrderSummary();
+            populateBillingInfo();
+        }
+
+        function displayOrderSummary() {
+            const orderSummary = document.getElementById('orderSummary');
+            const planDetails = document.getElementById('planDetails');
+            const totalAmount = document.getElementById('totalAmount');
+
+            // Order summary
+            orderSummary.innerHTML = `
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Organization:</span>
+                    <span class="font-medium">${orgData.org_name || 'Not specified'}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Subdomain:</span>
+                    <span class="font-medium">${orgData.subdomain || 'not-specified'}.crmblr.com</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Contact:</span>
+                    <span class="font-medium">${orgData.contact_email || 'Not specified'}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Modules:</span>
+                    <span class="font-medium">${(orgData.selectedModules || []).length} selected</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Files to import:</span>
+                    <span class="font-medium">${(orgData.uploadedFiles || []).length} files</span>
+                </div>
+            `;
+
+            // Plan details and pricing
+            const planPrices = {
+                small: { price: 500, users: '1,000', setup: '48 hours' },
+                medium: { price: 1200, users: '5,000', setup: '24 hours' },
+                large: { price: 2000, users: 'Unlimited', setup: '12 hours' }
+            };
+
+            const plan = orgData.plan || 'medium';
+            const planInfo = planPrices[plan];
+
+            planDetails.innerHTML = `
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Plan:</span>
+                    <span class="font-medium">${plan.charAt(0).toUpperCase() + plan.slice(1)}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Max contacts:</span>
+                    <span class="font-medium">${planInfo.users}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Setup time:</span>
+                    <span class="font-medium">${planInfo.setup}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Setup fee:</span>
+                    <span class="font-medium">$${planInfo.price}</span>
+                </div>
+            `;
+
+            totalAmount.textContent = `$${planInfo.price}`;
+        }
+
+        function populateBillingInfo() {
+            // Pre-fill billing information from onboarding data
+            if (orgData.contact_name) {
+                const nameParts = orgData.contact_name.split(' ');
+                document.getElementById('firstName').value = nameParts[0] || '';
+                document.getElementById('lastName').value = nameParts.slice(1).join(' ') || '';
+            }
+
+            document.getElementById('billingEmail').value = orgData.contact_email || '';
+            document.getElementById('orgName').value = orgData.org_name || '';
+        }
+
+        function initializeStripe() {
+            // Initialize Stripe (replace with your publishable key)
+            stripe = Stripe('pk_test_51HGULYExampleKeyHere'); // Replace with actual key
+            elements = stripe.elements();
+
+            // Create card element
+            card = elements.create('card', {
+                style: {
+                    base: {
+                        fontSize: '16px',
+                        color: '#424770',
+                        '::placeholder': {
+                            color: '#aab7c4',
+                        },
+                    },
+                },
+            });
+
+            card.mount('#card-element');
+
+            // Handle real-time validation errors from the card Element
+            card.on('change', function(event) {
+                const displayError = document.getElementById('card-errors');
+                if (event.error) {
+                    displayError.textContent = event.error.message;
+                } else {
+                    displayError.textContent = '';
+                }
+            });
+
+            // Handle form submission
+            const form = document.getElementById('payment-form');
+            form.addEventListener('submit', handlePayment);
+        }
+
+        async function handlePayment(event) {
+            event.preventDefault();
+
+            const submitButton = document.getElementById('submit-payment');
+            const buttonText = document.getElementById('button-text');
+            const buttonSpinner = document.getElementById('button-spinner');
+
+            // Disable submit button and show spinner
+            submitButton.disabled = true;
+            buttonText.textContent = 'Processing...';
+            buttonSpinner.classList.remove('hidden');
+
+            try {
+                // For MVP, we'll simulate payment processing
+                // In production, this would create a PaymentIntent with Stripe
+
+                // Simulate API call delay
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                // Create the client record and start CRM generation
+                const response = await createClientAndStartGeneration();
+
+                if (response.success) {
+                    showSuccessMessage(response.projectId);
+                } else {
+                    throw new Error(response.error || 'Payment failed');
+                }
+
+            } catch (error) {
+                console.error('Payment error:', error);
+                alert('Payment failed: ' + error.message);
+
+                // Re-enable submit button
+                submitButton.disabled = false;
+                buttonText.textContent = 'Complete Payment';
+                buttonSpinner.classList.add('hidden');
+            }
+        }
+
+        async function createClientAndStartGeneration() {
+            // This would make actual API calls to create the client and start CRM generation
+            // For MVP, we'll simulate this
+
+            const planPrices = {
+                small: { price: 500 },
+                medium: { price: 1200 },
+                large: { price: 2000 }
+            };
+
+            const clientData = {
+                name: orgData.org_name,
+                subdomain: orgData.subdomain,
+                contact_email: orgData.contact_email,
+                contact_name: orgData.contact_name,
+                organization_type: orgData.org_type,
+                plan: orgData.plan,
+                selected_modules: orgData.selectedModules,
+                admin_email: orgData.adminEmail,
+                temp_password: orgData.tempPassword,
+                uploaded_files: orgData.uploadedFiles,
+                primary_color: orgData.primaryColor,
+                billing_info: {
+                    first_name: document.getElementById('firstName').value,
+                    last_name: document.getElementById('lastName').value,
+                    email: document.getElementById('billingEmail').value,
+                    organization: document.getElementById('orgName').value,
+                    city: document.getElementById('city').value,
+                    state: document.getElementById('state').value,
+                    zip: document.getElementById('zipCode').value
+                }
+            };
+
+            // Simulate successful payment and client creation
+            return {
+                success: true,
+                clientId: 'client_' + Math.random().toString(36).substr(2, 9),
+                projectId: 'project_' + Math.random().toString(36).substr(2, 9),
+                message: 'Client created and CRM generation started'
+            };
+        }
+
+        function showSuccessMessage(projectId) {
+            // Store project ID for progress tracking
+            sessionStorage.setItem('projectId', projectId);
+
+            // Show success modal
+            document.getElementById('success-message').classList.remove('hidden');
+        }
+
+        function goToProgress() {
+            const projectId = sessionStorage.getItem('projectId');
+            window.location.href = `/onboard/progress/${projectId}`;
+        }
+    </script>
+</body>
+</html>

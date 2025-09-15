@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configure CRM - CRMBLR</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <h1 class="text-2xl font-bold text-indigo-600">CRMBLR</h1>
+                    <span class="ml-2 text-sm text-gray-500">AI-Powered CRM for Nonprofits</span>
+                </div>
+                <!-- Progress Indicator -->
+                <div class="flex items-center space-x-2 text-sm">
+                    <span class="flex items-center text-green-600">
+                        <i class="fas fa-check-circle mr-1"></i>
+                        Info
+                    </span>
+                    <span class="text-gray-300">→</span>
+                    <span class="flex items-center text-green-600">
+                        <i class="fas fa-check-circle mr-1"></i>
+                        Upload
+                    </span>
+                    <span class="text-gray-300">→</span>
+                    <span class="flex items-center text-indigo-600 font-medium">
+                        <i class="fas fa-cog mr-1"></i>
+                        Configure
+                    </span>
+                    <span class="text-gray-300">→</span>
+                    <span class="text-gray-400">Payment</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <!-- Configuration Form -->
+        <div class="bg-white rounded-lg shadow-lg p-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Configure Your CRM</h2>
+
+            <!-- AI Analysis Results -->
+            <div id="analysisResults" class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
+                <h3 class="text-lg font-semibold text-blue-900 mb-4">
+                    <i class="fas fa-brain text-blue-600 mr-2"></i>
+                    AI Analysis Results
+                </h3>
+                <div id="analysisContent">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Module Selection -->
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Select CRM Modules</h3>
+                <p class="text-sm text-gray-600 mb-4">
+                    Based on your uploaded files, we've suggested modules for your CRM. You can add or remove modules as needed.
+                </p>
+
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Contacts Module -->
+                    <div class="module-card border-2 border-indigo-500 bg-indigo-50 rounded-lg p-4 cursor-pointer">
+                        <input type="checkbox" id="module-contacts" name="modules" value="contacts" checked class="sr-only">
+                        <label for="module-contacts" class="cursor-pointer">
+                            <div class="flex items-start">
+                                <i class="fas fa-users text-indigo-600 text-xl mr-3 mt-1"></i>
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">Contacts</h4>
+                                    <p class="text-sm text-gray-600 mb-2">Manage people and organizations</p>
+                                    <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                                        Required
+                                    </span>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Donations Module -->
+                    <div class="module-card border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-indigo-300">
+                        <input type="checkbox" id="module-donations" name="modules" value="donations" class="sr-only">
+                        <label for="module-donations" class="cursor-pointer">
+                            <div class="flex items-start">
+                                <i class="fas fa-heart text-red-500 text-xl mr-3 mt-1"></i>
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">Donations</h4>
+                                    <p class="text-sm text-gray-600 mb-2">Track gifts and contributions</p>
+                                    <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                                        Suggested
+                                    </span>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Events Module -->
+                    <div class="module-card border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-indigo-300">
+                        <input type="checkbox" id="module-events" name="modules" value="events" class="sr-only">
+                        <label for="module-events" class="cursor-pointer">
+                            <div class="flex items-start">
+                                <i class="fas fa-calendar text-green-500 text-xl mr-3 mt-1"></i>
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">Events</h4>
+                                    <p class="text-sm text-gray-600">Manage programs and activities</p>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Volunteers Module -->
+                    <div class="module-card border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-indigo-300">
+                        <input type="checkbox" id="module-volunteers" name="modules" value="volunteers" class="sr-only">
+                        <label for="module-volunteers" class="cursor-pointer">
+                            <div class="flex items-start">
+                                <i class="fas fa-hands-helping text-purple-500 text-xl mr-3 mt-1"></i>
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">Volunteers</h4>
+                                    <p class="text-sm text-gray-600">Track volunteer hours and activities</p>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Grants Module -->
+                    <div class="module-card border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-indigo-300">
+                        <input type="checkbox" id="module-grants" name="modules" value="grants" class="sr-only">
+                        <label for="module-grants" class="cursor-pointer">
+                            <div class="flex items-start">
+                                <i class="fas fa-money-check text-yellow-500 text-xl mr-3 mt-1"></i>
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">Grants</h4>
+                                    <p class="text-sm text-gray-600">Manage funding opportunities</p>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Service Requests Module -->
+                    <div class="module-card border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-indigo-300">
+                        <input type="checkbox" id="module-services" name="modules" value="services" class="sr-only">
+                        <label for="module-services" class="cursor-pointer">
+                            <div class="flex items-start">
+                                <i class="fas fa-clipboard-list text-orange-500 text-xl mr-3 mt-1"></i>
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">Service Requests</h4>
+                                    <p class="text-sm text-gray-600">Track community service requests</p>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Mapping Preview -->
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Data Mapping Preview</h3>
+                <p class="text-sm text-gray-600 mb-4">
+                    Here's how we'll map your data to the CRM. Our AI has suggested the best matches for your fields.
+                </p>
+
+                <div id="dataMappingPreview" class="space-y-4">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Branding Options -->
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Branding & Customization</h3>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Primary Color
+                        </label>
+                        <div class="flex items-center space-x-2">
+                            <input type="color" id="primaryColor" value="#4F46E5" class="w-12 h-10 border border-gray-300 rounded">
+                            <span class="text-sm text-gray-600">Choose your organization's primary color</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Logo Upload (Optional)
+                        </label>
+                        <input type="file" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Setup -->
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Admin User Setup</h3>
+                <p class="text-sm text-gray-600 mb-4">
+                    This will be the first administrator account for your CRM.
+                </p>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Admin Email
+                        </label>
+                        <input type="email" id="adminEmail" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <p class="text-xs text-gray-500 mt-1">This will be prefilled from your contact email</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Temporary Password
+                        </label>
+                        <div class="flex items-center">
+                            <input type="text" id="tempPassword" readonly class="flex-1 px-3 py-2 border border-gray-300 rounded-l-md bg-gray-50 focus:outline-none">
+                            <button type="button" onclick="generatePassword()" class="px-3 py-2 bg-indigo-600 text-white rounded-r-md hover:bg-indigo-700">
+                                <i class="fas fa-refresh"></i>
+                            </button>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">You'll be prompted to change this on first login</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Review Summary -->
+            <div class="bg-gray-50 rounded-lg p-6 mb-8">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Configuration Summary</h3>
+                <div id="configSummary" class="space-y-2 text-sm">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex justify-between">
+                <button onclick="window.history.back()" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Back
+                </button>
+                <button id="continueBtn" onclick="proceedToPayment()" class="px-8 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors">
+                    Proceed to Payment
+                    <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let orgData = {};
+
+        // Load data from previous steps
+        window.addEventListener('DOMContentLoaded', function() {
+            const savedData = sessionStorage.getItem('onboardingData');
+            if (savedData) {
+                orgData = JSON.parse(savedData);
+                initializePage();
+            }
+        });
+
+        function initializePage() {
+            // Populate analysis results
+            displayAnalysisResults();
+
+            // Initialize module selection based on AI analysis
+            initializeModuleSelection();
+
+            // Show data mapping preview
+            showDataMappingPreview();
+
+            // Populate admin email
+            document.getElementById('adminEmail').value = orgData.contact_email || '';
+
+            // Generate initial password
+            generatePassword();
+
+            // Update summary
+            updateConfigSummary();
+        }
+
+        function displayAnalysisResults() {
+            const analysisContent = document.getElementById('analysisContent');
+            const files = orgData.uploadedFiles || [];
+
+            analysisContent.innerHTML = `
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                        <h4 class="font-medium text-blue-900 mb-2">Files Analyzed</h4>
+                        <ul class="text-sm text-blue-800 space-y-1">
+                            ${files.map(file => `<li><i class="fas fa-file mr-2"></i>${file.name}</li>`).join('')}
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-medium text-blue-900 mb-2">Detected Data Types</h4>
+                        <div class="space-y-1">
+                            <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full mr-2">Contacts</span>
+                            <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full mr-2">Donations</span>
+                            <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full mr-2">Events</span>
+                        </div>
+                        <p class="text-xs text-blue-700 mt-2">Confidence: 92%</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function initializeModuleSelection() {
+            // Auto-select suggested modules based on AI analysis
+            const suggestedModules = ['contacts', 'donations', 'events'];
+
+            suggestedModules.forEach(moduleId => {
+                const checkbox = document.getElementById(`module-${moduleId}`);
+                const card = checkbox.closest('.module-card');
+
+                if (checkbox && moduleId !== 'contacts') { // Contacts is always checked
+                    checkbox.checked = true;
+                    card.classList.remove('border-gray-200');
+                    card.classList.add('border-indigo-500', 'bg-indigo-50');
+                }
+            });
+
+            // Add event listeners for module selection
+            document.querySelectorAll('input[name="modules"]').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const card = this.closest('.module-card');
+
+                    if (this.checked) {
+                        card.classList.remove('border-gray-200');
+                        card.classList.add('border-indigo-500', 'bg-indigo-50');
+                    } else {
+                        card.classList.remove('border-indigo-500', 'bg-indigo-50');
+                        card.classList.add('border-gray-200');
+                    }
+
+                    updateConfigSummary();
+                });
+            });
+        }
+
+        function showDataMappingPreview() {
+            const preview = document.getElementById('dataMappingPreview');
+            const files = orgData.uploadedFiles || [];
+
+            if (files.length === 0) {
+                preview.innerHTML = '<p class="text-gray-500">No files uploaded yet.</p>';
+                return;
+            }
+
+            // Mock data mapping based on common field names
+            const mappings = [
+                {
+                    file: files[0]?.name || 'contacts.csv',
+                    mappings: [
+                        { source: 'Name', target: 'Full Name', confidence: 95 },
+                        { source: 'Email', target: 'Email Address', confidence: 98 },
+                        { source: 'Phone', target: 'Phone Number', confidence: 90 },
+                        { source: 'Organization', target: 'Organization', confidence: 92 }
+                    ]
+                }
+            ];
+
+            if (files.length > 1) {
+                mappings.push({
+                    file: files[1]?.name || 'donations.csv',
+                    mappings: [
+                        { source: 'Donor Name', target: 'Contact Name', confidence: 88 },
+                        { source: 'Amount', target: 'Donation Amount', confidence: 95 },
+                        { source: 'Date', target: 'Donation Date', confidence: 92 },
+                        { source: 'Campaign', target: 'Campaign Name', confidence: 85 }
+                    ]
+                });
+            }
+
+            preview.innerHTML = mappings.map(mapping => `
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <h4 class="font-medium text-gray-900 mb-3">
+                        <i class="fas fa-file mr-2"></i>${mapping.file}
+                    </h4>
+                    <div class="space-y-2">
+                        ${mapping.mappings.map(field => `
+                            <div class="flex items-center justify-between py-2 px-3 bg-gray-50 rounded">
+                                <div class="flex items-center">
+                                    <span class="text-sm font-medium text-gray-700">${field.source}</span>
+                                    <i class="fas fa-arrow-right text-gray-400 mx-3"></i>
+                                    <span class="text-sm text-gray-600">${field.target}</span>
+                                </div>
+                                <span class="text-xs px-2 py-1 rounded-full ${
+                                    field.confidence >= 90 ? 'bg-green-100 text-green-800' :
+                                    field.confidence >= 80 ? 'bg-yellow-100 text-yellow-800' :
+                                    'bg-red-100 text-red-800'
+                                }">
+                                    ${field.confidence}%
+                                </span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function generatePassword() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+            let password = '';
+            for (let i = 0; i < 12; i++) {
+                password += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            document.getElementById('tempPassword').value = password;
+        }
+
+        function updateConfigSummary() {
+            const summary = document.getElementById('configSummary');
+            const selectedModules = Array.from(document.querySelectorAll('input[name="modules"]:checked'))
+                .map(cb => cb.value);
+
+            summary.innerHTML = `
+                <div><strong>Organization:</strong> ${orgData.org_name || 'Not specified'}</div>
+                <div><strong>Subdomain:</strong> ${orgData.subdomain || 'not-specified'}.crmblr.com</div>
+                <div><strong>Plan:</strong> ${(orgData.plan || 'medium').charAt(0).toUpperCase() + (orgData.plan || 'medium').slice(1)}</div>
+                <div><strong>Selected Modules:</strong> ${selectedModules.join(', ') || 'None'}</div>
+                <div><strong>Files to Import:</strong> ${(orgData.uploadedFiles || []).length} files</div>
+                <div><strong>Admin Email:</strong> ${document.getElementById('adminEmail').value || 'Not specified'}</div>
+            `;
+        }
+
+        function proceedToPayment() {
+            // Update orgData with configuration choices
+            orgData.selectedModules = Array.from(document.querySelectorAll('input[name="modules"]:checked'))
+                .map(cb => cb.value);
+            orgData.primaryColor = document.getElementById('primaryColor').value;
+            orgData.adminEmail = document.getElementById('adminEmail').value;
+            orgData.tempPassword = document.getElementById('tempPassword').value;
+
+            // Save to sessionStorage
+            sessionStorage.setItem('onboardingData', JSON.stringify(orgData));
+
+            // Navigate to payment
+            window.location.href = '/onboard/payment';
+        }
+
+        // Module card click handling
+        document.querySelectorAll('.module-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const checkbox = this.querySelector('input[type="checkbox"]');
+                if (checkbox.id !== 'module-contacts') { // Contacts module is required
+                    checkbox.checked = !checkbox.checked;
+                    checkbox.dispatchEvent(new Event('change'));
+                }
+            });
+        });
+
+        // Update summary when fields change
+        document.getElementById('adminEmail').addEventListener('input', updateConfigSummary);
+    </script>
+</body>
+</html>
