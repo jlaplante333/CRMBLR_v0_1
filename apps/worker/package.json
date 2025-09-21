@@ -1,0 +1,32 @@
+{
+  "name": "@crmblr/worker",
+  "version": "1.0.0",
+  "description": "ETL worker for crmblr",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/main.ts",
+    "start": "node dist/main.js",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@crmblr/types": "workspace:*",
+    "@crmblr/db": "workspace:*",
+    "bullmq": "^4.15.4",
+    "ioredis": "^5.3.2",
+    "aws-sdk": "^2.1490.0",
+    "csv-parser": "^3.0.0",
+    "xlsx": "^0.18.5",
+    "pdf-parse": "^1.1.1",
+    "xml2js": "^0.6.2",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.0",
+    "@types/pdf-parse": "^1.1.4",
+    "@types/xml2js": "^0.4.14",
+    "tsx": "^4.1.0",
+    "typescript": "^5.2.2"
+  }
+}

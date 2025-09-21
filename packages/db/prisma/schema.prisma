@@ -1,0 +1,262 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  slug      String   @unique
+  status    String   @default("active") // active, suspended, pending
+  branding  Json     @default("{}")
+  settings  Json     @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  userTenants     UserTenant[]
+  contacts        Contact[]
+  organizations   Organization[]
+  donations       Donation[]
+  campaigns       Campaign[]
+  grantApps       GrantApp[]
+  pipelineEvents  PipelineEvent[]
+  staff           Staff[]
+  fileAssets      FileAsset[]
+  reports         Report[]
+  auditLogs       AuditLog[]
+
+  @@map("tenants")
+}
+
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String   @unique
+  name      String
+  cognitoId String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  userTenants UserTenant[]
+  reports     Report[]
+  auditLogs   AuditLog[]
+
+  @@map("users")
+}
+
+model UserTenant {
+  id       String   @id @default(uuid()) @db.Uuid
+  userId   String   @db.Uuid
+  tenantId String   @db.Uuid
+  role     String   // owner, admin, editor, viewer
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tenantId])
+  @@map("user_tenants")
+}
+
+model Contact {
+  id            String   @id @default(uuid()) @db.Uuid
+  tenantId      String   @db.Uuid
+  firstName     String
+  lastName      String
+  email         String?
+  phone         String?
+  address       String?
+  score         Int      @default(0)
+  lifetimeValue Float    @default(0)
+  stage         String   @default("identified") // identified, qualified, cultivated, solicited, stewarded
+  custom        Json     @default("{}")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  tenant         Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  donations      Donation[]
+  pipelineEvents PipelineEvent[]
+
+  @@map("contacts")
+}
+
+model Organization {
+  id        String   @id @default(uuid()) @db.Uuid
+  tenantId  String   @db.Uuid
+  name      String
+  type      String   // foundation, venue, partner, funder
+  website   String?
+  location  String?
+  custom    Json     @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  donations Donation[]
+  grantApps GrantApp[]
+
+  @@map("organizations")
+}
+
+model Donation {
+  id             String   @id @default(uuid()) @db.Uuid
+  tenantId       String   @db.Uuid
+  contactId      String?  @db.Uuid
+  organizationId String?  @db.Uuid
+  campaignId     String?  @db.Uuid
+  amount         Decimal  @db.Decimal(12, 2)
+  currency       String   @default("USD")
+  date           DateTime
+  thankYouStatus String   @default("none") // none, pending, sent
+  custom         Json     @default("{}")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  tenant       Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  contact      Contact?     @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  campaign     Campaign?    @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+
+  @@map("donations")
+}
+
+model Campaign {
+  id           String   @id @default(uuid()) @db.Uuid
+  tenantId     String   @db.Uuid
+  name         String
+  targetAmount Decimal  @db.Decimal(12, 2)
+  startDate    DateTime
+  endDate      DateTime
+  custom       Json     @default("{}")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  donations Donation[]
+
+  @@map("campaigns")
+}
+
+model GrantApp {
+  id              String   @id @default(uuid()) @db.Uuid
+  tenantId        String   @db.Uuid
+  organizationId  String   @db.Uuid
+  name            String
+  amountRequested Decimal  @db.Decimal(12, 2)
+  status          String   // prospect, submitted, awarded, declined, report_due
+  deadline        DateTime
+  notes           String?
+  custom          Json     @default("{}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  tenant       Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("grant_apps")
+}
+
+model PipelineEvent {
+  id        String   @id @default(uuid()) @db.Uuid
+  tenantId  String   @db.Uuid
+  contactId String   @db.Uuid
+  stage     String   // identified, qualified, cultivated, solicited, stewarded
+  note      String?
+  occurredAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  contact Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@map("pipeline_events")
+}
+
+model Staff {
+  id        String   @id @default(uuid()) @db.Uuid
+  tenantId  String   @db.Uuid
+  name      String
+  role      String
+  email     String?
+  phone     String?
+  team      String   // administration, board, development, programs
+  custom    Json     @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("staff")
+}
+
+model FileAsset {
+  id          String   @id @default(uuid()) @db.Uuid
+  tenantId    String   @db.Uuid
+  key         String
+  bucket      String
+  contentType String
+  size        Int
+  source      String   // upload, etl
+  meta        Json     @default("{}")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("file_assets")
+}
+
+model Report {
+  id          String    @id @default(uuid()) @db.Uuid
+  tenantId    String    @db.Uuid
+  name        String
+  sql         String
+  createdBy   String    @db.Uuid
+  lastRunAt   DateTime?
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  creator  User   @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+
+  @@map("reports")
+}
+
+model AuditLog {
+  id        String    @id @default(uuid()) @db.Uuid
+  tenantId  String    @db.Uuid
+  userId    String?   @db.Uuid
+  action    String
+  entity    String
+  entityId  String?   @db.Uuid
+  meta      Json      @default("{}")
+  ip        String?
+  ua        String?
+  createdAt DateTime  @default(now())
+
+  // Relations
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("audit_logs")
+}

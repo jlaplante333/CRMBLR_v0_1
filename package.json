@@ -1,0 +1,36 @@
+{
+  "name": "crmblr",
+  "version": "1.0.0",
+  "description": "Multi-tenant AI-generated CRM platform",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "db:migrate": "cd packages/db && pnpm prisma migrate dev",
+    "db:seed": "cd packages/db && pnpm prisma db seed",
+    "db:studio": "cd packages/db && pnpm prisma studio",
+    "seed:demo": "cd packages/db && pnpm tsx scripts/seed-demo.ts",
+    "seed:clear": "cd packages/db && pnpm tsx scripts/clear-demo.ts",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\""
+  },
+  "devDependencies": {
+    "@turbo/gen": "^1.10.12",
+    "prettier": "^3.0.3",
+    "turbo": "^1.10.12",
+    "typescript": "^5.2.2"
+  },
+  "packageManager": "pnpm@8.10.0",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "@crmblr/types",
+  "version": "1.0.0",
+  "description": "Shared TypeScript types for crmblr",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.2.2"
+  },
+  "dependencies": {
+    "zod": "^3.22.4"
+  }
+}

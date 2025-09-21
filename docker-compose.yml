@@ -1,44 +1,97 @@
+# Docker Compose for local development
+version: '3.8'
+
 services:
-  es:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.17
+  postgres:
+    image: postgres:15-alpine
     environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      POSTGRES_DB: crmblr_dev
+      POSTGRES_USER: crmblr
+      POSTGRES_PASSWORD: crmblr_dev
     ports:
-      - "9200:9200"
+      - "5432:5432"
     volumes:
-      - esdata:/usr/share/elasticsearch/data
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U crmblr"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   web:
     build:
       context: .
-      dockerfile: Dockerfile
-    environment:
-      - ELASTICSEARCH_URL=http://es:9200
-      - ES_INDEX=products
-      - SECRET_KEY=${SECRET_KEY}
-      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      dockerfile: Dockerfile.web
     ports:
-      - "8000:8000"
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://crmblr:crmblr_dev@postgres:5432/crmblr_dev
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     depends_on:
-      - es
-    restart: on-failure
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     volumes:
-      - ./app:/app/app:ro
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --proxy-headers --forwarded-allow-ips "*"
+      - .:/app
+      - /app/node_modules
+    command: pnpm dev
 
-  kibana:
-    image: docker.elastic.co/kibana/kibana:7.17.17
-    environment:
-      - ELASTICSEARCH_HOSTS=http://es:9200
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
     ports:
-      - "5601:5601"
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://crmblr:crmblr_dev@postgres:5432/crmblr_dev
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - JWT_SECRET=dev-secret-key
     depends_on:
-      - es
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: pnpm dev --filter=@crmblr/api
 
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://crmblr:crmblr_dev@postgres:5432/crmblr_dev
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: pnpm dev --filter=@crmblr/worker
 
 volumes:
-  esdata:
-    driver: local
+  postgres_data:
+  redis_data:
