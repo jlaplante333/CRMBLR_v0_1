@@ -1,8 +1,11 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Inter, EB_Garamond, Space_Mono, Libre_Franklin } from 'next/font/google';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
+const ebGaramond = EB_Garamond({ subsets: ['latin'], variable: '--font-eb-garamond' });
+const spaceMono = Space_Mono({ subsets: ['latin'], weight: ['400', '700'], variable: '--font-space-mono' });
+const libreFranklin = Libre_Franklin({ subsets: ['latin'], variable: '--font-libre-franklin' });
 
 export const metadata: Metadata = {
   title: 'CRMblr - AI-Generated CRM Platform',
@@ -33,7 +36,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={`${inter.className} ${ebGaramond.variable} ${spaceMono.variable} ${libreFranklin.variable}`}>
         {children}
       </body>
     </html>

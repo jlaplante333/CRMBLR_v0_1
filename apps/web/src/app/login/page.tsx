@@ -39,6 +39,15 @@ export default function LoginPage() {
               {isLoading ? 'Signing in...' : 'Sign in with Cognito'}
             </Button>
             
+            <Button 
+              asChild
+              variant="outline"
+              className="w-full"
+              size="lg"
+            >
+              <a href="/signup">Create your own brand new CRM for your non-profit</a>
+            </Button>
+            
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t" />

@@ -1,57 +1,54 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { DEMO_TENANTS } from '@crmblr/types';
-import { BrandProvider, useBrand } from '@/lib/brand-context';
+import { getTenantBranding, applyBranding } from '@/lib/branding-service';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
 
 interface TenantLayoutProps {
   children: React.ReactNode;
 }
 
-function TenantLayoutContent({ children }: TenantLayoutProps) {
+export default function TenantLayout({ children }: TenantLayoutProps) {
   const params = useParams();
   const slug = params.slug as string;
-  const { tenant, setTenant } = useBrand();
-  const [isLoading, setIsLoading] = useState(true);
 
+  // Find tenant directly
+  const tenant = DEMO_TENANTS.find(t => t.slug === slug);
+
+  // Get dynamic branding based on tenant's website
+  const branding = getTenantBranding(slug);
+
+  // Show Transactions only after a payment integration is connected (simulated via localStorage)
+  const [paymentsConnected, setPaymentsConnected] = useState(false);
+
+  // Apply branding to CSS custom properties
   useEffect(() => {
-    // Find tenant by slug
-    const foundTenant = DEMO_TENANTS.find(t => t.slug === slug);
-    if (foundTenant) {
-      // Convert to Tenant type
-      const tenantData = {
-        id: `${slug}-uuid`,
-        name: foundTenant.name,
-        slug: foundTenant.slug,
-        status: 'active' as const,
-        branding: {
-          palette: foundTenant.palette,
-          logoUrl: foundTenant.logoUrl,
-        },
-        settings: {
-          subdomain: foundTenant.slug,
-          customFields: {},
-        },
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      setTenant(tenantData);
-    }
-    setIsLoading(false);
-  }, [slug, setTenant]);
+    applyBranding(branding);
+    
+    // Apply fonts to document
+    const root = document.documentElement;
+    root.style.setProperty('--font-heading', branding.fonts.heading);
+    root.style.setProperty('--font-body', branding.fonts.body);
+    root.style.setProperty('--font-numeric', branding.fonts.numeric);
+  }, [branding]);
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
+  // Read connection flag from localStorage and subscribe to changes
+  useEffect(() => {
+    const key = `tenant:${slug}:paymentsConnected`;
+    const read = () => setPaymentsConnected(localStorage.getItem(key) === 'true');
+    read();
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === key) read();
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, [slug]);
 
   if (!tenant) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Tenant Not Found</h1>
           <p className="text-gray-600">The workspace "{slug}" does not exist.</p>
@@ -61,69 +58,158 @@ function TenantLayoutContent({ children }: TenantLayoutProps) {
   }
 
   return (
-    <div className="min-h-screen">
-      <div className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              {tenant.branding.logoUrl ? (
-                <img 
-                  src={tenant.branding.logoUrl} 
-                  alt={`${tenant.name} logo`}
-                  className="h-8 w-auto"
-                />
+    <div className="min-h-screen flex" style={{ backgroundColor: branding.background }}>
+      {/* Left Sidebar Navigation - Persistent across all pages */}
+      <div className="w-64 text-white" style={{ backgroundColor: branding.primary }}>
+        <div className="p-6">
+          {/* Logo and Organization Name */}
+          <div className="flex items-center mb-8">
+            {(() => {
+              const raw = (branding as any).logoUrl;
+              const logoSrc = typeof raw === 'string' ? raw : (raw?.src || raw?.default?.src);
+              return logoSrc ? (
+              <img
+                src={logoSrc}
+                alt={`${tenant.name} logo`}
+                className="h-8 w-auto mr-3"
+              />
               ) : (
-                <div 
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold"
-                  style={{ backgroundColor: tenant.branding.palette[0] }}
-                >
-                  {tenant.name.charAt(0)}
-                </div>
-              )}
-              <div>
-                <h1 className="text-xl font-bold">{tenant.name}</h1>
-                <p className="text-sm text-gray-600">{slug}.crmblr.com</p>
+              <div 
+                className="w-8 h-8 rounded flex items-center justify-center text-white font-bold text-sm mr-3"
+                style={{ backgroundColor: branding.primary }}
+              >
+                {tenant.name.charAt(0)}
               </div>
+              );
+            })()}
+            <div>
+              <h1 className="text-lg font-semibold" style={{ fontFamily: branding.fonts.heading }}>{tenant.name}</h1>
+              <p className="text-xs text-gray-400" style={{ fontFamily: branding.fonts.body }}>{slug}.crmblr.com</p>
             </div>
-            
-            <nav className="flex gap-6">
-              <a href={`/t/${slug}/donations`} className="text-sm font-medium hover:text-blue-600">
-                Donations
-              </a>
-              <a href={`/t/${slug}/pipeline`} className="text-sm font-medium hover:text-blue-600">
-                Pipeline
-              </a>
-              <a href={`/t/${slug}/grants`} className="text-sm font-medium hover:text-blue-600">
-                Grants
-              </a>
-              <a href={`/t/${slug}/organizations`} className="text-sm font-medium hover:text-blue-600">
-                Organizations
-              </a>
-              <a href={`/t/${slug}/directory`} className="text-sm font-medium hover:text-blue-600">
-                Directory
-              </a>
-              <a href={`/t/${slug}/reports`} className="text-sm font-medium hover:text-blue-600">
-                Reports
-              </a>
-              <a href={`/t/${slug}/settings`} className="text-sm font-medium hover:text-blue-600">
-                Settings
-              </a>
-            </nav>
           </div>
+
+          {/* Navigation Menu */}
+          <nav className="space-y-2">
+            <Link 
+              href={`/t/${slug}`}
+              className="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+            >
+              <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
+              </svg>
+              Dashboard
+            </Link>
+            
+            <Link 
+              href={`/t/${slug}/contacts`}
+              className="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+            >
+              <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              Contacts
+            </Link>
+            
+            <Link 
+              href={`/t/${slug}/donations`}
+              className="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+            >
+              <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+              </svg>
+              Donations
+            </Link>
+
+            {paymentsConnected && (
+              <Link 
+                href={`/t/${slug}/transactions`}
+                className="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+              >
+                <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                </svg>
+                Transactions
+              </Link>
+            )}
+            
+            <Link 
+              href={`/t/${slug}/pipeline`}
+              className="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+            >
+              <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              </svg>
+              Pipeline
+            </Link>
+            
+            <Link 
+              href={`/t/${slug}/grants`}
+              className="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+            >
+              <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Grants
+            </Link>
+            
+            <Link 
+              href={`/t/${slug}/organizations`}
+              className="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+            >
+              <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+              Organizations
+            </Link>
+            
+            <Link 
+              href={`/t/${slug}/directory`}
+              className="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+            >
+              <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
+              </svg>
+              Directory
+            </Link>
+          </nav>
         </div>
       </div>
-      
-      <main className="container mx-auto px-4 py-8">
-        {children}
-      </main>
-    </div>
-  );
-}
 
-export default function TenantLayout({ children }: TenantLayoutProps) {
-  return (
-    <BrandProvider>
-      <TenantLayoutContent>{children}</TenantLayoutContent>
-    </BrandProvider>
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col">
+        {/* Top Header Bar - Persistent across all pages */}
+        <div className="bg-white border-b border-gray-200 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: branding.fonts.heading }}>{tenant.name}</h1>
+            </div>
+            
+            <div className="flex items-center space-x-4">
+              {/* Dark mode toggle */}
+              <button className="p-2 text-gray-500 hover:text-gray-700">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+              </button>
+              
+              {/* User profile */}
+              <div className="flex items-center space-x-2">
+                <div 
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm"
+                  style={{ backgroundColor: branding.primary }}
+                >
+                  jon
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Page Content */}
+        <div className="flex-1 p-6">
+          {children}
+        </div>
+      </div>
+    </div>
   );
 }

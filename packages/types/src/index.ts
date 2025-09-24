@@ -395,7 +395,7 @@ export const DEMO_TENANTS: DemoTenantConfig[] = [
     name: 'MAKE Literary Productions, NFP',
     slug: 'makelit',
     palette: ['#111827', '#0ea5e9', '#fbbf24', '#f8fafc'],
-    logoUrl: '/brand/makelit.svg',
+    logoUrl: '/brand/makelit-logo.png',
     users: [
       { email: 'owner@makelit.org', password: 'Demo!Make', role: UserRole.OWNER },
       { email: 'admin@makelit.org', password: 'Demo!Make', role: UserRole.ADMIN },

@@ -8,41 +8,26 @@ import { DEMO_TENANTS } from '@crmblr/types';
 export default function DonationsPage() {
   const params = useParams();
   const slug = params.slug as string;
-  const [tenant, setTenant] = useState<any>(null);
-  const [donations, setDonations] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // Find tenant directly
+  const tenant = DEMO_TENANTS.find(t => t.slug === slug);
 
-  useEffect(() => {
-    const foundTenant = DEMO_TENANTS.find(t => t.slug === slug);
-    if (foundTenant) {
-      setTenant(foundTenant);
-      
-      // Mock donations data
-      const mockDonations = [
-        { id: '1', amount: 250, date: '2024-01-15', contact: 'John Smith', status: 'sent' },
-        { id: '2', amount: 500, date: '2024-01-14', contact: 'Jane Doe', status: 'pending' },
-        { id: '3', amount: 100, date: '2024-01-13', contact: 'Bob Johnson', status: 'sent' },
-        { id: '4', amount: 1000, date: '2024-01-12', contact: 'Alice Brown', status: 'sent' },
-        { id: '5', amount: 75, date: '2024-01-11', contact: 'Charlie Wilson', status: 'none' },
-      ];
-      
-      setDonations(mockDonations);
-    }
-    setIsLoading(false);
-  }, [slug]);
-
-  if (isLoading) {
-    return <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>;
-  }
+  // Mock donations data
+  const mockDonations = [
+    { id: '1', amount: 250, date: '2024-01-15', contact: 'John Smith', status: 'sent' },
+    { id: '2', amount: 500, date: '2024-01-14', contact: 'Jane Doe', status: 'pending' },
+    { id: '3', amount: 100, date: '2024-01-13', contact: 'Bob Johnson', status: 'sent' },
+    { id: '4', amount: 1000, date: '2024-01-12', contact: 'Alice Brown', status: 'sent' },
+    { id: '5', amount: 75, date: '2024-01-11', contact: 'Charlie Wilson', status: 'none' },
+  ];
 
   if (!tenant) {
     return <div>Tenant not found</div>;
   }
 
-  const totalDonations = donations.reduce((sum, d) => sum + d.amount, 0);
-  const ytdDonations = donations.filter(d => d.date.startsWith('2024')).reduce((sum, d) => sum + d.amount, 0);
-  const totalDonors = new Set(donations.map(d => d.contact)).size;
-  const pendingThankYous = donations.filter(d => d.status === 'pending').length;
+  const totalDonations = mockDonations.reduce((sum, d) => sum + d.amount, 0);
+  const ytdDonations = mockDonations.filter(d => d.date.startsWith('2024')).reduce((sum, d) => sum + d.amount, 0);
+  const totalDonors = new Set(mockDonations.map(d => d.contact)).size;
+  const pendingThankYous = mockDonations.filter(d => d.status === 'pending').length;
 
   return (
     <div className="space-y-6">
@@ -139,7 +124,7 @@ export default function DonationsPage() {
                 </tr>
               </thead>
               <tbody>
-                {donations.map((donation) => (
+                {mockDonations.map((donation) => (
                   <tr key={donation.id} className="border-b">
                     <td className="py-2">{donation.date}</td>
                     <td className="py-2">{donation.contact}</td>
