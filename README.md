@@ -44,6 +44,14 @@ Each tenant includes realistic data across all modules: 150+ contacts, 400+ dona
 
 ### Local Development
 
+**Quick Setup (Recommended):**
+```bash
+git clone https://github.com/jlaplante333/CRMBLR_v0_1.git
+cd CRMBLR_v0_1
+./setup.sh
+```
+
+**Manual Setup:**
 1. **Clone and install:**
    ```bash
    git clone https://github.com/jlaplante333/CRMBLR_v0_1.git
@@ -64,11 +72,52 @@ Each tenant includes realistic data across all modules: 150+ contacts, 400+ dona
 
 4. **Database setup:**
    ```bash
+   # Run database migrations
    pnpm db:migrate
+   
+   # Seed with demo data (creates 4 demo tenants with realistic data)
    pnpm seed:demo
    ```
+   
+   **What gets seeded:**
+   - 🏢 **4 Demo Tenants**: MAKE Literary, 1in6, Fallen Fruit, Homeboy Industries
+   - 👥 **150+ Contacts** per tenant with realistic names, stages, and scores
+   - 💰 **400+ Donations** with proper campaigns and thank-you statuses
+   - 📋 **45+ Grant Applications** with deadlines and statuses
+   - 🏢 **5+ Organizations** (foundations, venues, partners)
+   - 👨‍💼 **5 Staff Members** per tenant with roles and departments
+   - 📊 **Custom Fields** for donations, contacts, and grants
+   - 🎯 **Pipeline Events** for contact cultivation tracking
 
-5. **Start development:**
+5. **Access demo tenants:**
+   ```bash
+   # Demo login credentials (after seeding)
+   # MAKE Literary Productions (makelit):
+   #   Owner: owner@makelit.org / Demo!Make
+   #   Admin: admin@makelit.org / Demo!Make
+   #   Editor: editor@makelit.org / Demo!Make
+   #   Viewer: viewer@makelit.org / Demo!Make
+   
+   # 1in6 (oneinsix):
+   #   Owner: owner@oneinsix.org / Demo!One6
+   #   Admin: admin@oneinsix.org / Demo!One6
+   #   Editor: editor@oneinsix.org / Demo!One6
+   #   Viewer: viewer@oneinsix.org / Demo!One6
+   
+   # Fallen Fruit (fallenfruit):
+   #   Owner: owner@fallenfruit.org / Demo!Fruit
+   #   Admin: admin@fallenfruit.org / Demo!Fruit
+   #   Editor: editor@fallenfruit.org / Demo!Fruit
+   #   Viewer: viewer@fallenfruit.org / Demo!Fruit
+   
+   # Homeboy Industries (homeboy):
+   #   Owner: owner@homeboy.org / Demo!Homeboy
+   #   Admin: admin@homeboy.org / Demo!Homeboy
+   #   Editor: editor@homeboy.org / Demo!Homeboy
+   #   Viewer: viewer@homeboy.org / Demo!Homeboy
+   ```
+
+6. **Start development:**
    ```bash
    pnpm dev
    ```

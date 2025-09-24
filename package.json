@@ -18,6 +18,7 @@
     "db:studio": "cd packages/db && pnpm prisma studio",
     "seed:demo": "cd packages/db && pnpm tsx scripts/seed-demo.ts",
     "seed:clear": "cd packages/db && pnpm tsx scripts/clear-demo.ts",
+    "setup": "./setup.sh",
     "clean": "turbo run clean && rm -rf node_modules",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\""
