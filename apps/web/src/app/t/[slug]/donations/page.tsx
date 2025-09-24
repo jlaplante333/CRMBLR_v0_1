@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button } from '@crmblr/ui';
 import { DEMO_TENANTS } from '@crmblr/types';
+import { isPaymentsConnected, setPaymentsConnected } from '@/lib/payments';
 
 export default function DonationsPage() {
   const params = useParams();
@@ -24,6 +25,11 @@ export default function DonationsPage() {
     return <div>Tenant not found</div>;
   }
 
+  const [paymentsReady, setPaymentsReady] = useState(false);
+  useEffect(() => {
+    setPaymentsReady(isPaymentsConnected(slug));
+  }, [slug]);
+
   const totalDonations = mockDonations.reduce((sum, d) => sum + d.amount, 0);
   const ytdDonations = mockDonations.filter(d => d.date.startsWith('2024')).reduce((sum, d) => sum + d.amount, 0);
   const totalDonors = new Set(mockDonations.map(d => d.contact)).size;
@@ -31,6 +37,30 @@ export default function DonationsPage() {
 
   return (
     <div className="space-y-6">
+      {!paymentsReady && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Connect a payment provider</CardTitle>
+            <CardDescription>Simulate connecting Stripe or PayPal to unlock Transactions</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-3">
+              <Button
+                className="bg-[#635BFF] hover:bg-[#5851e6] text-white"
+                onClick={() => { setPaymentsConnected(slug, true); setPaymentsReady(true); }}
+              >
+                Connect Stripe
+              </Button>
+              <Button
+                className="bg-[#003087] hover:bg-[#001f5c] text-white"
+                onClick={() => { setPaymentsConnected(slug, true); setPaymentsReady(true); }}
+              >
+                Connect PayPal
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Donations</h1>
         <p className="text-gray-600">Manage and track your donation pipeline</p>

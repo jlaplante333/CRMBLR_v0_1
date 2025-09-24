@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation';
 import { DEMO_TENANTS } from '@crmblr/types';
 import { getTenantBranding, applyBranding } from '@/lib/branding-service';
 import { useEffect, useState } from 'react';
+import { isPaymentsConnected } from '@/lib/payments';
 import Link from 'next/link';
 
 interface TenantLayoutProps {
@@ -36,12 +37,9 @@ export default function TenantLayout({ children }: TenantLayoutProps) {
 
   // Read connection flag from localStorage and subscribe to changes
   useEffect(() => {
-    const key = `tenant:${slug}:paymentsConnected`;
-    const read = () => setPaymentsConnected(localStorage.getItem(key) === 'true');
+    const read = () => setPaymentsConnected(isPaymentsConnected(slug));
     read();
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === key) read();
-    };
+    const onStorage = () => read();
     window.addEventListener('storage', onStorage);
     return () => window.removeEventListener('storage', onStorage);
   }, [slug]);
@@ -192,6 +190,11 @@ export default function TenantLayout({ children }: TenantLayoutProps) {
                 </svg>
               </button>
               
+            {/* Add Integrations CTA */}
+            <Link href={`/t/${slug}/integrations`} className="hidden sm:inline-flex items-center px-3 py-2 rounded-md text-sm font-medium bg-gray-900 text-white hover:bg-gray-800">
+              Add Integrations
+            </Link>
+            
               {/* User profile */}
               <div className="flex items-center space-x-2">
                 <div 

@@ -31,6 +31,7 @@ export default function HomePage() {
     const normalizedEmail = email.trim().toLowerCase();
     const isSuperuser = (
       (normalizedEmail === 'jon@crmblr.com' && password === 'test123') ||
+      (normalizedEmail === 'laurie@crmblr.com' && password === 'test123') ||
       normalizedEmail.includes('admin@crmblr.com') ||
       normalizedEmail.endsWith('@crmblr.com')
     );

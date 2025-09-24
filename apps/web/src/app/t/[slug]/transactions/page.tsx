@@ -5,6 +5,7 @@ import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Badg
 import { getTenantBranding } from '@/lib/branding-service';
 import { DEMO_TENANTS } from '@crmblr/types';
 import { useMemo, useState, useEffect } from 'react';
+import { setPaymentsConnected } from '@/lib/payments';
 
 export default function TransactionsPage() {
   const params = useParams();
@@ -16,9 +17,7 @@ export default function TransactionsPage() {
 
   // Persist simulated connection per-tenant so the sidebar can react
   useEffect(() => {
-    const key = `tenant:${slug}:paymentsConnected`;
-    const anyConnected = connected.paypal || connected.stripe;
-    localStorage.setItem(key, anyConnected ? 'true' : 'false');
+    setPaymentsConnected(slug, connected.paypal || connected.stripe);
   }, [connected, slug]);
 
   const mockTransactions = useMemo(() => {
