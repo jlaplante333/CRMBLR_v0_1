@@ -19,31 +19,6 @@ export default function LoginPage() {
     window.location.href = authUrl;
   };
 
-  const handleEmailLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    // For demo purposes, redirect to workspace picker with user context
-    // In a real app, this would authenticate and get user permissions
-    const normalizedEmail = 'test@example.com'; // This would come from a form input
-    const isSuperuser = (
-      normalizedEmail === 'jon@crmblr.com' ||
-      normalizedEmail === 'laurie@crmblr.com' ||
-      normalizedEmail.includes('admin@crmblr.com') ||
-      normalizedEmail.endsWith('@crmblr.com')
-    );
-
-    const userType = isSuperuser ? 'superuser' :
-      normalizedEmail.includes('makelit') ? 'makelit' :
-      normalizedEmail.includes('1in6') ? '1in6' :
-      normalizedEmail.includes('fallenfruit') ? 'fallenfruit' :
-      normalizedEmail.includes('homeboy') ? 'homeboy' : 'makelit';
-
-    setTimeout(() => {
-      window.location.href = `/workspaces?user=${userType}`;
-    }, 1000);
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">

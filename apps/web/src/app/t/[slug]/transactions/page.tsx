@@ -1,19 +1,24 @@
 'use client';
 
-import { useParams } from 'next/navigation';
-import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Badge } from '@crmblr/ui';
+import { useParams, useRouter } from 'next/navigation';
+import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@crmblr/ui';
 import { getTenantBranding } from '@/lib/branding-service';
 import { DEMO_TENANTS } from '@crmblr/types';
 import { useMemo, useState, useEffect } from 'react';
-import { setPaymentsConnected } from '@/lib/payments';
+import { getIntegrations, setIntegration, setPaymentsConnected, disconnectIntegration } from '@/lib/payments';
+import { PaymentLogo } from '@/components/payment-logos';
 
 export default function TransactionsPage() {
   const params = useParams();
+  const router = useRouter();
   const slug = params.slug as string;
   const tenant = DEMO_TENANTS.find(t => t.slug === slug);
   const branding = getTenantBranding(slug);
 
-  const [connected, setConnected] = useState<{ stripe: boolean; paypal: boolean }>({ stripe: false, paypal: false });
+  const [connected, setConnected] = useState<{ stripe: boolean; paypal: boolean }>(() => {
+    const flags = getIntegrations(slug);
+    return { stripe: !!flags.stripe, paypal: !!flags.paypal };
+  });
 
   // Persist simulated connection per-tenant so the sidebar can react
   useEffect(() => {
@@ -21,15 +26,22 @@ export default function TransactionsPage() {
   }, [connected, slug]);
 
   const mockTransactions = useMemo(() => {
-    // Simulate recent transactions as if fetched from Stripe/PayPal
-    return [
-      { id: 'txn_1', source: 'Stripe', status: 'succeeded', amount: 2500, currency: 'USD', donor: 'Sarah Johnson', date: '2025-09-10', fee: 88 },
-      { id: 'txn_2', source: 'PayPal', status: 'completed', amount: 5000, currency: 'USD', donor: 'Michael Chen', date: '2025-09-09', fee: 145 },
-      { id: 'txn_3', source: 'Stripe', status: 'succeeded', amount: 1500, currency: 'USD', donor: 'Emily Rodriguez', date: '2025-09-08', fee: 63 },
-      { id: 'txn_4', source: 'PayPal', status: 'refunded', amount: 2000, currency: 'USD', donor: 'David Thompson', date: '2025-09-07', fee: 0 },
-      { id: 'txn_5', source: 'Stripe', status: 'pending', amount: 7500, currency: 'USD', donor: 'Lisa Park', date: '2025-09-06', fee: 225 },
+    const baseStripe = [
+      { id: 'txn_s1', source: 'Stripe', status: 'succeeded', amount: 2500, currency: 'USD', donor: 'Sarah Johnson', date: '2025-09-10', fee: 88 },
+      { id: 'txn_s2', source: 'Stripe', status: 'succeeded', amount: 1500, currency: 'USD', donor: 'Emily Rodriguez', date: '2025-09-08', fee: 63 },
+      { id: 'txn_s3', source: 'Stripe', status: 'pending', amount: 7500, currency: 'USD', donor: 'Lisa Park', date: '2025-09-06', fee: 225 },
     ];
-  }, []);
+    const basePaypal = [
+      { id: 'txn_p1', source: 'PayPal', status: 'completed', amount: 5000, currency: 'USD', donor: 'Michael Chen', date: '2025-09-09', fee: 145 },
+      { id: 'txn_p2', source: 'PayPal', status: 'refunded', amount: 2000, currency: 'USD', donor: 'David Thompson', date: '2025-09-07', fee: 0 },
+    ];
+    const txns = [
+      ...(connected.stripe ? baseStripe : []),
+      ...(connected.paypal ? basePaypal : []),
+    ];
+    // Sort by date desc for realism
+    return txns.sort((a, b) => (a.date < b.date ? 1 : -1));
+  }, [connected]);
 
   if (!tenant) {
     return <div>Tenant not found</div>;
@@ -48,11 +60,31 @@ export default function TransactionsPage() {
     return map[status] || 'bg-gray-100 text-gray-800';
   };
 
+  const handleDeactivate = () => {
+    // Disconnect all payment integrations
+    disconnectIntegration(slug, 'stripe');
+    disconnectIntegration(slug, 'paypal');
+    setConnected({ stripe: false, paypal: false });
+    // Redirect to dashboard
+    router.push(`/t/${slug}`);
+  };
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900" style={{ fontFamily: branding.fonts.heading }}>Transactions</h1>
-        <p className="text-gray-600" style={{ fontFamily: branding.fonts.body }}>Connect Stripe or PayPal and view synced donations</p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900" style={{ fontFamily: branding.fonts.heading }}>Transactions</h1>
+          <p className="text-gray-600" style={{ fontFamily: branding.fonts.body }}>Connect Stripe or PayPal and view synced donations</p>
+        </div>
+        {(connected.stripe || connected.paypal) && (
+          <Button 
+            onClick={handleDeactivate}
+            variant="outline"
+            className="text-red-600 border-red-600 hover:bg-red-50"
+          >
+            Deactivate Integrations
+          </Button>
+        )}
       </div>
 
       {/* Connect Buttons */}
@@ -64,14 +96,14 @@ export default function TransactionsPage() {
         <CardContent>
           <div className="flex flex-wrap gap-3">
             <Button
-              onClick={() => setConnected(s => ({ ...s, stripe: true }))}
+              onClick={() => { setConnected(s => ({ ...s, stripe: true })); setIntegration(slug, 'stripe', true); }}
               disabled={connected.stripe}
               className="bg-[#635BFF] hover:bg-[#5851e6] text-white"
             >
               {connected.stripe ? 'Stripe Connected' : 'Connect Stripe'}
             </Button>
             <Button
-              onClick={() => setConnected(s => ({ ...s, paypal: true }))}
+              onClick={() => { setConnected(s => ({ ...s, paypal: true })); setIntegration(slug, 'paypal', true); }}
               disabled={connected.paypal}
               className="bg-[#003087] hover:bg-[#001f5c] text-white"
             >
@@ -95,9 +127,9 @@ export default function TransactionsPage() {
                   <th className="text-left py-2">Date</th>
                   <th className="text-left py-2">Donor</th>
                   <th className="text-left py-2">Amount</th>
+                  <th className="text-left py-2">Source</th>
                   <th className="text-left py-2">Fee</th>
                   <th className="text-left py-2">Net</th>
-                  <th className="text-left py-2">Source</th>
                   <th className="text-left py-2">Status</th>
                   <th className="text-left py-2">Txn ID</th>
                 </tr>
@@ -108,9 +140,11 @@ export default function TransactionsPage() {
                     <td className="py-2">{txn.date}</td>
                     <td className="py-2">{txn.donor}</td>
                     <td className="py-2">{formatAmount(txn.amount)}</td>
+                    <td className="py-2">
+                      <PaymentLogo source={txn.source} />
+                    </td>
                     <td className="py-2">{formatAmount(txn.fee)}</td>
                     <td className="py-2">{formatAmount(txn.amount - txn.fee)}</td>
-                    <td className="py-2">{txn.source}</td>
                     <td className="py-2">
                       <span className={`px-2 py-1 rounded-full text-xs ${getStatusBadge(txn.status)}`}>{txn.status}</span>
                     </td>
@@ -125,5 +159,3 @@ export default function TransactionsPage() {
     </div>
   );
 }
-
-

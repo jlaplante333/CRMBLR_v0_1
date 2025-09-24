@@ -4,7 +4,7 @@ import { useParams } from 'next/navigation';
 import { DEMO_TENANTS } from '@crmblr/types';
 import { getTenantBranding, applyBranding } from '@/lib/branding-service';
 import { useEffect, useState } from 'react';
-import { isPaymentsConnected } from '@/lib/payments';
+import { getIntegrations, isPaymentsConnected } from '@/lib/payments';
 import Link from 'next/link';
 
 interface TenantLayoutProps {
@@ -23,6 +23,8 @@ export default function TenantLayout({ children }: TenantLayoutProps) {
 
   // Show Transactions only after a payment integration is connected (simulated via localStorage)
   const [paymentsConnected, setPaymentsConnected] = useState(false);
+  const [mailchimpConnected, setMailchimpConnected] = useState(false);
+  const [googleConnected, setGoogleConnected] = useState(false);
 
   // Apply branding to CSS custom properties
   useEffect(() => {
@@ -37,7 +39,12 @@ export default function TenantLayout({ children }: TenantLayoutProps) {
 
   // Read connection flag from localStorage and subscribe to changes
   useEffect(() => {
-    const read = () => setPaymentsConnected(isPaymentsConnected(slug));
+    const read = () => {
+      setPaymentsConnected(isPaymentsConnected(slug));
+      const flags = getIntegrations(slug);
+      setMailchimpConnected(!!flags.mailchimp);
+      setGoogleConnected(!!flags.google);
+    };
     read();
     const onStorage = () => read();
     window.addEventListener('storage', onStorage);
@@ -127,6 +134,30 @@ export default function TenantLayout({ children }: TenantLayoutProps) {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
                 </svg>
                 Transactions
+              </Link>
+            )}
+
+            {mailchimpConnected && (
+              <Link 
+                href={`/t/${slug}/mail-campaign`}
+                className="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+              >
+                <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8m-18 8h18a2 2 0 002-2V8a2 2 0 00-2-2H3a2 2 0 00-2 2v6a2 2 0 002 2z"/>
+                </svg>
+                Mail campaign
+              </Link>
+            )}
+
+            {googleConnected && (
+              <Link 
+                href={`/t/${slug}/calendar`}
+                className="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+              >
+                <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                Calendar
               </Link>
             )}
             

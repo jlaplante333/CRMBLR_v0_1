@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Inpu
 import { getTenantBranding } from '@/lib/branding-service';
 import { DEMO_TENANTS } from '@crmblr/types';
 import { useState } from 'react';
-import { setPaymentsConnected } from '@/lib/payments';
+import { getIntegrations, setIntegration, setPaymentsConnected } from '@/lib/payments';
 
 export default function IntegrationsPage() {
   const params = useParams();
@@ -16,17 +16,18 @@ export default function IntegrationsPage() {
 
   const [stripeKey, setStripeKey] = useState('');
   const [paypalKey, setPaypalKey] = useState('');
+  const flags = getIntegrations(slug);
 
   if (!tenant) return <div>Tenant not found</div>;
 
   const connectStripe = () => {
     // Accept any fake key
-    setPaymentsConnected(slug, true);
+    setIntegration(slug, 'stripe', true);
     router.push(`/t/${slug}/transactions`);
   };
 
   const connectPaypal = () => {
-    setPaymentsConnected(slug, true);
+    setIntegration(slug, 'paypal', true);
     router.push(`/t/${slug}/transactions`);
   };
 
@@ -72,7 +73,7 @@ export default function IntegrationsPage() {
                 <Input id="stripe_acct" placeholder="acct_..." className="mt-1" />
               </div>
               <div className="flex gap-3">
-                <Button onClick={connectStripe} className="bg-emerald-600 hover:bg-emerald-700 text-white">Connect Stripe</Button>
+                <Button onClick={connectStripe} disabled={!!flags.stripe} className="bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-60">{flags.stripe ? 'Stripe Connected' : 'Connect Stripe'}</Button>
                 <Button variant="outline" className="border-2">Test Webhook</Button>
               </div>
             </div>
@@ -116,7 +117,7 @@ export default function IntegrationsPage() {
                 </select>
               </div>
               <div className="flex gap-3">
-                <Button onClick={connectPaypal} className="bg-emerald-600 hover:bg-emerald-700 text-white">Connect PayPal</Button>
+                <Button onClick={connectPaypal} disabled={!!flags.paypal} className="bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-60">{flags.paypal ? 'PayPal Connected' : 'Connect PayPal'}</Button>
                 <Button variant="outline" className="border-2">Send Test</Button>
               </div>
             </div>
@@ -146,7 +147,7 @@ export default function IntegrationsPage() {
                 <label htmlFor="g_cal" className="text-sm font-medium">Calendar ID</label>
                 <Input id="g_cal" placeholder="primary" className="mt-1" />
               </div>
-              <Button className="bg-emerald-600 hover:bg-emerald-700 text-white">Connect Google</Button>
+              <Button className="bg-emerald-600 hover:bg-emerald-700 text-white" disabled={!!flags.google} onClick={() => { setIntegration(slug, 'google', true); router.push(`/t/${slug}/calendar`); }}>{flags.google ? 'Google Connected' : 'Connect Google'}</Button>
             </div>
           </CardContent>
         </Card>
@@ -170,7 +171,7 @@ export default function IntegrationsPage() {
                 <label htmlFor="mc_list" className="text-sm font-medium">Audience ID (List)</label>
                 <Input id="mc_list" placeholder="a1b2c3d4e5" className="mt-1" />
               </div>
-              <Button className="bg-emerald-600 hover:bg-emerald-700 text-white">Connect Mailchimp</Button>
+              <Button className="bg-emerald-600 hover:bg-emerald-700 text-white" disabled={!!flags.mailchimp} onClick={() => { setIntegration(slug, 'mailchimp', true); router.push(`/t/${slug}/mail-campaign`); }}>{flags.mailchimp ? 'Mailchimp Connected' : 'Connect Mailchimp'}</Button>
             </div>
           </CardContent>
         </Card>
