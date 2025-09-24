@@ -1,6 +1,11 @@
 // Dynamic Branding Service - Extracts colors, fonts, and styling from nonprofit websites
 // This service analyzes nonprofit websites and generates CRM branding that matches their existing design
 
+import makelitLogo from './logos/makelit_logo.png';
+import oneinsixLogo from './logos/1in6.png';
+import fallenfruitLogo from './logos/fallen_fruit.png';
+import homeboyLogo from './logos/homeboy.png';
+
 // Allow logo to be either a public URL string or a statically imported image
 export interface WebsiteBranding {
   primary: string;
@@ -48,15 +53,7 @@ export const DEMO_WEBSITE_BRANDING: Record<string, WebsiteBranding> = {
       body: 'var(--font-libre-franklin), sans-serif', // Libre Franklin for body text from makelit.org
       numeric: 'var(--font-space-mono), monospace'   // Space Mono for numbers/currency from makelit.org
     },
-    // Prefer local lib/logos asset when available; falls back to public path
-    logoUrl: (() => {
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        return require('@/lib/logos/makelit_logo.png');
-      } catch {
-        return '/brand/makelit-logo.png';
-      }
-    })(),
+    logoUrl: makelitLogo.src,
     tagline: 'Supporting Cross-Cultural Artistic and Literary Collaboration'
   },
   
@@ -77,14 +74,7 @@ export const DEMO_WEBSITE_BRANDING: Record<string, WebsiteBranding> = {
       body: 'Inter, system-ui, sans-serif',
       numeric: 'Inter, system-ui, sans-serif'
     },
-    logoUrl: (() => {
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        return require('@/lib/logos/1in6.png');
-      } catch {
-        return '/brand/1in6.svg';
-      }
-    })(),
+    logoUrl: oneinsixLogo.src,
     tagline: 'Supporting Men Who Have Experienced Sexual Abuse'
   },
   
@@ -105,7 +95,7 @@ export const DEMO_WEBSITE_BRANDING: Record<string, WebsiteBranding> = {
       body: 'Inter, system-ui, sans-serif',
       numeric: 'Inter, system-ui, sans-serif'
     },
-    logoUrl: '/brand/fallenfruit.svg',
+    logoUrl: fallenfruitLogo.src,
     tagline: 'Urban Agriculture and Public Art'
   },
   
@@ -126,14 +116,7 @@ export const DEMO_WEBSITE_BRANDING: Record<string, WebsiteBranding> = {
       body: 'Inter, system-ui, sans-serif',
       numeric: 'Inter, system-ui, sans-serif'
     },
-    logoUrl: (() => {
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        return require('@/lib/logos/homeboy.png');
-      } catch {
-        return '/brand/homeboy.svg';
-      }
-    })(),
+    logoUrl: homeboyLogo.src,
     tagline: 'Jobs Not Jails - Social Enterprise'
   }
 };
