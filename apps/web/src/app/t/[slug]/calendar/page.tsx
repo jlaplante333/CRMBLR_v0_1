@@ -41,19 +41,20 @@ export default function CalendarPage() {
     
     // This month
     { id: 'e5', title: 'Board Meeting', date: '2025-01-20', time: '7:00 PM', location: 'HQ Conference Room', type: 'Meeting' },
-    { id: 'e6', title: 'Fundraising Gala', date: '2025-01-25', time: '7:00 PM', location: 'Grand Ballroom', type: 'Fundraiser' },
-    { id: 'e7', title: 'Grant Deadline - MacArthur Foundation', date: '2025-01-28', time: '11:59 PM', location: 'Online', type: 'Deadline' },
+    { id: 'e6', title: 'Open Bar Friendraiser', date: '2025-01-22', time: '6:00 PM', location: 'Downtown Taproom', type: 'Fundraiser' },
+    { id: 'e7', title: 'Fundraising Gala', date: '2025-01-25', time: '7:00 PM', location: 'Grand Ballroom', type: 'Fundraiser' },
+    { id: 'e8', title: 'Grant Deadline - MacArthur Foundation', date: '2025-01-28', time: '11:59 PM', location: 'Online', type: 'Deadline' },
     
     // Next month
-    { id: 'e8', title: 'Monthly Newsletter Release', date: '2025-02-01', time: '9:00 AM', location: 'Email', type: 'Event' },
-    { id: 'e9', title: 'Donor Appreciation Event', date: '2025-02-05', time: '6:00 PM', location: 'Downtown Taproom', type: 'Event' },
-    { id: 'e10', title: 'Strategic Planning Retreat', date: '2025-02-10', time: '9:00 AM', location: 'Mountain Lodge', type: 'Meeting' },
-    { id: 'e11', title: 'Annual Report Deadline', date: '2025-02-15', time: '5:00 PM', location: 'Online', type: 'Deadline' },
+    { id: 'e9', title: 'Monthly Newsletter Release', date: '2025-02-01', time: '9:00 AM', location: 'Email', type: 'Event' },
+    { id: 'e10', title: 'Donor Appreciation Event', date: '2025-02-05', time: '6:00 PM', location: 'Downtown Taproom', type: 'Event' },
+    { id: 'e11', title: 'Strategic Planning Retreat', date: '2025-02-10', time: '9:00 AM', location: 'Mountain Lodge', type: 'Meeting' },
+    { id: 'e12', title: 'Annual Report Deadline', date: '2025-02-15', time: '5:00 PM', location: 'Online', type: 'Deadline' },
     
     // Next 3 months
-    { id: 'e12', title: 'Spring Fundraiser', date: '2025-03-15', time: '6:00 PM', location: 'Garden Venue', type: 'Fundraiser' },
-    { id: 'e13', title: 'Volunteer Recognition Ceremony', date: '2025-03-20', time: '5:00 PM', location: 'Community Hall', type: 'Event' },
-    { id: 'e14', title: 'Q1 Board Review', date: '2025-04-01', time: '10:00 AM', location: 'HQ Conference Room', type: 'Meeting' },
+    { id: 'e13', title: 'Spring Fundraiser', date: '2025-03-15', time: '6:00 PM', location: 'Garden Venue', type: 'Fundraiser' },
+    { id: 'e14', title: 'Volunteer Recognition Ceremony', date: '2025-03-20', time: '5:00 PM', location: 'Community Hall', type: 'Event' },
+    { id: 'e15', title: 'Q1 Board Review', date: '2025-04-01', time: '10:00 AM', location: 'HQ Conference Room', type: 'Meeting' },
   ];
 
   const getDateRange = (period: TimePeriod) => {
