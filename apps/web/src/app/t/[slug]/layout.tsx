@@ -223,7 +223,7 @@ export default function TenantLayout({ children }: TenantLayoutProps) {
               
             {/* Add Integrations CTA */}
             <Link href={`/t/${slug}/integrations`} className="hidden sm:inline-flex items-center px-3 py-2 rounded-md text-sm font-medium bg-gray-900 text-white hover:bg-gray-800">
-              Add Integrations
+              Manage Integrations
             </Link>
             
               {/* User profile */}

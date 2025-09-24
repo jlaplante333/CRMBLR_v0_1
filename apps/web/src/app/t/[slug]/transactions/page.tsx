@@ -6,7 +6,7 @@ import { getTenantBranding } from '@/lib/branding-service';
 import { DEMO_TENANTS } from '@crmblr/types';
 import { useMemo, useState, useEffect } from 'react';
 import { getIntegrations, setIntegration, setPaymentsConnected, disconnectIntegration } from '@/lib/payments';
-import { PaymentLogo } from '@/components/payment-logos';
+
 
 export default function TransactionsPage() {
   const params = useParams();
@@ -140,9 +140,7 @@ export default function TransactionsPage() {
                     <td className="py-2">{txn.date}</td>
                     <td className="py-2">{txn.donor}</td>
                     <td className="py-2">{formatAmount(txn.amount)}</td>
-                    <td className="py-2">
-                      <PaymentLogo source={txn.source} />
-                    </td>
+                    <td className="py-2">{txn.source}</td>
                     <td className="py-2">{formatAmount(txn.fee)}</td>
                     <td className="py-2">{formatAmount(txn.amount - txn.fee)}</td>
                     <td className="py-2">
