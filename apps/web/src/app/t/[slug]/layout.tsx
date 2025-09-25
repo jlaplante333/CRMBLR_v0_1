@@ -6,6 +6,7 @@ import { getTenantBranding, applyBranding } from '@/lib/branding-service';
 import { useEffect, useState } from 'react';
 import { getIntegrations, isPaymentsConnected } from '@/lib/payments';
 import Link from 'next/link';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 
 interface TenantLayoutProps {
   children: React.ReactNode;
@@ -25,6 +26,9 @@ export default function TenantLayout({ children }: TenantLayoutProps) {
   const [paymentsConnected, setPaymentsConnected] = useState(false);
   const [mailchimpConnected, setMailchimpConnected] = useState(false);
   const [googleConnected, setGoogleConnected] = useState(false);
+
+  // Get current user
+  const currentUser = useCurrentUser();
 
   // Apply branding to CSS custom properties
   useEffect(() => {
@@ -232,7 +236,7 @@ export default function TenantLayout({ children }: TenantLayoutProps) {
                   className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm"
                   style={{ backgroundColor: branding.primary }}
                 >
-                  jon
+                  {currentUser ? currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U'}
                 </div>
               </div>
             </div>
