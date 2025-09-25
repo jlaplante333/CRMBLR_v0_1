@@ -4,12 +4,14 @@ import { useState } from 'react';
 import { Button, Input } from '@crmblr/ui';
 import { DEMO_TENANTS } from '@crmblr/types';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showDemoAccounts, setShowDemoAccounts] = useState(false);
+  const router = useRouter();
 
   const handleCognitoLogin = () => {
     setIsLoading(true);
@@ -42,9 +44,8 @@ export default function LoginPage() {
       normalizedEmail.includes('fallenfruit') ? 'fallenfruit' :
       normalizedEmail.includes('homeboy') ? 'homeboy' : 'makelit';
     
-    setTimeout(() => {
-      window.location.href = `/workspaces?user=${userType}`;
-    }, 1000);
+    // Use Next.js router for navigation
+    router.push(`/workspaces?user=${userType}`);
   };
 
   return (
