@@ -62,7 +62,7 @@ export default function HomePage() {
             
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
               Your Nonprofit's Data,<br />
-              <span className="text-blue-600">Instantly Organized</span>
+              <span className="text-gray-900">Instantly Organized</span>
             </h1>
             
             <p className="text-xl text-gray-600 mb-8 max-w-4xl mx-auto leading-relaxed">
@@ -71,18 +71,18 @@ export default function HomePage() {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-              <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-md text-lg font-semibold">
+              <Button asChild className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-md text-lg font-semibold">
                 <Link href="/signup">Schedule Your Demo</Link>
               </Button>
-              <Button variant="outline" className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-3 rounded-md text-lg font-semibold">
+              <Button variant="outline" className="border-2 border-green-600 text-green-600 hover:bg-green-50 px-8 py-3 rounded-md text-lg font-semibold">
                 See How It Works
               </Button>
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-3xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-12 max-w-4xl mx-auto">
               <div className="text-center">
-                <div className="text-4xl font-bold text-blue-600 mb-2">5 Days</div>
+                <div className="text-4xl font-bold text-green-600 mb-2">5 Days</div>
                 <div className="text-lg text-gray-600 font-medium">Setup Time</div>
               </div>
               <div className="text-center">
@@ -90,8 +90,12 @@ export default function HomePage() {
                 <div className="text-lg text-gray-600 font-medium">Avg Savings</div>
               </div>
               <div className="text-center">
-                <div className="text-4xl font-bold text-purple-600 mb-2">95%</div>
+                <div className="text-4xl font-bold text-green-600 mb-2">95%</div>
                 <div className="text-lg text-gray-600 font-medium">Adoption Rate</div>
+              </div>
+              <div className="text-center">
+                <div className="text-4xl font-bold text-green-600 mb-2">15%</div>
+                <div className="text-lg text-gray-600 font-medium">More Donations</div>
               </div>
             </div>
           </div>
@@ -309,15 +313,15 @@ export default function HomePage() {
                   <li>• Training & onboarding</li>
                 </ul>
               </div>
-              <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-md font-semibold">
+              <Button className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-md font-semibold">
                 Get Started
               </Button>
             </div>
 
             {/* Medium Teams */}
-            <div className="bg-white p-8 rounded-lg shadow-lg border-2 border-blue-500 relative">
+            <div className="bg-white p-8 rounded-lg shadow-lg border-2 border-green-500 relative">
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                <span className="bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-semibold">MOST POPULAR</span>
+                <span className="bg-green-500 text-white px-4 py-1 rounded-full text-sm font-semibold">MOST POPULAR</span>
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-4">Medium Teams</h3>
               <div className="mb-6">
@@ -343,7 +347,7 @@ export default function HomePage() {
                   <li>• Monthly check-ins</li>
                 </ul>
               </div>
-              <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-md font-semibold">
+              <Button className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-md font-semibold">
                 Get Started
               </Button>
             </div>
@@ -375,7 +379,7 @@ export default function HomePage() {
                   <li>• Custom integrations</li>
                 </ul>
               </div>
-              <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-md font-semibold">
+              <Button className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-md font-semibold">
                 Get Started
               </Button>
             </div>
@@ -398,7 +402,7 @@ export default function HomePage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Your Name *</label>
                   <Input 
                     type="text" 
-                    className="w-full h-12 border-2 border-gray-200 rounded-md px-4 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    className="w-full h-12 border-2 border-gray-200 rounded-md px-4 focus:border-green-500 focus:ring-2 focus:ring-green-200"
                     required
                   />
                 </div>
@@ -406,7 +410,7 @@ export default function HomePage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Organization Name *</label>
                   <Input 
                     type="text" 
-                    className="w-full h-12 border-2 border-gray-200 rounded-md px-4 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    className="w-full h-12 border-2 border-gray-200 rounded-md px-4 focus:border-green-500 focus:ring-2 focus:ring-green-200"
                     required
                   />
                 </div>
@@ -416,7 +420,7 @@ export default function HomePage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
                   <Input 
                     type="email" 
-                    className="w-full h-12 border-2 border-gray-200 rounded-md px-4 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    className="w-full h-12 border-2 border-gray-200 rounded-md px-4 focus:border-green-500 focus:ring-2 focus:ring-green-200"
                     required
                   />
                 </div>
@@ -424,7 +428,7 @@ export default function HomePage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Your Title (Optional)</label>
                   <Input 
                     type="text" 
-                    className="w-full h-12 border-2 border-gray-200 rounded-md px-4 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    className="w-full h-12 border-2 border-gray-200 rounded-md px-4 focus:border-green-500 focus:ring-2 focus:ring-green-200"
                   />
                 </div>
               </div>
@@ -433,12 +437,12 @@ export default function HomePage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number (Optional)</label>
                   <Input 
                     type="tel" 
-                    className="w-full h-12 border-2 border-gray-200 rounded-md px-4 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    className="w-full h-12 border-2 border-gray-200 rounded-md px-4 focus:border-green-500 focus:ring-2 focus:ring-green-200"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Annual Budget Range (Optional)</label>
-                  <select className="w-full h-12 border-2 border-gray-200 rounded-md px-4 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
+                  <select className="w-full h-12 border-2 border-gray-200 rounded-md px-4 focus:border-green-500 focus:ring-2 focus:ring-green-200">
                     <option>Select budget range</option>
                     <option>Under $500K</option>
                     <option>$500K - $1M</option>
@@ -452,11 +456,11 @@ export default function HomePage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Current CRM (Optional)</label>
                 <Input 
                   type="text" 
-                  className="w-full h-12 border-2 border-gray-200 rounded-md px-4 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                  className="w-full h-12 border-2 border-gray-200 rounded-md px-4 focus:border-green-500 focus:ring-2 focus:ring-green-200"
                 />
               </div>
               <div className="text-center">
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-md text-lg font-semibold">
+                <Button className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-md text-lg font-semibold">
                   Schedule Demo
                 </Button>
               </div>
