@@ -143,7 +143,7 @@ export default function ContactsPage() {
               <CardTitle style={{ fontFamily: branding.fonts.heading }}>Contact Directory</CardTitle>
               <CardDescription>All contacts and their current status</CardDescription>
             </div>
-            <Button style={{ backgroundColor: branding.primary }}>Add Contact</Button>
+            <Button style={{ backgroundColor: branding.primary, color: 'white' }}>Add Contact</Button>
           </div>
         </CardHeader>
         <CardContent>
