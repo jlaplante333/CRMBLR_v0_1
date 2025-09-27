@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security - CRMblr</title>
+    <meta name="description" content="Learn about CRMblr's security measures to protect your nonprofit's data.">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='20' y='15' width='80' height='90' fill='none' stroke='%234A9B8E' stroke-width='3' rx='4'/%3E%3C/svg%3E">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            /* Primary Brand Colors - Exact match to live site */
+            --color-primary: #4A9B8E;        /* Seaglass Green */
+            --color-primary-light: #5FB3A6;  /* Light Seaglass */
+            --color-primary-dark: #3A8B7E;   /* Dark Seaglass */
+            
+            --color-secondary: #043353;      /* Professional Navy */
+            --color-accent: #18A4E0;         /* Trust Blue */
+            
+            /* Neutral Colors */
+            --color-white: #FFFFFF;
+            --color-gray-50: #F8F9FA;
+            --color-gray-100: #E9ECEF;
+            --color-gray-200: #DEE2E6;
+            --color-gray-300: #CED4DA;
+            --color-gray-400: #ADB5BD;
+            --color-gray-500: #6C757D;
+            --color-gray-600: #495057;
+            --color-gray-700: #343A40;
+            --color-gray-800: #212529;
+            --color-gray-900: #1A1A1A;
+            
+            /* Semantic Colors */
+            --color-success: #16A34A;
+            --color-warning: #EAB308;
+            --color-error: #DC2626;
+            --color-info: var(--color-accent);
+            
+            /* Typography - Exact fonts from live site */
+            --font-heading: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --font-body: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --font-mono: 'Courier New', monospace;
+            
+            /* Font Sizes - Exact match to live site */
+            --text-xs: 0.75rem;
+            --text-sm: 0.875rem;
+            --text-base: 1rem;
+            --text-lg: 1.125rem;
+            --text-xl: 1.25rem;
+            --text-2xl: 1.5rem;
+            --text-3xl: 1.875rem;
+            --text-4xl: 2.25rem;
+            --text-5xl: 3rem;
+            --text-6xl: 3.75rem;
+            
+            /* Spacing - Exact match to live site */
+            --space-xs: 0.25rem;
+            --space-sm: 0.5rem;
+            --space-md: 1rem;
+            --space-lg: 1.5rem;
+            --space-xl: 2rem;
+            --space-2xl: 3rem;
+            --space-3xl: 4rem;
+            
+            /* Border Radius - Exact match to live site */
+            --radius-sm: 0.25rem;
+            --radius-md: 0.375rem;
+            --radius-lg: 0.5rem;
+            --radius-xl: 0.75rem;
+            --radius-2xl: 1rem;
+            --radius-full: 9999px;
+            
+            /* Shadows - Exact match to live site */
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+            
+            /* Container - Exact match to live site */
+            --container-max-width: 1200px;
+            --container-padding: var(--space-md);
+            
+            /* Transitions - Exact match to live site */
+            --transition-fast: 150ms ease;
+            --transition-base: 250ms ease;
+            --transition-slow: 350ms ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-body);
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--color-gray-900);
+            background-color: var(--color-white);
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-heading);
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 1rem;
+        }
+
+        h1 { font-size: 3rem; }
+        h2 { font-size: 2.25rem; }
+        h3 { font-size: 1.5rem; }
+
+        p { margin-bottom: 1rem; }
+
+        a {
+            color: var(--color-primary);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        a:hover {
+            color: var(--color-primary-dark);
+            text-decoration: underline;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: var(--color-white);
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            z-index: 1000;
+        }
+
+        .navbar-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .navbar-menu {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+            align-items: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        .navbar-link {
+            color: var(--color-gray-700);
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .navbar-link:hover {
+            color: var(--color-primary);
+            text-decoration: none;
+        }
+
+        .navbar-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--color-secondary);
+            text-decoration: none;
+        }
+
+        .navbar-logo svg {
+            width: 40px;
+            height: 40px;
+        }
+
+        .navbar-logo:hover {
+            text-decoration: none;
+            color: var(--color-primary);
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            text-align: center;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background-color: var(--color-primary);
+            color: var(--color-white);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--color-primary-dark);
+            text-decoration: none;
+            transform: translateY(-2px);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 120px 0 10px;
+            background: linear-gradient(135deg, var(--color-gray-50) 0%, var(--color-white) 100%);
+        }
+
+        .hero h1 {
+            color: var(--color-secondary);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: var(--color-gray-600);
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .breadcrumb {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            font-size: 0.875rem;
+            color: var(--color-gray-600);
+            justify-content: center;
+        }
+
+        .breadcrumb a {
+            color: var(--color-gray-600);
+        }
+
+        /* Content Section */
+        .content-section {
+            padding: 4rem 0;
+        }
+
+        .security-card {
+            background: var(--color-gray-50);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .security-card h2 {
+            color: var(--color-secondary);
+            margin-bottom: 1.5rem;
+        }
+
+        .security-card h3 {
+            color: var(--color-primary);
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-list {
+            list-style: none;
+            margin: 1rem 0;
+        }
+
+        .feature-list li {
+            padding: 0.75rem 0;
+            padding-left: 2rem;
+            position: relative;
+        }
+
+        .feature-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--color-primary);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .contact-section {
+            background: var(--color-primary);
+            color: var(--color-white);
+            padding: 2rem;
+            border-radius: 1rem;
+            text-align: center;
+            margin-top: 3rem;
+        }
+
+        .contact-section h3 {
+            color: var(--color-white);
+        }
+
+        .contact-section p {
+            margin-bottom: 1rem;
+        }
+
+        .email-link {
+            color: var(--color-white);
+            font-weight: bold;
+            text-decoration: underline;
+        }
+
+        .email-link:hover {
+            color: var(--color-gray-100);
+        }
+
+        /* Obfuscated email for bot protection */
+        .email-obfuscated {
+            cursor: pointer;
+        }
+
+        /* Footer */
+        .footer {
+            padding: 3rem 0 1.5rem;
+            background: var(--color-secondary);
+            color: var(--color-white);
+            margin-top: 5rem;
+        }
+
+        .footer-content {
+            text-align: center;
+        }
+
+        .footer a {
+            color: var(--color-gray-300);
+        }
+
+        .footer a:hover {
+            color: var(--color-white);
+        }
+
+        /* Mobile Styles */
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            h2 { font-size: 1.75rem; }
+            h3 { font-size: 1.25rem; }
+
+            .hero {
+                padding: 100px 0 40px;
+            }
+
+            .security-card {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-container">
+                <a href="index.html" class="navbar-logo">
+                    <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="20" y="15" width="80" height="90" fill="none" stroke="currentColor" stroke-width="3" rx="4"/>
+                        <line x1="20" y1="35" x2="100" y2="35" stroke="currentColor" stroke-width="2"/>
+                        <line x1="20" y1="60" x2="100" y2="60" stroke="currentColor" stroke-width="2"/>
+                        <line x1="20" y1="85" x2="100" y2="85" stroke="currentColor" stroke-width="2"/>
+                        <circle cx="35" cy="35" r="6" fill="var(--color-secondary)"/>
+                        <circle cx="50" cy="35" r="6" fill="var(--color-secondary)"/>
+                        <circle cx="75" cy="35" r="6" fill="currentColor"/>
+                        <circle cx="90" cy="35" r="6" fill="currentColor"/>
+                        <circle cx="35" cy="60" r="6" fill="var(--color-secondary)"/>
+                        <circle cx="50" cy="60" r="6" fill="var(--color-secondary)"/>
+                        <circle cx="65" cy="60" r="6" fill="var(--color-secondary)"/>
+                        <circle cx="85" cy="60" r="6" fill="currentColor"/>
+                        <circle cx="35" cy="85" r="6" fill="var(--color-secondary)"/>
+                        <circle cx="55" cy="85" r="6" fill="currentColor"/>
+                        <circle cx="70" cy="85" r="6" fill="currentColor"/>
+                        <circle cx="85" cy="85" r="6" fill="currentColor"/>
+                    </svg>
+                    CRMblr
+                </a>
+                <ul class="navbar-menu">
+                    <li><a href="index.html" class="navbar-link">Home</a></li>
+                    <li><a href="https://calendly.com/laurie-sartain/30min" target="_blank" class="btn btn-primary">Schedule Demo</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>Your Data Security is Our Priority</h1>
+            <p class="hero-subtitle">We protect your nonprofit's data with industry-standard security measures and transparent practices.</p>
+        </div>
+    </section>
+
+    <!-- Content Section -->
+    <section class="content-section">
+        <div class="container">
+            <!-- Data Protection -->
+            <div class="security-card">
+                <h2>Data Protection</h2>
+
+                <h3>Encryption</h3>
+                <p>All data is encrypted in transit and at rest using industry-standard encryption. Your nonprofit's information is protected at every level.</p>
+
+                <h3>Access Controls</h3>
+                <p>Basic role permissions ensure appropriate access to your data. Control who sees what with granular permission settings.</p>
+
+                <h3>Data Isolation</h3>
+                <p>Each organization's data is kept separate and secure. Your information is never mixed with or accessible to other organizations.</p>
+            </div>
+
+            <!-- Infrastructure Security -->
+            <div class="security-card">
+                <h2>Infrastructure Security</h2>
+
+                <h3>Cloud Hosting</h3>
+                <p>CRMblr runs on reliable cloud infrastructure with strong uptime. We use enterprise-grade hosting providers with proven security track records.</p>
+
+                <h3>Regular Backups</h3>
+                <p>Daily automated backups protect your data. In the unlikely event of an issue, we can quickly restore your information.</p>
+
+                <h3>Monitoring</h3>
+                <p>We monitor for security issues and respond promptly. Our systems alert us to potential threats so we can act quickly to protect your data.</p>
+            </div>
+
+            <!-- Your Control -->
+            <div class="security-card">
+                <h2>Your Control</h2>
+
+                <h3>Data Ownership</h3>
+                <p>Your data belongs to you. Export it anytime in standard formats. We never claim ownership of your information.</p>
+
+                <h3>Transparency</h3>
+                <p>We're clear about how your data is collected, used, and protected. No hidden practices or surprise terms.</p>
+
+                <ul class="feature-list">
+                    <li>You own all your data</li>
+                    <li>Export anytime in CSV, Excel, or PDF formats</li>
+                    <li>Delete your data whenever you want</li>
+                    <li>Clear data retention policies</li>
+                    <li>No selling or sharing with third parties</li>
+                </ul>
+            </div>
+
+            <!-- Contact Section -->
+            <div class="contact-section">
+                <h3>Questions about security?</h3>
+                <p>We're here to help address any security concerns you may have.</p>
+                <p>Contact us at: <span class="email-obfuscated" data-user="laurie" data-domain="crmblr.com"></span></p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <p>&copy; 2025 CRMblr. All rights reserved. | <a href="index.html">Home</a> | <a href="privacy.html">Privacy Policy</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Email protection from bots
+        document.addEventListener('DOMContentLoaded', function() {
+            const emailSpan = document.querySelector('.email-obfuscated');
+            if (emailSpan) {
+                const user = emailSpan.getAttribute('data-user');
+                const domain = emailSpan.getAttribute('data-domain');
+                const email = user + '@' + domain;
+                emailSpan.innerHTML = '<a href="mailto:' + email + '" class="email-link">' + email + '</a>';
+            }
+        });
+    </script>
+</body>
+</html>

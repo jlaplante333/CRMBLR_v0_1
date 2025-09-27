@@ -59,8 +59,8 @@ export function useCurrentUser(): User | null {
           // Superuser can see all tenants
           userData = {
             id: 'user-superuser',
-            email: 'admin@crmblr.com',
-            name: 'CRMblr Admin',
+            email: 'jon@crmblr.com',
+            name: 'Jon Crmblr',
             tenants: [
               { tenantId: 'demo-makelit', role: 'admin' },
               { tenantId: 'demo-oneinsix', role: 'admin' },

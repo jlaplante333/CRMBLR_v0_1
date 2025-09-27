@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - CRMblr</title>
+    <meta name="description" content="CRMblr was founded by nonprofit veterans who understand your challenges. Learn about our mission to make CRM technology accessible and affordable for nonprofits.">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='20' y='15' width='80' height='90' fill='none' stroke='%234A9B8E' stroke-width='3' rx='4'/%3E%3C/svg%3E">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            /* Primary Brand Colors - Exact match to live site */
+            --color-primary: #4A9B8E;        /* Seaglass Green */
+            --color-primary-light: #5FB3A6;  /* Light Seaglass */
+            --color-primary-dark: #3A8B7E;   /* Dark Seaglass */
+            
+            --color-secondary: #043353;      /* Professional Navy */
+            --color-accent: #18A4E0;         /* Trust Blue */
+            
+            /* Neutral Colors */
+            --color-white: #FFFFFF;
+            --color-gray-50: #F8F9FA;
+            --color-gray-100: #E9ECEF;
+            --color-gray-200: #DEE2E6;
+            --color-gray-300: #CED4DA;
+            --color-gray-400: #ADB5BD;
+            --color-gray-500: #6C757D;
+            --color-gray-600: #495057;
+            --color-gray-700: #343A40;
+            --color-gray-800: #212529;
+            --color-gray-900: #1A1A1A;
+            
+            /* Semantic Colors */
+            --color-success: #16A34A;
+            --color-warning: #EAB308;
+            --color-error: #DC2626;
+            --color-info: var(--color-accent);
+            
+            /* Typography - Exact fonts from live site */
+            --font-heading: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --font-body: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --font-mono: 'Courier New', monospace;
+            
+            /* Font Sizes - Exact match to live site */
+            --text-xs: 0.75rem;
+            --text-sm: 0.875rem;
+            --text-base: 1rem;
+            --text-lg: 1.125rem;
+            --text-xl: 1.25rem;
+            --text-2xl: 1.5rem;
+            --text-3xl: 1.875rem;
+            --text-4xl: 2.25rem;
+            --text-5xl: 3rem;
+            --text-6xl: 3.75rem;
+            
+            /* Spacing - Exact match to live site */
+            --space-xs: 0.25rem;
+            --space-sm: 0.5rem;
+            --space-md: 1rem;
+            --space-lg: 1.5rem;
+            --space-xl: 2rem;
+            --space-2xl: 3rem;
+            --space-3xl: 4rem;
+            
+            /* Border Radius - Exact match to live site */
+            --radius-sm: 0.25rem;
+            --radius-md: 0.375rem;
+            --radius-lg: 0.5rem;
+            --radius-xl: 0.75rem;
+            --radius-2xl: 1rem;
+            --radius-full: 9999px;
+            
+            /* Shadows - Exact match to live site */
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+            
+            /* Container - Exact match to live site */
+            --container-max-width: 1200px;
+            --container-padding: var(--space-md);
+            
+            /* Transitions - Exact match to live site */
+            --transition-fast: 150ms ease;
+            --transition-base: 250ms ease;
+            --transition-slow: 350ms ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-body);
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--color-gray-900);
+            background-color: var(--color-white);
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-heading);
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 1rem;
+        }
+
+        h1 { font-size: 3rem; }
+        h2 { font-size: 2rem; }
+        h3 { font-size: 1.5rem; }
+
+        p {
+            margin-bottom: 1rem;
+            line-height: 1.8;
+        }
+
+        a {
+            color: var(--color-primary);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        a:hover {
+            color: var(--color-primary-dark);
+            text-decoration: underline;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: var(--color-white);
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            z-index: 1000;
+        }
+
+        .navbar-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .navbar-menu {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+            align-items: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        .navbar-link {
+            color: var(--color-gray-700);
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .navbar-link:hover {
+            color: var(--color-primary);
+            text-decoration: none;
+        }
+
+        .navbar-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--color-secondary);
+            text-decoration: none;
+        }
+
+        .navbar-logo svg {
+            width: 40px;
+            height: 40px;
+        }
+
+        .navbar-logo:hover {
+            text-decoration: none;
+            color: var(--color-primary);
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            text-align: center;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background-color: var(--color-primary);
+            color: var(--color-white);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--color-primary-dark);
+            text-decoration: none;
+            transform: translateY(-2px);
+            color: var(--color-white);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 120px 0 10px;
+            background: linear-gradient(135deg, var(--color-gray-50) 0%, var(--color-white) 100%);
+        }
+
+        .hero h1 {
+            color: var(--color-secondary);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: var(--color-gray-600);
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .breadcrumb {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            font-size: 0.875rem;
+            color: var(--color-gray-600);
+            justify-content: center;
+        }
+
+        .breadcrumb a {
+            color: var(--color-gray-600);
+        }
+
+        /* Content Sections */
+        .content-section {
+            padding: 2rem 0;
+        }
+
+        .story-section {
+            background: var(--color-gray-50);
+            padding: 4rem 0;
+            margin: 0;
+        }
+
+        .story-card {
+            background: var(--color-white);
+            border-radius: 1rem;
+            padding: 2.5rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        .story-card h2 {
+            color: var(--color-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .story-card h3 {
+            color: var(--color-primary);
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .quote-block {
+            border-left: 4px solid var(--color-primary);
+            padding-left: 2rem;
+            margin: 2rem 0;
+            font-style: italic;
+            color: var(--color-gray-700);
+            font-size: 1.125rem;
+        }
+
+        .founder-section {
+            text-align: center;
+            padding: 2rem 0;
+        }
+
+        .founder-card {
+            background: var(--color-white);
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .founder-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: var(--color-primary);
+            color: var(--color-white);
+            font-size: 3rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+        }
+
+        .founder-name {
+            font-size: 1.75rem;
+            color: var(--color-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .founder-title {
+            color: var(--color-gray-600);
+            margin-bottom: 1.5rem;
+        }
+
+        .values-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .value-card {
+            text-align: center;
+            padding: 1.5rem;
+        }
+
+        .value-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .value-card h3 {
+            color: var(--color-secondary);
+            margin-bottom: 0.75rem;
+            font-size: 1.25rem;
+        }
+
+        .value-card p {
+            color: var(--color-gray-600);
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 0;
+        }
+
+        .cta-section {
+            background: var(--color-primary);
+            color: var(--color-white);
+            padding: 3rem 2rem;
+            border-radius: 1rem;
+            text-align: center;
+            margin: 3rem 0;
+        }
+
+        .cta-section h2 {
+            color: var(--color-white);
+            margin-bottom: 1rem;
+        }
+
+        .cta-section p {
+            font-size: 1.125rem;
+            margin-bottom: 2rem;
+            opacity: 0.95;
+        }
+
+        .cta-section .btn {
+            background: var(--color-white);
+            color: var(--color-primary);
+        }
+
+        .cta-section .btn:hover {
+            background: var(--color-gray-50);
+            transform: translateY(-2px);
+        }
+
+        /* Footer */
+        .footer {
+            padding: 3rem 0 1.5rem;
+            background: var(--color-secondary);
+            color: var(--color-white);
+            margin-top: 5rem;
+        }
+
+        .footer-content {
+            text-align: center;
+        }
+
+        .footer a {
+            color: var(--color-gray-300);
+        }
+
+        .footer a:hover {
+            color: var(--color-white);
+        }
+
+        /* Mobile Styles */
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            h2 { font-size: 1.5rem; }
+            h3 { font-size: 1.25rem; }
+
+            .hero {
+                padding: 100px 0 40px;
+            }
+
+            .story-card {
+                padding: 1.5rem;
+            }
+
+            .values-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-container">
+                <a href="index.html" class="navbar-logo">
+                    <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="20" y="15" width="80" height="90" fill="none" stroke="currentColor" stroke-width="3" rx="4"/>
+                        <line x1="20" y1="35" x2="100" y2="35" stroke="currentColor" stroke-width="2"/>
+                        <line x1="20" y1="60" x2="100" y2="60" stroke="currentColor" stroke-width="2"/>
+                        <line x1="20" y1="85" x2="100" y2="85" stroke="currentColor" stroke-width="2"/>
+                        <circle cx="35" cy="35" r="6" fill="var(--color-secondary)"/>
+                        <circle cx="50" cy="35" r="6" fill="var(--color-secondary)"/>
+                        <circle cx="75" cy="35" r="6" fill="currentColor"/>
+                        <circle cx="90" cy="35" r="6" fill="currentColor"/>
+                        <circle cx="35" cy="60" r="6" fill="var(--color-secondary)"/>
+                        <circle cx="50" cy="60" r="6" fill="var(--color-secondary)"/>
+                        <circle cx="65" cy="60" r="6" fill="var(--color-secondary)"/>
+                        <circle cx="85" cy="60" r="6" fill="currentColor"/>
+                        <circle cx="35" cy="85" r="6" fill="var(--color-secondary)"/>
+                        <circle cx="55" cy="85" r="6" fill="currentColor"/>
+                        <circle cx="70" cy="85" r="6" fill="currentColor"/>
+                        <circle cx="85" cy="85" r="6" fill="currentColor"/>
+                    </svg>
+                    CRMblr
+                </a>
+
+                <ul class="navbar-menu">
+                    <li><a href="index.html" class="navbar-link">Home</a></li>
+                    <li><a href="https://calendly.com/laurie-sartain/30min" target="_blank" class="btn btn-primary">Schedule Demo</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>Built for Nonprofit People</h1>
+            <p class="hero-subtitle">CRMblr exists because we've lived the nonprofit struggle and believe you deserve better.</p>
+        </div>
+    </section>
+
+    <!-- Story Section -->
+    <section class="story-section">
+        <div class="container">
+            <div class="story-card">
+                <h2>Our Story</h2>
+
+                <p>CRMblr was born from frustration—the kind that only comes from spending years wrestling with CRM systems that promised everything and delivered headaches.</p>
+
+                <div class="quote-block">
+                    "As Executive Director of MAKE Lit, I spent countless hours trying to wrangle data from spreadsheets, donor databases, and grant tracking systems. Every 'solution' we tried either cost a fortune, took months to implement, or was so generic it didn't fit our needs."
+                </div>
+
+                <p>That's when it became clear: the nonprofit sector doesn't need another generic CRM with a nonprofit discount. We need technology built by people who understand that every dollar matters, every hour counts, and every donor relationship is personal.</p>
+
+                <h3>Why We're Different</h3>
+
+                <p><strong>We've been in your shoes.</strong> We've written grant reports at midnight, juggled donor relationships in spreadsheets, and explained to boards why the "industry-standard" CRM needs another six months and $20,000 to actually work.</p>
+
+                <p><strong>We know speed matters.</strong> When a major donor is ready to engage or a grant opportunity appears, you can't wait months for implementation. Our 5-day setup isn't a gimmick—it's a necessity we understand deeply.</p>
+
+                <p><strong>We believe in fair pricing.</strong> Nonprofits shouldn't have to choose between serving their mission and having functional technology. Our pricing reflects what we wished existed when we were in your position.</p>
+
+                <h3>Our Approach</h3>
+
+                <p>CRMblr combines nonprofit expertise with skilled developers who care about your mission. We don't use AI to guess what you need—we use human understanding to configure exactly what will work for your organization.</p>
+
+                <p>Every CRMblr implementation is personally configured by people who understand the difference between a major donor and a foundation, who know why grant tracking is different from donation tracking, and who recognize that volunteer hours are as valuable as dollars.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Founder Section -->
+    <section class="content-section" style="padding-top: 1rem;">
+        <div class="container">
+            <div class="founder-section">
+                <div class="founder-card">
+                    <div class="founder-avatar">LS</div>
+                    <h2 class="founder-name">Laurie Sartain</h2>
+                    <p class="founder-title">Founder & CEO</p>
+                    <p>Former Executive Director of MAKE Lit, NFP, where I learned firsthand that nonprofits need technology partners who understand their unique challenges. I built CRMblr to be the solution I wished existed—fast, affordable, and designed by someone who's actually run a nonprofit.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Values Section -->
+    <section class="content-section" style="padding-top: 0;">
+        <div class="container">
+            <h2 style="text-align: center; color: var(--color-secondary); margin-bottom: 1rem;">Our Values</h2>
+            <p style="text-align: center; color: var(--color-gray-600); max-width: 600px; margin: 0 auto;">These aren't just words on a website—they're the principles that guide every decision we make.</p>
+
+            <div class="values-grid">
+                <div class="value-card">
+                    <div class="value-icon">🤝</div>
+                    <h3>Partnership</h3>
+                    <p>Your success is our success. We're not vendors; we're partners in your mission.</p>
+                </div>
+                <div class="value-card">
+                    <div class="value-icon">⚡</div>
+                    <h3>Speed</h3>
+                    <p>Nonprofits can't wait months for solutions. We deliver in days, not seasons.</p>
+                </div>
+                <div class="value-card">
+                    <div class="value-icon">💚</div>
+                    <h3>Empathy</h3>
+                    <p>We understand your constraints because we've lived them.</p>
+                </div>
+                <div class="value-card">
+                    <div class="value-icon">🎯</div>
+                    <h3>Purpose</h3>
+                    <p>Technology should amplify your impact, not complicate it.</p>
+                </div>
+                <div class="value-card">
+                    <div class="value-icon">✨</div>
+                    <h3>Simplicity</h3>
+                    <p>Complex problems don't always need complex solutions.</p>
+                </div>
+                <div class="value-card">
+                    <div class="value-icon">🌟</div>
+                    <h3>Fairness</h3>
+                    <p>Honest pricing, clear terms, and no hidden surprises.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="content-section">
+        <div class="container">
+            <div class="cta-section">
+                <h2>Ready to Work with People Who Get It?</h2>
+                <p>Let's talk about your nonprofit's needs—no sales pitch, just a real conversation with someone who understands.</p>
+                <a href="https://calendly.com/laurie-sartain/30min" target="_blank" class="btn btn-primary">Schedule a Conversation</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <p>&copy; 2025 CRMblr. All rights reserved. | <a href="index.html">Home</a> | <a href="security.html">Security</a> | <a href="privacy.html">Privacy Policy</a></p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

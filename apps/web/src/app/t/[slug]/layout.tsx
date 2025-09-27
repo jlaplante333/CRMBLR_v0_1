@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { getIntegrations, isPaymentsConnected } from '@/lib/payments';
 import Link from 'next/link';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { NotificationDropdown, useNotifications } from '@/components/NotificationDropdown';
 
 interface TenantLayoutProps {
   children: React.ReactNode;
@@ -29,6 +30,9 @@ export default function TenantLayout({ children }: TenantLayoutProps) {
 
   // Get current user
   const currentUser = useCurrentUser();
+
+  // Get notifications
+  const { notifications, markAsRead, markAllAsRead } = useNotifications();
 
   // Apply branding to CSS custom properties
   useEffect(() => {
@@ -225,6 +229,13 @@ export default function TenantLayout({ children }: TenantLayoutProps) {
                 </svg>
               </button>
               
+              {/* Notifications */}
+              <NotificationDropdown 
+                notifications={notifications}
+                onMarkAsRead={markAsRead}
+                onMarkAllAsRead={markAllAsRead}
+              />
+              
             {/* Add Integrations CTA */}
             <Link href={`/t/${slug}/integrations`} className="hidden sm:inline-flex items-center px-3 py-2 rounded-md text-sm font-medium bg-gray-900 text-white hover:bg-gray-800">
               Manage Integrations
@@ -236,7 +247,7 @@ export default function TenantLayout({ children }: TenantLayoutProps) {
                   className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm"
                   style={{ backgroundColor: branding.primary }}
                 >
-                  {currentUser ? currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U'}
+                  {currentUser ? currentUser.name.split(' ').map((n: string) => n[0]).join('').toUpperCase() : 'U'}
                 </div>
               </div>
             </div>
