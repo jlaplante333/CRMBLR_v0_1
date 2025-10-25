@@ -57,7 +57,10 @@ export default function HomePage() {
           <div className="container">
             <div className="hero-content animate-fadeInUp">
               <div className="hero-badge">🎤 Tokyo Voice AI Hackathon Winner</div>
-              <h1 className="hero-title">V-CRM: CRM, but with VOICE!<br/>Your Data, Instantly Organized</h1>
+              <h1 className="hero-title animated-title">
+                <span className="title-main">V-CRM: CRM, but with VOICE!</span>
+                <span className="title-subtitle">Your Data, Instantly Organized</span>
+              </h1>
             <p className="hero-subtitle">
                 Our story: Our team created a CRM based around Voice on Oct 25th in Tokyo at the Tokyo Voice AI hackathon at the Ameba towers. Experience the future of CRM with voice-powered interactions. Just say "show me contact Jonathan" and watch the magic happen.
               </p>

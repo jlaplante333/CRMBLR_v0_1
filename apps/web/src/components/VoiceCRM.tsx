@@ -9,7 +9,7 @@ interface VoiceCRMProps {
 }
 
 export function VoiceCRM({ tenantId }: VoiceCRMProps) {
-  const { currentUser } = useCurrentUser();
+  const currentUser = useCurrentUser();
   const [voiceCommands, setVoiceCommands] = useState<string[]>([]);
   const [isListening, setIsListening] = useState(false);
   const [manualCommand, setManualCommand] = useState('');
@@ -130,15 +130,11 @@ export function VoiceCRM({ tenantId }: VoiceCRMProps) {
     }
   };
 
-  if (!currentUser) {
-    return null;
-  }
-
   return (
     <div className="voice-crm-container">
       <VoiceAssistant
         tenantId={tenantId}
-        userId={currentUser.id}
+        userId={currentUser?.id || 'demo-user'}
         onCommand={handleVoiceCommand}
       />
       

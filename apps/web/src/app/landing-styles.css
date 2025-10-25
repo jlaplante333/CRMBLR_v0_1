@@ -320,6 +320,139 @@ img {
   margin-bottom: var(--space-lg);
 }
 
+/* 🎤 AMAZING ANIMATED TITLE STYLES 🎤 */
+.animated-title {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: var(--space-lg);
+}
+
+.title-main {
+  font-size: clamp(var(--text-4xl), 6vw, var(--text-7xl));
+  font-weight: 900;
+  background: linear-gradient(45deg, #ff6b35, #f7931e, #ffd23f, #06ffa5, #118ab2, #ff6b35);
+  background-size: 400% 400%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientShift 3s ease-in-out infinite, bounceIn 1.2s ease-out, glowPulse 2s ease-in-out infinite;
+  text-shadow: 0 0 30px rgba(255, 107, 53, 0.5);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  position: relative;
+  z-index: 2;
+}
+
+.title-main::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  right: -10px;
+  bottom: -10px;
+  background: linear-gradient(45deg, #ff6b35, #f7931e, #ffd23f, #06ffa5, #118ab2);
+  background-size: 400% 400%;
+  border-radius: 20px;
+  opacity: 0.1;
+  animation: gradientShift 3s ease-in-out infinite;
+  z-index: -1;
+  filter: blur(20px);
+}
+
+.title-subtitle {
+  font-size: clamp(var(--text-lg), 3vw, var(--text-2xl));
+  color: var(--color-gray-600);
+  font-weight: 500;
+  margin-top: var(--space-md);
+  animation: slideInUp 1.5s ease-out 0.5s both, fadeIn 1.5s ease-out 0.5s both;
+  opacity: 0.9;
+}
+
+/* 🎨 KEYFRAME ANIMATIONS 🎨 */
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes bounceIn {
+  0% {
+    transform: scale(0.3) rotate(-10deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1) rotate(2deg);
+    opacity: 0.8;
+  }
+  70% {
+    transform: scale(0.95) rotate(-1deg);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes glowPulse {
+  0%, 100% {
+    text-shadow: 
+      0 0 20px rgba(255, 107, 53, 0.5),
+      0 0 40px rgba(255, 107, 53, 0.3),
+      0 0 60px rgba(255, 107, 53, 0.1);
+    transform: scale(1);
+  }
+  50% {
+    text-shadow: 
+      0 0 30px rgba(255, 107, 53, 0.8),
+      0 0 60px rgba(255, 107, 53, 0.5),
+      0 0 90px rgba(255, 107, 53, 0.2);
+    transform: scale(1.02);
+  }
+}
+
+@keyframes slideInUp {
+  0% {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+/* 🎯 HOVER EFFECTS 🎯 */
+.animated-title:hover .title-main {
+  animation-play-state: paused;
+  transform: scale(1.05);
+  transition: transform 0.3s ease;
+}
+
+.animated-title:hover .title-subtitle {
+  color: var(--color-primary);
+  transition: color 0.3s ease;
+}
+
+/* 📱 RESPONSIVE ADJUSTMENTS 📱 */
+@media (max-width: 768px) {
+  .title-main {
+    font-size: clamp(var(--text-3xl), 8vw, var(--text-5xl));
+    letter-spacing: -0.01em;
+  }
+  
+  .title-subtitle {
+    font-size: clamp(var(--text-base), 4vw, var(--text-xl));
+  }
+}
+
 .hero-subtitle {
   font-size: var(--text-xl);
   color: var(--color-gray-600);
