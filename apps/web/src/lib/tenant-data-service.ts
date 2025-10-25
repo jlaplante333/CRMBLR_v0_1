@@ -193,36 +193,42 @@ const TENANT_DATA_CONFIGS: Record<string, Partial<TenantDashboardData>> = {
 
   'tokyo-voice-ai': {
     metrics: {
-      yearToDate: 15000,
-      last30Days: 5000,
-      totalDonors: 4,
+      yearToDate: 25000,
+      last30Days: 15000,
+      totalDonors: 7,
       avgEngagementScore: 95,
     },
     requiresAttention: {
-      count: 2,
-      message: "hackathon participants need follow-up",
+      count: 3,
+      message: "hackathon participants and sponsors need follow-up",
     },
     grantDeadlines: [
       { name: "Hackathon Demo Day", applicationDate: "Oct 25, 2025", daysRemaining: 0 },
       { name: "Voice AI Innovation Grant", applicationDate: "Nov 15, 2025", daysRemaining: 21 },
       { name: "Ameba Partnership Proposal", applicationDate: "Dec 01, 2025", daysRemaining: 37 },
+      { name: "Alex.Inc Collaboration", applicationDate: "Nov 30, 2025", daysRemaining: 36 },
     ],
     donorCultivation: [
       { name: "Buddy.AI", lastContact: "Today", action: "Schedule partnership meeting" },
+      { name: "Alex.Inc", lastContact: "Today", action: "Follow up on collaboration proposal" },
+      { name: "Bye: AI", lastContact: "Today", action: "Schedule technical integration call" },
+      { name: "Yosuke Yasuda", lastContact: "Today", action: "Review dual role as hacker/sponsor" },
       { name: "Jonathan (Team Lead)", lastContact: "Today", action: "Review demo presentation" },
     ],
     pipelineOverview: {
-      identified: 4,
-      inCultivation: 2,
+      identified: 7,
+      inCultivation: 4,
       atRisk: 0,
     },
     recentDonations: [
+      { donorName: "Yosuke Yasuda (Sponsor)", amount: 5000, date: "October 25, 2025" },
+      { donorName: "Alex.Inc (Sponsor)", amount: 4000, date: "October 25, 2025" },
+      { donorName: "Bye: AI (Sponsor)", amount: 3000, date: "October 25, 2025" },
       { donorName: "Buddy.AI (Sponsor)", amount: 10000, date: "October 25, 2025" },
       { donorName: "Hackathon Prize Pool", amount: 3000, date: "October 25, 2025" },
-      { donorName: "Ameba Innovation Fund", amount: 2000, date: "October 24, 2025" },
     ],
     activeCampaigns: [
-      { name: "Voice AI Hackathon Campaign", currentAmount: 15000, targetAmount: 20000, progressPercentage: 75 },
+      { name: "Voice AI Hackathon Campaign", currentAmount: 25000, targetAmount: 30000, progressPercentage: 83 },
     ],
   },
 };
