@@ -170,7 +170,23 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
 
   // Main speak function - tries OpenAI first, falls back to browser
   const speak = (text: string, onEnd?: () => void) => {
-    speakWithOpenAI(text, onEnd);
+    // Stop speech recognition while speaking to prevent self-triggering
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      console.log('🔇 Stopped speech recognition while speaking');
+    }
+    
+    speakWithOpenAI(text, () => {
+      if (onEnd) onEnd();
+      
+      // Re-enable speech recognition after a delay to prevent self-triggering
+      setTimeout(() => {
+        if (isConnected && isAmbientMode && !isProcessingCommand) {
+          console.log('🔄 Re-enabling speech recognition after speaking');
+          startAmbientListening();
+        }
+      }, 2000); // 2 second delay to prevent self-triggering
+    });
   };
 
   // Stop speaking function
@@ -216,8 +232,17 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
       return;
     }
     
+    // Check if this command was processed very recently (within 3 seconds)
+    const now = Date.now();
+    const lastProcessedTime = (lastProcessedCommand as any).timestamp || 0;
+    if (now - lastProcessedTime < 3000) {
+      console.log('🚫 Command processed too recently, ignoring:', command);
+      return;
+    }
+    
     console.log('🎯 Processing command:', command);
     lastProcessedCommand.current = normalizedCommand;
+    (lastProcessedCommand as any).timestamp = now;
     setIsProcessingCommand(true);
     setIsProcessing(true);
     setAvatarState('thinking');
@@ -405,14 +430,16 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
       setIsProcessingCommand(false);
       if (onCommand) onCommand(command);
       if (navigateTo) {
-        // Use Next.js router to navigate without disconnecting LiveKit
-        router.push(navigateTo);
+        // Navigate immediately after speaking
+        setTimeout(() => {
+          router.push(navigateTo);
+        }, 500); // Small delay to ensure speech is complete
       }
       
       // Clear the last processed command after a delay to allow the same command again
       setTimeout(() => {
         lastProcessedCommand.current = '';
-      }, 3000); // 3 second debounce
+      }, 5000); // 5 second debounce
     });
   };
 
@@ -627,15 +654,16 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
       if (!isProcessing && !isProcessingCommand) {
         setAvatarState('idle');
       }
-      
+
       // Always restart recognition if still connected and in ambient mode
+      // But add a longer delay to prevent rapid restarts
       if (isConnected && isAmbientMode) {
         setTimeout(() => {
-          if (isConnected && isAmbientMode && !isProcessingCommand) {
+          if (isConnected && isAmbientMode && !isProcessingCommand && !isSpeaking) {
             console.log('🔄 Restarting ambient listening...');
             recognition.start();
           }
-        }, 1000); // Longer delay to ensure processing is complete
+        }, 2000); // Longer delay to prevent rapid restarts
       }
     };
 
