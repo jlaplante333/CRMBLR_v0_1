@@ -127,14 +127,20 @@ export default function WorkspacesPage() {
 
     // Filter tenants based on user's permissions
     const userTenantIds = userData.tenants.map(t => t.tenantId);
+    console.log('🔍 Debug - User data:', userData);
+    console.log('🔍 Debug - User tenant IDs:', userTenantIds);
+    console.log('🔍 Debug - Available DEMO_TENANTS:', DEMO_TENANTS.map(t => t.slug));
+    
     const filteredTenants: Tenant[] = DEMO_TENANTS
       .filter(tenant => {
         // Handle both demo- prefixed tenants and direct slug matches
-        return userTenantIds.includes(`demo-${tenant.slug}`) || 
+        const matches = userTenantIds.includes(`demo-${tenant.slug}`) || 
                userTenantIds.includes(tenant.slug);
+        console.log(`🔍 Debug - Tenant ${tenant.slug} matches:`, matches);
+        return matches;
       })
       .map(tenant => ({
-        id: userTenantIds.includes(`demo-${tenant.slug}`) ? `demo-${tenant.slug}` : tenant.slug,
+        id: tenant.slug, // Always use the actual slug as the ID
         name: tenant.name,
         slug: tenant.slug,
         branding: {
@@ -142,6 +148,8 @@ export default function WorkspacesPage() {
           logoUrl: tenant.logoUrl,
         },
       }));
+    
+    console.log('🔍 Debug - Filtered tenants:', filteredTenants);
     
     setTenants(filteredTenants);
     setIsLoading(false);
