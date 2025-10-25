@@ -393,6 +393,34 @@ export interface DemoTenantConfig {
 
 export const DEMO_TENANTS: DemoTenantConfig[] = [
   {
+    name: 'Tokyo Voice AI CRM - Hack the Daily Life at Ameba',
+    slug: 'tokyo-voice-ai',
+    palette: ['#ff6b35', '#f7931e', '#ffd23f', '#06ffa5', '#118ab2'],
+    logoUrl: '/brand/tokyo-voice-ai.svg',
+    users: [
+             { email: 'jonathan@tokyo-voice-ai.com', password: 'Demo!Tokyo', role: UserRole.OWNER, imageUrl: '/avatars/jonathan-laplante.svg' },
+      { email: 'amit@tokyo-voice-ai.com', password: 'Demo!Tokyo', role: UserRole.ADMIN },
+      { email: 'tatsuya@tokyo-voice-ai.com', password: 'Demo!Tokyo', role: UserRole.EDITOR },
+      { email: 'natsuko@tokyo-voice-ai.com', password: 'Demo!Tokyo', role: UserRole.EDITOR },
+      { email: 'yosuke@tokyo-voice-ai.com', password: 'Demo!Tokyo', role: UserRole.ADMIN, imageUrl: '/avatars/yosuke-yasuda.svg' },
+      { email: 'takua@tokyo-voice-ai.com', password: 'Demo!Tokyo', role: UserRole.EDITOR },
+      { email: 'hong@tokyo-voice-ai.com', password: 'Demo!Tokyo', role: UserRole.EDITOR },
+      { email: 'datz@tokyo-voice-ai.com', password: 'Demo!Tokyo', role: UserRole.EDITOR },
+    ],
+  },
+  {
+    name: 'Alex.Inc AI CRM - Advanced AI Solutions',
+    slug: 'alex-inc-ai',
+    palette: ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'],
+    logoUrl: '/brand/alex-inc-ai.svg',
+    users: [
+      { email: 'alex@alex-inc-ai.com', password: 'Demo!Alex', role: UserRole.OWNER },
+      { email: 'admin@alex-inc-ai.com', password: 'Demo!Alex', role: UserRole.ADMIN },
+      { email: 'developer@alex-inc-ai.com', password: 'Demo!Alex', role: UserRole.EDITOR },
+      { email: 'analyst@alex-inc-ai.com', password: 'Demo!Alex', role: UserRole.VIEWER },
+    ],
+  },
+  {
     name: 'MAKE Literary Productions, NFP',
     slug: 'makelit',
     palette: ['#111827', '#0ea5e9', '#fbbf24', '#f8fafc'],
@@ -438,19 +466,6 @@ export const DEMO_TENANTS: DemoTenantConfig[] = [
       { email: 'admin@homeboy.org', password: 'Demo!Homeboy', role: UserRole.ADMIN },
       { email: 'editor@homeboy.org', password: 'Demo!Homeboy', role: UserRole.EDITOR },
       { email: 'viewer@homeboy.org', password: 'Demo!Homeboy', role: UserRole.VIEWER },
-    ],
-  },
-  {
-    name: 'Tokyo Voice AI CRM - Hack the Daily Life at Ameba',
-    slug: 'tokyo-voice-ai',
-    palette: ['#ff6b35', '#f7931e', '#ffd23f', '#06ffa5', '#118ab2'],
-    logoUrl: '/brand/tokyo-voice-ai.svg',
-    users: [
-      { email: 'jonathan@tokyo-voice-ai.com', password: 'Demo!Tokyo', role: UserRole.OWNER, imageUrl: '/avatars/jonathan.svg' },
-      { email: 'amit@tokyo-voice-ai.com', password: 'Demo!Tokyo', role: UserRole.ADMIN },
-      { email: 'tatsuya@tokyo-voice-ai.com', password: 'Demo!Tokyo', role: UserRole.EDITOR },
-      { email: 'natsuko@tokyo-voice-ai.com', password: 'Demo!Tokyo', role: UserRole.EDITOR },
-      { email: 'yosuke@tokyo-voice-ai.com', password: 'Demo!Tokyo', role: UserRole.ADMIN, imageUrl: '/avatars/yosuke-yasuda.svg' },
     ],
   },
 ];
