@@ -162,8 +162,8 @@ export const DEMO_WEBSITE_BRANDING: Record<string, WebsiteBranding> = {
     tagline: 'AI-Powered Business Solutions - Enterprise Ready'
   },
   
-  'alex-inc-ai': {
-    // Alex.Inc AI CRM - Advanced AI Solutions
+  'bye-ai': {
+    // Bye: AI CRM - Advanced AI Solutions
     primary: '#6366f1',      // Indigo primary
     secondary: '#8b5cf6',     // Purple secondary
     accent: '#ec4899',       // Pink accent
@@ -179,7 +179,7 @@ export const DEMO_WEBSITE_BRANDING: Record<string, WebsiteBranding> = {
       body: 'Inter, system-ui, sans-serif',
       numeric: 'Inter, system-ui, sans-serif'
     },
-    logoUrl: '/brand/alex-inc-ai.svg',
+    logoUrl: '/brand/bye-ai.svg',
     tagline: 'Advanced AI Solutions for Modern CRM'
   }
 };

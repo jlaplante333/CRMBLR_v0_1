@@ -75,10 +75,10 @@ export function useCurrentUser(): User | null {
             email: userEmail,
             name: emailToName[userEmail] || 'Super User',
             tenants: userEmail === 'jon@vcrm.com' ? [
-              // For jon@vcrm.com, show Tokyo AI, Alex.Ai, and Alex Inc tenants
+              // For jon@vcrm.com, show Tokyo AI, Alex.Ai, and Bye: AI tenants
               { tenantId: 'tokyo-voice-ai', role: 'admin' },
               { tenantId: 'alex-ai', role: 'admin' },
-              { tenantId: 'alex-inc-ai', role: 'admin' }
+              { tenantId: 'bye-ai', role: 'admin' }
             ] : [
               // For other superusers, show all tenants
               { tenantId: 'demo-makelit', role: 'admin' },
@@ -87,7 +87,7 @@ export function useCurrentUser(): User | null {
               { tenantId: 'demo-homeboy', role: 'admin' },
               { tenantId: 'tokyo-voice-ai', role: 'admin' },
               { tenantId: 'alex-ai', role: 'admin' },
-              { tenantId: 'alex-inc-ai', role: 'admin' }
+              { tenantId: 'bye-ai', role: 'admin' }
             ]
           };
           break;

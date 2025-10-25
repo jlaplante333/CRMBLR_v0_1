@@ -281,6 +281,48 @@ const TENANT_DATA_CONFIGS: Record<string, Partial<TenantDashboardData>> = {
       { name: "Series A Funding Campaign", currentAmount: 500000, targetAmount: 1000000, progressPercentage: 50 },
     ],
   },
+
+  'bye-ai': {
+    metrics: {
+      yearToDate: 95000,
+      last30Days: 18000,
+      totalDonors: 6,
+      avgEngagementScore: 92,
+    },
+    requiresAttention: {
+      count: 4,
+      message: "AI clients need technical consultations",
+    },
+    grantDeadlines: [
+      { name: "AI Innovation Grant", applicationDate: "Nov 25, 2025", daysRemaining: 31 },
+      { name: "Tech Partnership Proposal", applicationDate: "Dec 05, 2025", daysRemaining: 41 },
+      { name: "Series B Funding Round", applicationDate: "Jan 20, 2026", daysRemaining: 87 },
+      { name: "AI Ethics Conference", applicationDate: "Nov 28, 2025", daysRemaining: 34 },
+    ],
+    donorCultivation: [
+      { name: "Microsoft AI", lastContact: "Today", action: "Schedule AI ethics discussion" },
+      { name: "Google DeepMind", lastContact: "Today", action: "Follow up on partnership proposal" },
+      { name: "OpenAI", lastContact: "Today", action: "Technical collaboration meeting" },
+      { name: "Anthropic", lastContact: "Today", action: "AI safety framework discussion" },
+      { name: "Bye (CEO)", lastContact: "Today", action: "Review Q4 AI strategy" },
+      { name: "AI Research Team", lastContact: "Today", action: "Product roadmap alignment" },
+    ],
+    pipelineOverview: {
+      identified: 6,
+      inCultivation: 5,
+      atRisk: 0,
+    },
+    recentDonations: [
+      { donorName: "Microsoft AI Partnership", amount: 40000, date: "October 22, 2025" },
+      { donorName: "Google DeepMind Collaboration", amount: 30000, date: "October 20, 2025" },
+      { donorName: "OpenAI Integration", amount: 15000, date: "October 18, 2025" },
+      { donorName: "Anthropic Safety Grant", amount: 10000, date: "October 15, 2025" },
+    ],
+    activeCampaigns: [
+      { name: "AI Innovation Campaign", currentAmount: 95000, targetAmount: 150000, progressPercentage: 63 },
+      { name: "Series B Funding Campaign", currentAmount: 2000000, targetAmount: 5000000, progressPercentage: 40 },
+    ],
+  },
 };
 
 // Default fallback data

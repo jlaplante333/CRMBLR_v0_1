@@ -32,8 +32,10 @@ export default function WorkspacesPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Simulate user authentication - in a real app, this would come from JWT/session
-    const simulateUserLogin = () => {
+    // Force a small delay to ensure proper hydration
+    const timer = setTimeout(() => {
+      // Simulate user authentication - in a real app, this would come from JWT/session
+      const simulateUserLogin = () => {
       // For demo purposes, we'll simulate different user scenarios
       const urlParams = new URLSearchParams(window.location.search);
       const demoUser = urlParams.get('user') || 'makelit';
@@ -77,6 +79,8 @@ export default function WorkspacesPage() {
           // Superuser can see all tenants - determine user based on URL params
           const urlParams = new URLSearchParams(window.location.search);
           const userEmail = urlParams.get('email') || 'jon@crmblr.com';
+          console.log('🔍 Debug - URL params:', window.location.search);
+          console.log('🔍 Debug - Extracted email:', userEmail);
           
           // Map emails to names
           const emailToName: { [key: string]: string } = {
@@ -93,15 +97,15 @@ export default function WorkspacesPage() {
             email: userEmail,
             name: emailToName[userEmail] || 'Super User',
             tenants: userEmail === 'jon@vcrm.com' ? [
-              // For jon@vcrm.com, show Tokyo AI, Alex.Ai, and Alex Inc tenants
+              // For jon@vcrm.com, show Tokyo AI, Alex.Ai, and Bye: AI tenants
               { tenantId: 'tokyo-voice-ai', role: 'admin' },
               { tenantId: 'alex-ai', role: 'admin' },
-              { tenantId: 'alex-inc-ai', role: 'admin' }
+              { tenantId: 'bye-ai', role: 'admin' }
             ] : [
               // For other superusers, show all tenants
               { tenantId: 'tokyo-voice-ai', role: 'admin' },
               { tenantId: 'alex-ai', role: 'admin' },
-              { tenantId: 'alex-inc-ai', role: 'admin' },
+              { tenantId: 'bye-ai', role: 'admin' },
               { tenantId: 'demo-makelit', role: 'admin' },
               { tenantId: 'demo-oneinsix', role: 'admin' },
               { tenantId: 'demo-fallenfruit', role: 'admin' },
@@ -130,6 +134,7 @@ export default function WorkspacesPage() {
     console.log('🔍 Debug - User data:', userData);
     console.log('🔍 Debug - User tenant IDs:', userTenantIds);
     console.log('🔍 Debug - Available DEMO_TENANTS:', DEMO_TENANTS.map(t => t.slug));
+    console.log('🔍 Debug - DEMO_TENANTS full array:', DEMO_TENANTS);
     
     const filteredTenants: Tenant[] = DEMO_TENANTS
       .filter(tenant => {
@@ -150,9 +155,14 @@ export default function WorkspacesPage() {
       }));
     
     console.log('🔍 Debug - Filtered tenants:', filteredTenants);
+    console.log('🔍 Debug - Filtered tenants count:', filteredTenants.length);
+    console.log('🔍 Debug - Filtered tenant names:', filteredTenants.map(t => t.name));
     
-    setTenants(filteredTenants);
-    setIsLoading(false);
+      setTenants(filteredTenants);
+      setIsLoading(false);
+    }, 100); // Small delay to ensure proper hydration
+
+    return () => clearTimeout(timer);
   }, []);
 
   const handleTenantSelect = (tenant: Tenant) => {

@@ -11,11 +11,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if OpenAI API key is available
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey || apiKey === 'your_openai_api_key_here') {
+      console.log('⚠️ OpenAI API key not configured, using browser TTS fallback');
+      return NextResponse.json(
+        { error: 'OpenAI API key not configured. Please set OPENAI_API_KEY in your environment variables.' },
+        { status: 503 }
+      );
+    }
+
     // Use real OpenAI TTS API with environment variable
     const response = await fetch('https://api.openai.com/v1/audio/speech', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+        'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({

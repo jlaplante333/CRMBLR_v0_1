@@ -72,6 +72,11 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
       });
 
       if (!response.ok) {
+        if (response.status === 503) {
+          console.log('⚠️ OpenAI API key not configured, falling back to browser TTS');
+          fallbackSpeak(text, onEnd);
+          return;
+        }
         throw new Error(`OpenAI TTS failed: ${response.status}`);
       }
 
@@ -227,11 +232,26 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
     
     // Additional validation - ensure it's a real command
     const commandWords = normalizedCommand.split(' ');
-    const allowedSingleWords = ['help', 'stop', 'donations', 'contacts', 'calendar', 'reports', 'pipeline'];
-    if (commandWords.length < 2 && !allowedSingleWords.some(word => normalizedCommand.includes(word))) {
+    const allowedSingleWords = ['help', 'stop', 'donations', 'donors', 'biggest', 'contacts', 'calendar', 'reports', 'pipeline'];
+    const questionWords = ['question', 'ask', 'what', 'how', 'explain', 'tell'];
+    
+    // Allow questions even if they're short, or if they contain question words
+    const isQuestion = questionWords.some(word => normalizedCommand.includes(word));
+    const isAllowedSingle = allowedSingleWords.some(word => normalizedCommand.includes(word));
+    
+    if (commandWords.length < 2 && !isAllowedSingle && !isQuestion) {
       console.log('🚫 Command too short or not specific enough:', command);
       return;
     }
+    
+    console.log('🔍 Command validation:', {
+      command: normalizedCommand,
+      wordCount: commandWords.length,
+      isQuestion,
+      isAllowedSingle,
+      allowedSingleWords,
+      willProcess: commandWords.length >= 2 || isAllowedSingle || isQuestion
+    });
     
     // Check if this command was processed very recently (within 3 seconds)
     const now = Date.now();
@@ -252,6 +272,21 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
 
     const lowerCommand = command.toLowerCase();
     console.log('🔍 Lower command:', lowerCommand);
+    console.log('🔍 Command recognition check:', {
+      startsWithQuestion: lowerCommand.startsWith('question'),
+      startsWithAsk: lowerCommand.startsWith('ask'),
+      startsWithWhatIs: lowerCommand.startsWith('what is'),
+      startsWithHowDoes: lowerCommand.startsWith('how does'),
+      startsWithExplain: lowerCommand.startsWith('explain'),
+      startsWithTellMeAbout: lowerCommand.startsWith('tell me about')
+    });
+    console.log('🔍 Command contains keywords:', {
+      donations: lowerCommand.includes('donations'),
+      donors: lowerCommand.includes('donors'),
+      biggestDonation: lowerCommand.includes('biggest donation'),
+      biggestDonor: lowerCommand.includes('biggest donor'),
+      topDonor: lowerCommand.includes('top donor')
+    });
     let responseText = "Perfect! Let me help you with that!";
     let navigateTo: string | null = null;
 
@@ -265,20 +300,37 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
     } else if (lowerCommand.includes('sales') || lowerCommand.includes('funnel') || lowerCommand.includes('pipeline')) {
       responseText = "Let me show you the sales pipeline!";
       navigateTo = `/t/${tenantId}/pipeline`;
-    } else if (lowerCommand.includes('donations') || lowerCommand.includes('quarter') || lowerCommand.includes('revenue')) {
+    } else if (lowerCommand.includes('donations') || lowerCommand.includes('donors') || lowerCommand.includes('quarter') || lowerCommand.includes('revenue')) {
       console.log('🎯 DONATIONS COMMAND DETECTED:', command);
+      console.log('🎯 DONATIONS - Command contains:', {
+        donations: lowerCommand.includes('donations'),
+        donors: lowerCommand.includes('donors'),
+        quarter: lowerCommand.includes('quarter'),
+        revenue: lowerCommand.includes('revenue')
+      });
       responseText = "Perfect! Opening donations for this quarter!";
       navigateTo = `/t/${tenantId}/donations`;
     } else if (lowerCommand.includes('biggest donation') || lowerCommand.includes('biggest donor') || lowerCommand.includes('top donor') || lowerCommand.includes('largest donation') || lowerCommand.includes('biggest donor this quarter') || lowerCommand.includes('who is the biggest donor')) {
+      console.log('🎯 BIGGEST DONATION COMMAND DETECTED:', command);
+      console.log('🎯 BIGGEST DONATION - Command contains:', {
+        biggestDonation: lowerCommand.includes('biggest donation'),
+        biggestDonor: lowerCommand.includes('biggest donor'),
+        topDonor: lowerCommand.includes('top donor'),
+        largestDonation: lowerCommand.includes('largest donation'),
+        biggestDonorThisQuarter: lowerCommand.includes('biggest donor this quarter'),
+        whoIsTheBiggestDonor: lowerCommand.includes('who is the biggest donor')
+      });
       // Check if we're on the donations page and can access the biggest donation info
       if (typeof window !== 'undefined' && (window as any).biggestDonationInfo) {
         const info = (window as any).biggestDonationInfo;
+        console.log('🎯 BIGGEST DONATION - Found window info:', info);
         if (lowerCommand.includes('quarter')) {
           responseText = `Alex Inc is the biggest donor this quarter with $${info.amount.toLocaleString()} donated on ${info.date}!`;
         } else {
           responseText = `The biggest donor is ${info.donor} with $${info.amount.toLocaleString()} donated on ${info.date}!`;
         }
       } else {
+        console.log('🎯 BIGGEST DONATION - No window info found, navigating to donations page');
         responseText = "Perfect! Let me show you the donations page to find the biggest donor this quarter!";
         navigateTo = `/t/${tenantId}/donations`;
       }
@@ -383,7 +435,52 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
         }, 3000);
       });
       return; // Don't continue with normal processing
+    } else if (lowerCommand.includes('i\'m feeling') || lowerCommand.includes('i am feeling') || lowerCommand.includes('i feel') || lowerCommand.includes('feeling')) {
+      console.log('🎯 MOOD COMMAND DETECTED:', command);
+      console.log('🎯 MOOD COMMAND - About to call OpenAI API');
+      // Handle mood/emotion recognition with empathetic responses
+      setIsProcessing(true);
+      setAvatarState('thinking');
+
+      try {
+        console.log('🎯 MOOD COMMAND - Making API call to /api/openai/mood-response');
+        const response = await fetch('/api/openai/mood-response', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            query: command
+          }),
+        });
+
+        console.log('🎯 MOOD COMMAND - API response status:', response.status);
+        if (response.ok) {
+          const data = await response.json();
+          console.log('🎯 MOOD COMMAND - API response data:', data);
+          responseText = `${data.answer}`;
+        } else {
+          console.log('🎯 MOOD COMMAND - API call failed');
+          responseText = "I'm here to listen and support you. How can I help you feel better?";
+        }
+      } catch (error) {
+        console.error('🎯 MOOD COMMAND - API call error:', error);
+        responseText = "I'm here to listen and support you. How can I help you feel better?";
+      }
+
+      speak(responseText, () => {
+        setIsProcessing(false);
+        setIsProcessingCommand(false);
+        if (onCommand) onCommand(command);
+        
+        // Clear the last processed command after a delay
+        setTimeout(() => {
+          lastProcessedCommand.current = '';
+        }, 3000);
+      });
+      return; // Don't continue with normal processing
     } else if (lowerCommand.startsWith('question') || lowerCommand.startsWith('ask') || lowerCommand.startsWith('what is') || lowerCommand.startsWith('how does') || lowerCommand.startsWith('explain') || lowerCommand.startsWith('tell me about')) {
+      console.log('🎯 QUESTION COMMAND DETECTED:', command);
       // Handle general questions with OpenAI
       setIsProcessing(true);
       setAvatarState('thinking');
@@ -422,8 +519,9 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
       });
       return; // Don't continue with normal processing
     } else if (lowerCommand.includes('help') || lowerCommand.includes('what can you do')) {
-      responseText = "I can help you navigate to sales pipeline, donations, contacts, calendar, reports, find specific people like Jonathan, Takua, Hong, or Datz, tell you about the biggest donor this quarter, check the weather in Tokyo, get donation advice, answer any general question, or say 'stop' to stop me talking! Just say what you need!";
+      responseText = "I can help you navigate to sales pipeline, donations, contacts, calendar, reports, find specific people like Jonathan, Takua, Hong, or Datz, tell you about the biggest donor this quarter, check the weather in Tokyo, get donation advice, answer any general question, respond empathetically to your feelings and moods, or say 'stop' to stop me talking! Just say what you need!";
     } else {
+      console.log('🚫 COMMAND NOT RECOGNIZED - Falling to default case:', command);
       responseText = "I didn't quite catch that. Try saying 'sales pipeline', 'donations', 'contacts', 'find Jonathan', or ask a question starting with 'QUESTION'.";
     }
 
@@ -537,6 +635,12 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
       return;
     }
 
+    // Prevent starting if already listening or processing
+    if (isListening || isProcessingCommand || isSpeaking) {
+      console.log('🚫 Speech recognition already active, skipping start');
+      return;
+    }
+
     const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
     
@@ -570,6 +674,14 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
 
       if (finalTranscript) {
         console.log('🎯 AMBIENT COMMAND DETECTED:', finalTranscript);
+        console.log('🎯 AMBIENT COMMAND - Raw transcript:', finalTranscript);
+        console.log('🎯 AMBIENT COMMAND - Contains keywords:', {
+          donations: finalTranscript.toLowerCase().includes('donations'),
+          donors: finalTranscript.toLowerCase().includes('donors'),
+          biggest: finalTranscript.toLowerCase().includes('biggest'),
+          biggestDonation: finalTranscript.toLowerCase().includes('biggest donation'),
+          biggestDonor: finalTranscript.toLowerCase().includes('biggest donor')
+        });
         
         // Noise filtering - ignore very short or low-confidence commands
         const trimmedTranscript = finalTranscript.trim();
@@ -640,6 +752,13 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
       
       if (event.error === 'no-speech') {
         console.log('🔇 No speech detected, continuing ambient listening...');
+      } else if (event.error === 'aborted') {
+        console.log('🛑 Speech recognition aborted, stopping ambient listening to prevent loop');
+        setIsAmbientMode(false);
+        setIsListening(false);
+        if (!isProcessing) {
+          setAvatarState('idle');
+        }
       } else if (event.error === 'network') {
         setError('Network error. Please check your connection.');
         speak("Network error. Please check your connection. 😿");
@@ -657,15 +776,22 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
         setAvatarState('idle');
       }
 
-      // Always restart recognition if still connected and in ambient mode
-      // But add a longer delay to prevent rapid restarts
-      if (isConnected && isAmbientMode) {
+      // Only restart recognition if still connected and in ambient mode
+      // Add a longer delay to prevent rapid restarts and check for errors
+      if (isConnected && isAmbientMode && !isProcessingCommand && !isSpeaking) {
         setTimeout(() => {
-          if (isConnected && isAmbientMode && !isProcessingCommand && !isSpeaking) {
+          // Double-check conditions before restarting
+          if (isConnected && isAmbientMode && !isProcessingCommand && !isSpeaking && !isListening) {
             console.log('🔄 Restarting ambient listening...');
-            recognition.start();
+            try {
+              recognition.start();
+            } catch (error) {
+              console.error('❌ Failed to restart speech recognition:', error);
+              setIsAmbientMode(false);
+              setError('Speech recognition failed to restart. Please try again.');
+            }
           }
-        }, 2000); // Longer delay to prevent rapid restarts
+        }, 3000); // Longer delay to prevent rapid restarts
       }
     };
 
@@ -677,15 +803,19 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
   // Stop ambient listening
   const stopAmbientListening = () => {
     if (recognitionRef.current) {
-      recognitionRef.current.stop();
-      recognitionRef.current = null;
-      setIsListening(false);
-      setIsAmbientMode(false);
-      if (!isProcessing) {
-        setAvatarState('idle');
+      try {
+        recognitionRef.current.stop();
+      } catch (error) {
+        console.log('⚠️ Error stopping speech recognition:', error);
       }
-      console.log('🛑 Ambient listening stopped');
+      recognitionRef.current = null;
     }
+    setIsListening(false);
+    setIsAmbientMode(false);
+    if (!isProcessing) {
+      setAvatarState('idle');
+    }
+    console.log('🛑 Ambient listening stopped');
   };
 
   // Connect to LiveKit room
@@ -1055,23 +1185,24 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
         </div>
         
         <div className="p-4 bg-green-50 rounded-lg">
-          <h4 className="text-sm font-semibold text-green-900 mb-2">Voice Commands:</h4>
-          <ul className="text-xs text-green-800 space-y-1">
-            <li>• "Show me sales pipeline" or "pipeline"</li>
-            <li>• "Donations this quarter" or "revenue"</li>
-            <li>• "Biggest donor this quarter"</li>
-            <li>• "Find Jonathan" or "contacts"</li>
-            <li>• "Calendar" or "meetings"</li>
-            <li>• "Reports" or "analytics"</li>
-            <li>• "What's the weather like in Tokyo?"</li>
-            <li>• "How's the weather?" or "Weather forecast"</li>
-            <li>• "What would you suggest to get donations up?"</li>
-            <li>• "Donation advice" or "Fundraising tips"</li>
-            <li>• "QUESTION: What is artificial intelligence?"</li>
-            <li>• "QUESTION: How does machine learning work?"</li>
-            <li>• "Stop" or "Stop talking"</li>
-            <li>• "Find Takua", "Find Hong", "Find Datz"</li>
-          </ul>
+                 <h4 className="text-sm font-semibold text-green-900 mb-2">Voice Commands:</h4>
+                 <ul className="text-xs text-green-800 space-y-1">
+                   <li>• "Show me sales pipeline" or "pipeline"</li>
+                   <li>• "Donations this quarter" or "revenue"</li>
+                   <li>• "Biggest donor this quarter"</li>
+                   <li>• "Find Jonathan" or "contacts"</li>
+                   <li>• "Calendar" or "meetings"</li>
+                   <li>• "Reports" or "analytics"</li>
+                   <li>• "What's the weather like in Tokyo?"</li>
+                   <li>• "How's the weather?" or "Weather forecast"</li>
+                   <li>• "What would you suggest to get donations up?"</li>
+                   <li>• "Donation advice" or "Fundraising tips"</li>
+                   <li>• "QUESTION: What is artificial intelligence?"</li>
+                   <li>• "QUESTION: How does machine learning work?"</li>
+                   <li>• "I'm feeling sad" or "I feel angry" (empathetic responses)</li>
+                   <li>• "Stop" or "Stop talking"</li>
+                   <li>• "Find Takua", "Find Hong", "Find Datz"</li>
+                 </ul>
         </div>
       </div>
     </div>

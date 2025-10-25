@@ -53,7 +53,7 @@ export default function DonationsPage() {
   // Make biggest donation info available globally for voice assistant
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      window.biggestDonationInfo = {
+      (window as any).biggestDonationInfo = {
         donor: biggestDonation.contact,
         amount: biggestDonation.amount,
         date: biggestDonation.date
