@@ -364,7 +364,7 @@ export default function ContactsPage() {
               <div className="flex space-x-3 pt-6 border-t border-gray-200">
                 <Button 
                   className="flex-1"
-                  style={{ backgroundColor: branding.colors.primary }}
+                  style={{ backgroundColor: branding.primary }}
                 >
                   Edit Contact
                 </Button>
