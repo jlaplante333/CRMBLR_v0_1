@@ -74,16 +74,30 @@ export default function WorkspacesPage() {
           };
           break;
         case 'superuser':
-          // Superuser can see all tenants
+          // Superuser can see all tenants - determine user based on URL params
+          const urlParams = new URLSearchParams(window.location.search);
+          const userEmail = urlParams.get('email') || 'jon@crmblr.com';
+          
+          // Map emails to names
+          const emailToName: { [key: string]: string } = {
+            'jon@crmblr.com': 'Jon Crmblr',
+            'laurie@crmblr.com': 'Laurie Sartain',
+            'jon@vcrm.com': 'Jon V-CRM',
+            'yosuke@vcrm.com': 'Yosuke Yasuda',
+            'avi@vcrm.com': 'Avi V-CRM',
+            'axlrose@vcrm.com': 'Axl Rose'
+          };
+          
           userData = {
             id: 'user-superuser',
-            email: 'jon@crmblr.com',
-            name: 'Jon Crmblr',
+            email: userEmail,
+            name: emailToName[userEmail] || 'Super User',
             tenants: [
               { tenantId: 'demo-makelit', role: 'admin' },
               { tenantId: 'demo-oneinsix', role: 'admin' },
               { tenantId: 'demo-fallenfruit', role: 'admin' },
-              { tenantId: 'demo-homeboy', role: 'admin' }
+              { tenantId: 'demo-homeboy', role: 'admin' },
+              { tenantId: 'tokyo-voice-ai', role: 'admin' }
             ]
           };
           break;
@@ -106,9 +120,13 @@ export default function WorkspacesPage() {
     // Filter tenants based on user's permissions
     const userTenantIds = userData.tenants.map(t => t.tenantId);
     const filteredTenants: Tenant[] = DEMO_TENANTS
-      .filter(tenant => userTenantIds.includes(`demo-${tenant.slug}`))
+      .filter(tenant => {
+        // Handle both demo- prefixed tenants and direct slug matches
+        return userTenantIds.includes(`demo-${tenant.slug}`) || 
+               userTenantIds.includes(tenant.slug);
+      })
       .map(tenant => ({
-        id: `demo-${tenant.slug}`,
+        id: userTenantIds.includes(`demo-${tenant.slug}`) ? `demo-${tenant.slug}` : tenant.slug,
         name: tenant.name,
         slug: tenant.slug,
         branding: {
@@ -174,11 +192,13 @@ export default function WorkspacesPage() {
                         className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold"
                         style={{ backgroundColor: tenant.branding.palette[0] }}
                       >
-                        {tenant.name.charAt(0)}
+                        {tenant.slug === 'tokyo-voice-ai' ? '🎤' : tenant.name.charAt(0)}
                       </div>
                       <div>
                         <CardTitle className="text-lg">{tenant.name}</CardTitle>
-                        <CardDescription>{tenant.slug}.crmblr.com</CardDescription>
+                        <CardDescription>
+                          {tenant.slug === 'tokyo-voice-ai' ? 'tokyo-voice-ai.vcrm.com' : `${tenant.slug}.crmblr.com`}
+                        </CardDescription>
                       </div>
                     </div>
                   </CardHeader>
