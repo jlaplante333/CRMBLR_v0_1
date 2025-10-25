@@ -387,6 +387,7 @@ export interface DemoTenantConfig {
     email: string;
     password: string;
     role: UserRole;
+    imageUrl?: string;
   }>;
 }
 
@@ -449,7 +450,7 @@ export const DEMO_TENANTS: DemoTenantConfig[] = [
       { email: 'amit@tokyo-voice-ai.com', password: 'Demo!Tokyo', role: UserRole.ADMIN },
       { email: 'tatsuya@tokyo-voice-ai.com', password: 'Demo!Tokyo', role: UserRole.EDITOR },
       { email: 'natsuko@tokyo-voice-ai.com', password: 'Demo!Tokyo', role: UserRole.EDITOR },
-      { email: 'yosuke@tokyo-voice-ai.com', password: 'Demo!Tokyo', role: UserRole.ADMIN },
+      { email: 'yosuke@tokyo-voice-ai.com', password: 'Demo!Tokyo', role: UserRole.ADMIN, imageUrl: '/avatars/yosuke-yasuda.svg' },
     ],
   },
 ];
