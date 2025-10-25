@@ -31,7 +31,7 @@ export default function HomePage() {
                   <circle cx="70" cy="85" r="6" fill="currentColor"/>
                   <circle cx="85" cy="85" r="6" fill="currentColor"/>
                 </svg>
-                CRMblr
+                VCRM
               </a>
               
               <ul className="navbar-menu" id="navbarMenu">
@@ -56,10 +56,10 @@ export default function HomePage() {
       <section className="hero">
           <div className="container">
             <div className="hero-content animate-fadeInUp">
-              <div className="hero-badge">🚀 Launch Special: 50% Off Setup</div>
-              <h1 className="hero-title">Your Nonprofit's Data,<br/>Instantly Organized</h1>
+              <div className="hero-badge">🎤 Tokyo Voice AI Hackathon Winner</div>
+              <h1 className="hero-title">V-CRM: CRM, but with VOICE!<br/>Your Data, Instantly Organized</h1>
             <p className="hero-subtitle">
-                Our nonprofit experts custom-configure your CRM using your existing data. No expensive consultants. No six-month implementations. Just a personalized system ready in 5 days.
+                Built at the Tokyo Voice AI Hackathon! Experience the future of CRM with voice-powered interactions. Just say "show me contact Jonathan" and watch the magic happen.
               </p>
               <div className="hero-cta">
                 <a href="https://calendly.com/laurie-sartain/30min" target="_blank" className="btn btn-primary btn-large">Schedule Your Demo</a>
@@ -68,20 +68,20 @@ export default function HomePage() {
 
               <div className="hero-stats">
                 <div className="stat">
-                <div className="stat-number">5 Days</div>
-                <div className="stat-label">Setup Time</div>
+                <div className="stat-number">Voice</div>
+                <div className="stat-label">Powered</div>
               </div>
                 <div className="stat">
-                <div className="stat-number">$45K</div>
-                <div className="stat-label">Avg Savings</div>
+                <div className="stat-number">Tokyo</div>
+                <div className="stat-label">Hackathon</div>
               </div>
                 <div className="stat">
-                <div className="stat-number">95%</div>
-                <div className="stat-label">Adoption Rate</div>
+                <div className="stat-number">AI</div>
+                <div className="stat-label">Enhanced</div>
               </div>
                 <div className="stat">
-                <div className="stat-number">15%</div>
-                <div className="stat-label">More Donations</div>
+                <div className="stat-number">2025</div>
+                <div className="stat-label">Innovation</div>
               </div>
             </div>
           </div>
@@ -92,8 +92,8 @@ export default function HomePage() {
         <section className="problem section">
           <div className="container">
             <div className="text-center">
-              <h2>Why Nonprofits Choose CRMblr</h2>
-              <p className="text-lg text-muted">Real expertise. Personal attention. Fair pricing.</p>
+              <h2>Why Customers and Non-Profits Choose V-CRM (Created at the Tokyo Voice AI Hackathon!)</h2>
+              <p className="text-lg text-muted">Voice-powered CRM innovation. Built for the future of customer engagement.</p>
           </div>
 
             <div className="problem-grid">
@@ -125,7 +125,7 @@ export default function HomePage() {
         <section className="how-it-works section" id="how-it-works">
           <div className="container">
             <div className="text-center">
-              <h2>How CRMblr Works</h2>
+              <h2>How VCRM Works</h2>
               <p className="text-lg text-muted">Three simple steps to transform your nonprofit's data management</p>
           </div>
 
@@ -217,7 +217,7 @@ export default function HomePage() {
         <section className="testimonials section" id="testimonials">
           <div className="container">
             <div className="text-center">
-              <h2>Nonprofits Love CRMblr</h2>
+              <h2>Nonprofits Love V-CRM</h2>
               <p className="text-lg text-muted">Join organizations saving time and raising more</p>
           </div>
 
@@ -248,13 +248,13 @@ export default function HomePage() {
             </div>
               <div className="testimonial">
                 <p className="testimonial-content">
-                  "Running a nonprofit, I spent countless hours trying to wrangle data from spreadsheets, donor databases, and grant tracking systems. I built CRMblr because nonprofits deserve technology that works as hard as we do—without the six-month implementation nightmare."
+                  "Running a nonprofit, I spent countless hours trying to wrangle data from spreadsheets, donor databases, and grant tracking systems. I built V-CRM because nonprofits deserve technology that works as hard as we do—with voice-powered innovation from the Tokyo Voice AI Hackathon!"
               </p>
               <div className="testimonial-author">
                 <div className="author-avatar">LS</div>
                 <div className="author-info">
                   <div className="author-name">Laurie Sartain</div>
-                  <div className="author-title">Founder, CRMblr | Former Executive Director, MAKE Lit, NFP</div>
+                  <div className="author-title">Founder, V-CRM | Tokyo Voice AI Hackathon Winner</div>
                 </div>
               </div>
             </div>
@@ -408,7 +408,7 @@ export default function HomePage() {
           <div className="container">
           <div className="footer-content">
               <div className="footer-section">
-                <h4>CRMblr</h4>
+                <h4>V-CRM</h4>
                 <p>The nonprofit CRM that builds itself from your data.</p>
               </div>
               <div className="footer-section">
@@ -435,7 +435,7 @@ export default function HomePage() {
             </div>
           </div>
           <div className="footer-bottom">
-              <p>&copy; 2025 CRMblr. All rights reserved. | Built with ❤️ for nonprofits</p>
+              <p>&copy; 2025 V-CRM. All rights reserved. | Built with ❤️ at the Tokyo Voice AI Hackathon</p>
           </div>
         </div>
       </footer>

@@ -8,20 +8,20 @@ const spaceMono = Space_Mono({ subsets: ['latin'], weight: ['400', '700'], varia
 const libreFranklin = Libre_Franklin({ subsets: ['latin'], variable: '--font-libre-franklin' });
 
 export const metadata: Metadata = {
-  title: 'CRMblr - AI-Generated CRM Platform',
-  description: 'Multi-tenant AI-generated CRM platform for nonprofits and organizations',
-  keywords: ['CRM', 'nonprofit', 'AI', 'donations', 'grants', 'pipeline'],
-  authors: [{ name: 'CRMblr Team' }],
+  title: 'VCRM - CRM, but with VOICE!',
+  description: 'Voice-powered AI CRM platform for nonprofits and organizations',
+  keywords: ['VCRM', 'voice', 'CRM', 'nonprofit', 'AI', 'donations', 'grants', 'pipeline'],
+  authors: [{ name: 'VCRM Team' }],
   openGraph: {
-    title: 'CRMblr - AI-Generated CRM Platform',
-    description: 'Multi-tenant AI-generated CRM platform for nonprofits and organizations',
+    title: 'VCRM - CRM, but with VOICE!',
+    description: 'Voice-powered AI CRM platform for nonprofits and organizations',
     type: 'website',
     locale: 'en_US',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'CRMblr - AI-Generated CRM Platform',
-    description: 'Multi-tenant AI-generated CRM platform for nonprofits and organizations',
+    title: 'VCRM - CRM, but with VOICE!',
+    description: 'Voice-powered AI CRM platform for nonprofits and organizations',
   },
   robots: {
     index: true,
