@@ -59,7 +59,7 @@ export default function HomePage() {
               <div className="hero-badge">🎤 Tokyo Voice AI Hackathon Winner</div>
               <h1 className="hero-title">V-CRM: CRM, but with VOICE!<br/>Your Data, Instantly Organized</h1>
             <p className="hero-subtitle">
-                Built at the Tokyo Voice AI Hackathon! Experience the future of CRM with voice-powered interactions. Just say "show me contact Jonathan" and watch the magic happen.
+                Our story: Our team created a CRM based around Voice on Oct 25th in Tokyo at the Tokyo Voice AI hackathon at the Ameba towers. Experience the future of CRM with voice-powered interactions. Just say "show me contact Jonathan" and watch the magic happen.
               </p>
               <div className="hero-cta">
                 <a href="https://calendly.com/laurie-sartain/30min" target="_blank" className="btn btn-primary btn-large">Schedule Your Demo</a>
