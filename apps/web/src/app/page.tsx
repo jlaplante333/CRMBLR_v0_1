@@ -64,7 +64,8 @@ export default function HomePage() {
               <div className="hero-cta">
                 <a href="https://calendly.com/laurie-sartain/30min" target="_blank" className="btn btn-primary btn-large">Schedule Your Demo</a>
                 <a href="#how-it-works" className="btn btn-secondary btn-large">See How It Works</a>
-            </div>
+                <a href="/voice-test" className="btn btn-accent btn-large">🎤 Test Voice Assistant</a>
+              </div>
 
               <div className="hero-stats">
                 <div className="stat">

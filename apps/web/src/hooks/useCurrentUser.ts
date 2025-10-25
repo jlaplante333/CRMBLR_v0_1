@@ -56,16 +56,30 @@ export function useCurrentUser(): User | null {
           };
           break;
         case 'superuser':
-          // Superuser can see all tenants
+          // Superuser can see all tenants - determine user based on URL params
+          const urlParams = new URLSearchParams(window.location.search);
+          const userEmail = urlParams.get('email') || 'jon@crmblr.com';
+          
+          // Map emails to names
+          const emailToName: { [key: string]: string } = {
+            'jon@crmblr.com': 'Jon Crmblr',
+            'laurie@crmblr.com': 'Laurie Sartain',
+            'jon@vcrm.com': 'Jon V-CRM',
+            'yosuke@vcrm.com': 'Yosuke Yasuda',
+            'avi@vcrm.com': 'Avi V-CRM',
+            'axlrose@vcrm.com': 'Axl Rose'
+          };
+          
           userData = {
             id: 'user-superuser',
-            email: 'jon@crmblr.com',
-            name: 'Jon Crmblr',
+            email: userEmail,
+            name: emailToName[userEmail] || 'Super User',
             tenants: [
               { tenantId: 'demo-makelit', role: 'admin' },
               { tenantId: 'demo-oneinsix', role: 'admin' },
               { tenantId: 'demo-fallenfruit', role: 'admin' },
-              { tenantId: 'demo-homeboy', role: 'admin' }
+              { tenantId: 'demo-homeboy', role: 'admin' },
+              { tenantId: 'tokyo-voice-ai', role: 'admin' }
             ]
           };
           break;

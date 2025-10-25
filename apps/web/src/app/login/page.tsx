@@ -34,8 +34,13 @@ export default function LoginPage() {
     const isSuperuser = (
       (normalizedEmail === 'jon@crmblr.com' && password === 'test123') ||
       (normalizedEmail === 'laurie@crmblr.com' && password === 'test123') ||
+      (normalizedEmail === 'jon@vcrm.com' && password === 'test123') ||
+      (normalizedEmail === 'yosuke@vcrm.com' && password === 'test123') ||
+      (normalizedEmail === 'avi@vcrm.com' && password === 'test123') ||
+      (normalizedEmail === 'axlrose@vcrm.com' && password === 'test123') ||
       normalizedEmail.includes('admin@crmblr.com') ||
-      normalizedEmail.endsWith('@crmblr.com')
+      normalizedEmail.endsWith('@crmblr.com') ||
+      normalizedEmail.endsWith('@vcrm.com')
     );
 
     const userType = isSuperuser ? 'superuser' :
@@ -45,7 +50,7 @@ export default function LoginPage() {
       normalizedEmail.includes('homeboy') ? 'homeboy' : 'makelit';
     
     // Use Next.js router for navigation
-    router.push(`/workspaces?user=${userType}`);
+    router.push(`/workspaces?user=${userType}&email=${encodeURIComponent(normalizedEmail)}`);
   };
 
   return (
