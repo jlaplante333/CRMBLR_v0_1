@@ -12,8 +12,19 @@ export default function DonationsPage() {
   // Find tenant directly
   const tenant = DEMO_TENANTS.find(t => t.slug === slug);
 
-  // Mock donations data
-  const mockDonations = [
+  // Mock donations data - Tokyo Voice AI Hackathon themed
+  const mockDonations = slug === 'tokyo-voice-ai' ? [
+    { id: '1', amount: 15000, date: '2024-10-25', contact: 'Alex.Inc (Sponsor)', status: 'sent' },
+    { id: '2', amount: 10000, date: '2024-10-25', contact: 'Buddy.AI (Sponsor)', status: 'sent' },
+    { id: '3', amount: 5000, date: '2024-10-25', contact: 'CyberAce (Sponsor)', status: 'sent' },
+    { id: '4', amount: 5000, date: '2024-10-25', contact: 'Yosuke Yasuda (Sponsor)', status: 'sent' },
+    { id: '5', amount: 3000, date: '2024-10-25', contact: 'Bye: AI (Sponsor)', status: 'sent' },
+    { id: '6', amount: 3000, date: '2024-10-25', contact: 'Hackathon Prize Pool', status: 'sent' },
+    { id: '7', amount: 2000, date: '2024-10-24', contact: 'Tokyo Tech Community', status: 'sent' },
+    { id: '8', amount: 1500, date: '2024-10-24', contact: 'Ameba Partnership', status: 'pending' },
+    { id: '9', amount: 1000, date: '2024-10-23', contact: 'Voice AI Enthusiasts', status: 'sent' },
+    { id: '10', amount: 500, date: '2024-10-23', contact: 'Local Developer Group', status: 'sent' },
+  ] : [
     { id: '1', amount: 250, date: '2024-01-15', contact: 'John Smith', status: 'sent' },
     { id: '2', amount: 500, date: '2024-01-14', contact: 'Jane Doe', status: 'pending' },
     { id: '3', amount: 100, date: '2024-01-13', contact: 'Bob Johnson', status: 'sent' },
@@ -34,6 +45,21 @@ export default function DonationsPage() {
   const ytdDonations = mockDonations.filter(d => d.date.startsWith('2024')).reduce((sum, d) => sum + d.amount, 0);
   const totalDonors = new Set(mockDonations.map(d => d.contact)).size;
   const pendingThankYous = mockDonations.filter(d => d.status === 'pending').length;
+  
+  // Find the biggest donation
+  const biggestDonation = mockDonations.reduce((max, donation) => 
+    donation.amount > max.amount ? donation : max, mockDonations[0]);
+  
+  // Make biggest donation info available globally for voice assistant
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.biggestDonationInfo = {
+        donor: biggestDonation.contact,
+        amount: biggestDonation.amount,
+        date: biggestDonation.date
+      };
+    }
+  }, [biggestDonation]);
 
   return (
     <div className="space-y-6">
@@ -105,26 +131,47 @@ export default function DonationsPage() {
         </Card>
       </div>
 
+      {/* Biggest Donation Highlight */}
+      <Card className="border-2 border-yellow-200 bg-gradient-to-r from-yellow-50 to-orange-50">
+        <CardHeader>
+          <CardTitle className="text-yellow-800">🏆 Biggest Donation</CardTitle>
+          <CardDescription className="text-yellow-700">Our top supporter this period</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center">
+            <div className="text-3xl font-bold text-yellow-800 mb-2">
+              ${biggestDonation.amount.toLocaleString()}
+            </div>
+            <div className="text-lg font-semibold text-gray-800 mb-1">
+              {biggestDonation.contact}
+            </div>
+            <div className="text-sm text-gray-600">
+              Donated on {biggestDonation.date}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Campaign Progress */}
       <Card>
         <CardHeader>
-          <CardTitle>2025 End of Year Campaign</CardTitle>
-          <CardDescription>Progress towards $100,000 goal</CardDescription>
+          <CardTitle>{slug === 'tokyo-voice-ai' ? 'Tokyo Voice AI Hackathon Campaign' : '2025 End of Year Campaign'}</CardTitle>
+          <CardDescription>{slug === 'tokyo-voice-ai' ? 'Progress towards $35,000 goal' : 'Progress towards $100,000 goal'}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span>Progress</span>
-              <span>${ytdDonations.toLocaleString()} / $100,000</span>
+              <span>${ytdDonations.toLocaleString()} / ${slug === 'tokyo-voice-ai' ? '35,000' : '100,000'}</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div 
                 className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${Math.min((ytdDonations / 100000) * 100, 100)}%` }}
+                style={{ width: `${Math.min((ytdDonations / (slug === 'tokyo-voice-ai' ? 35000 : 100000)) * 100, 100)}%` }}
               ></div>
             </div>
             <div className="text-sm text-gray-600">
-              {Math.round((ytdDonations / 100000) * 100)}% complete
+              {Math.round((ytdDonations / (slug === 'tokyo-voice-ai' ? 35000 : 100000)) * 100)}% complete
             </div>
           </div>
         </CardContent>

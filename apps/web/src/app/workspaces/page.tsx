@@ -92,12 +92,18 @@ export default function WorkspacesPage() {
             id: 'user-superuser',
             email: userEmail,
             name: emailToName[userEmail] || 'Super User',
-            tenants: [
+            tenants: userEmail === 'jon@vcrm.com' ? [
+              // For jon@vcrm.com, only show Tokyo AI and Alex Inc tenants
+              { tenantId: 'tokyo-voice-ai', role: 'admin' },
+              { tenantId: 'alex-inc-ai', role: 'admin' }
+            ] : [
+              // For other superusers, show all tenants
+              { tenantId: 'tokyo-voice-ai', role: 'admin' },
+              { tenantId: 'alex-inc-ai', role: 'admin' },
               { tenantId: 'demo-makelit', role: 'admin' },
               { tenantId: 'demo-oneinsix', role: 'admin' },
               { tenantId: 'demo-fallenfruit', role: 'admin' },
-              { tenantId: 'demo-homeboy', role: 'admin' },
-              { tenantId: 'tokyo-voice-ai', role: 'admin' }
+              { tenantId: 'demo-homeboy', role: 'admin' }
             ]
           };
           break;
@@ -197,7 +203,7 @@ export default function WorkspacesPage() {
                       <div>
                         <CardTitle className="text-lg">{tenant.name}</CardTitle>
                         <CardDescription>
-                          {tenant.slug === 'tokyo-voice-ai' ? 'tokyo-voice-ai.vcrm.com' : `${tenant.slug}.crmblr.com`}
+                          {tenant.slug === 'tokyo-voice-ai' ? 'tokyo-voice-ai.vcrm.com' : `${tenant.slug}.vcrm.com`}
                         </CardDescription>
                       </div>
                     </div>

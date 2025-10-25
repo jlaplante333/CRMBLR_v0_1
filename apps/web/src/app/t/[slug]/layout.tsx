@@ -98,7 +98,7 @@ export default function TenantLayout({ children }: TenantLayoutProps) {
             })()}
             <div>
               <h1 className="text-lg font-semibold" style={{ fontFamily: branding.fonts.heading }}>{tenant.name}</h1>
-              <p className="text-xs text-gray-400" style={{ fontFamily: branding.fonts.body }}>{slug}.crmblr.com</p>
+              <p className="text-xs text-gray-400" style={{ fontFamily: branding.fonts.body }}>{slug}.vcrm.com</p>
             </div>
           </div>
 

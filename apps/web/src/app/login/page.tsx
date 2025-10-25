@@ -140,7 +140,7 @@ export default function LoginPage() {
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <h4 className="font-bold text-gray-900 text-lg">{tenant.name}</h4>
-                      <p className="text-gray-600">{tenant.slug}.crmblr.com</p>
+                      <p className="text-gray-600">{tenant.slug}.vcrm.com</p>
                     </div>
                     <Button 
                       size="sm"

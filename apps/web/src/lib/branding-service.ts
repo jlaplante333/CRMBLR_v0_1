@@ -139,6 +139,27 @@ export const DEMO_WEBSITE_BRANDING: Record<string, WebsiteBranding> = {
     },
     logoUrl: '/brand/tokyo-voice-ai.svg',
     tagline: 'Hack the Daily Life at Ameba - Voice AI Innovation'
+  },
+  
+  'alex-inc-ai': {
+    // Alex.Inc AI CRM - Advanced AI Solutions
+    primary: '#6366f1',      // Indigo primary
+    secondary: '#8b5cf6',     // Purple secondary
+    accent: '#ec4899',       // Pink accent
+    background: '#f8fafc',    // Clean white background
+    text: '#1a202c',          // Dark text
+    muted: '#4a5568',         // Muted text
+    border: '#e2e8f0',       // Light border
+    success: '#10b981',       // Emerald green for success
+    warning: '#f59e0b',       // Amber for warnings
+    error: '#ef4444',         // Red for errors
+    fonts: {
+      heading: 'Inter, system-ui, sans-serif',
+      body: 'Inter, system-ui, sans-serif',
+      numeric: 'Inter, system-ui, sans-serif'
+    },
+    logoUrl: '/brand/alex-inc-ai.svg',
+    tagline: 'Advanced AI Solutions for Modern CRM'
   }
 };
 

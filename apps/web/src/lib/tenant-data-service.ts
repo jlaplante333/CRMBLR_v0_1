@@ -195,11 +195,11 @@ const TENANT_DATA_CONFIGS: Record<string, Partial<TenantDashboardData>> = {
     metrics: {
       yearToDate: 30000,
       last30Days: 20000,
-      totalDonors: 8,
+      totalDonors: 11,
       avgEngagementScore: 95,
     },
     requiresAttention: {
-      count: 4,
+      count: 7,
       message: "hackathon participants and sponsors need follow-up",
     },
     grantDeadlines: [
@@ -216,10 +216,13 @@ const TENANT_DATA_CONFIGS: Record<string, Partial<TenantDashboardData>> = {
       { name: "CyberAce", lastContact: "Today", action: "Discuss security integration partnership" },
       { name: "Yosuke Yasuda", lastContact: "Today", action: "Review dual role as hacker/sponsor" },
       { name: "Jonathan (Team Lead)", lastContact: "Today", action: "Review demo presentation" },
+      { name: "Takua Umeki", lastContact: "Today", action: "Follow up on voice AI development" },
+      { name: "Hong Younggo", lastContact: "Today", action: "Schedule technical review meeting" },
+      { name: "Datz Daito", lastContact: "Today", action: "Discuss integration requirements" },
     ],
     pipelineOverview: {
-      identified: 8,
-      inCultivation: 5,
+      identified: 11,
+      inCultivation: 8,
       atRisk: 0,
     },
     recentDonations: [

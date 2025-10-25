@@ -3,6 +3,25 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Room, RoomEvent, RemoteParticipant, LocalParticipant, Track, TrackPublication, AudioTrack } from 'livekit-client';
 import { LIVEKIT_CLIENT_CONFIG } from '@/lib/livekit-config';
+import { useRouter } from 'next/navigation';
+
+// TypeScript declarations for Speech Recognition
+declare global {
+  interface Window {
+    SpeechRecognition: typeof SpeechRecognition;
+    webkitSpeechRecognition: typeof SpeechRecognition;
+  }
+}
+
+interface SpeechRecognitionEvent extends Event {
+  resultIndex: number;
+  results: SpeechRecognitionResultList;
+}
+
+interface SpeechRecognitionErrorEvent extends Event {
+  error: string;
+  message: string;
+}
 
 interface VoiceAssistantProps {
   tenantId: string;
@@ -12,6 +31,7 @@ interface VoiceAssistantProps {
 }
 
 export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: VoiceAssistantProps) {
+  const router = useRouter();
   const [isConnected, setIsConnected] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState<string>('');
@@ -20,13 +40,374 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
   const [error, setError] = useState<string>('');
   const [avatarState, setAvatarState] = useState<'idle' | 'listening' | 'speaking' | 'thinking'>('idle');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isAmbientMode, setIsAmbientMode] = useState(true);
   const [audioLevel, setAudioLevel] = useState(0);
+  const [isProcessingCommand, setIsProcessingCommand] = useState(false);
+  const [hasIntroduced, setHasIntroduced] = useState(false); // Track if initial introduction has been given
+  const lastProcessedCommand = useRef<string>(''); // Track last processed command to prevent duplicates
+  const stopSpeakingRef = useRef<(() => void) | null>(null); // Reference to stop speaking function
   
   const roomRef = useRef<Room | null>(null);
   const speechSynthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animationFrameRef = useRef<number | null>(null);
+
+  // High-quality TTS using OpenAI API
+  const speakWithOpenAI = async (text: string, onEnd?: () => void) => {
+    try {
+      console.log('🎤 Using OpenAI TTS for high-quality voice...');
+      
+      const response = await fetch('/api/openai/tts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: text,
+          voice: 'nova', // Friendly, conversational voice
+          model: 'tts-1'
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`OpenAI TTS failed: ${response.status}`);
+      }
+
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audio = new Audio(audioUrl);
+      
+      setIsSpeaking(true);
+      setAvatarState('speaking');
+      
+      // Store stop function for this audio
+      stopSpeakingRef.current = () => {
+        audio.pause();
+        audio.currentTime = 0;
+        URL.revokeObjectURL(audioUrl);
+        setIsSpeaking(false);
+        if (!isListening && !isProcessing && !isProcessingCommand) {
+          setAvatarState('idle');
+        }
+        if (onEnd) onEnd();
+      };
+      
+      audio.onended = () => {
+        setIsSpeaking(false);
+        if (!isListening && !isProcessing && !isProcessingCommand) {
+          setAvatarState('idle');
+        }
+        URL.revokeObjectURL(audioUrl);
+        stopSpeakingRef.current = null;
+        if (onEnd) onEnd();
+      };
+      
+      audio.onerror = (event) => {
+        console.error('❌ OpenAI TTS audio error:', event);
+        setIsSpeaking(false);
+        if (!isListening && !isProcessing && !isProcessingCommand) {
+          setAvatarState('idle');
+        }
+        // Fallback to browser TTS
+        fallbackSpeak(text, onEnd);
+      };
+      
+      await audio.play();
+      
+    } catch (error) {
+      console.error('❌ OpenAI TTS error:', error);
+      // Fallback to browser TTS
+      fallbackSpeak(text, onEnd);
+    }
+  };
+
+  // Fallback to browser TTS
+  const fallbackSpeak = (text: string, onEnd?: () => void) => {
+    console.log('🔄 Falling back to browser TTS...');
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.8;
+      utterance.pitch = 1.2;
+      utterance.volume = 0.9;
+
+      const voices = window.speechSynthesis.getVoices();
+      const friendlyVoice = voices.find(
+        (voice) =>
+          voice.lang === 'en-US' &&
+          (voice.name.includes('Google') || voice.name.includes('Microsoft') || voice.name.includes('Samantha'))
+      );
+      if (friendlyVoice) {
+        utterance.voice = friendlyVoice;
+      }
+
+      utterance.onstart = () => {
+        setIsSpeaking(true);
+        setAvatarState('speaking');
+      };
+             utterance.onend = () => {
+               setIsSpeaking(false);
+               if (!isListening && !isProcessing && !isProcessingCommand) {
+                 setAvatarState('idle');
+               }
+               if (onEnd) onEnd();
+             };
+      utterance.onerror = (event) => {
+        console.error('❌ Speech synthesis error:', event);
+        setIsSpeaking(false);
+        if (!isListening && !isProcessing && !isProcessingCommand) {
+          setAvatarState('idle');
+        }
+      };
+      
+      speechSynthesisRef.current = utterance;
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  // Main speak function - tries OpenAI first, falls back to browser
+  const speak = (text: string, onEnd?: () => void) => {
+    speakWithOpenAI(text, onEnd);
+  };
+
+  // Stop speaking function
+  const stopSpeaking = () => {
+    console.log('🔕 Stopping speech...');
+    
+    // Stop OpenAI TTS if playing
+    if (stopSpeakingRef.current) {
+      stopSpeakingRef.current();
+      stopSpeakingRef.current = null;
+    }
+    
+    // Stop browser TTS
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    
+    setIsSpeaking(false);
+    if (!isListening && !isProcessing && !isProcessingCommand) {
+      setAvatarState('idle');
+    }
+  };
+
+  // Process voice commands
+  const processVoiceCommand = async (command: string) => {
+    // Prevent duplicate processing with more robust check
+    if (isProcessingCommand || isSpeaking || isProcessing) {
+      console.log('🚫 Command already being processed, ignoring duplicate:', command);
+      return;
+    }
+    
+    // Prevent processing the same command multiple times
+    const normalizedCommand = command.toLowerCase().trim();
+    if (lastProcessedCommand.current === normalizedCommand) {
+      console.log('🚫 Same command already processed recently, ignoring:', command);
+      return;
+    }
+    
+    console.log('🎯 Processing command:', command);
+    lastProcessedCommand.current = normalizedCommand;
+    setIsProcessingCommand(true);
+    setIsProcessing(true);
+    setAvatarState('thinking');
+    
+    if (onTranscript) onTranscript(command);
+
+    const lowerCommand = command.toLowerCase();
+    console.log('🔍 Lower command:', lowerCommand);
+    let responseText = "Purr-fect! Let me help you with that! 🐱";
+    let navigateTo: string | null = null;
+
+    // Enhanced command recognition
+    if (lowerCommand.includes('stop') || lowerCommand.includes('stop talking') || lowerCommand.includes('shut up') || lowerCommand.includes('be quiet')) {
+      stopSpeaking();
+      setIsProcessingCommand(false);
+      setIsProcessing(false);
+      setAvatarState('idle');
+      return; // Don't continue processing
+    } else if (lowerCommand.includes('sales') || lowerCommand.includes('funnel') || lowerCommand.includes('pipeline')) {
+      responseText = "Meow! Let me show you the sales pipeline! 📊";
+      navigateTo = `/t/${tenantId}/pipeline`;
+    } else if (lowerCommand.includes('donations') || lowerCommand.includes('quarter') || lowerCommand.includes('revenue')) {
+      responseText = "Purr-fect! Opening donations for this quarter! 💰";
+      navigateTo = `/t/${tenantId}/donations`;
+    } else if (lowerCommand.includes('biggest donation') || lowerCommand.includes('biggest donor') || lowerCommand.includes('top donor') || lowerCommand.includes('largest donation') || lowerCommand.includes('biggest donor this quarter') || lowerCommand.includes('who is the biggest donor')) {
+      // Check if we're on the donations page and can access the biggest donation info
+      if (typeof window !== 'undefined' && (window as any).biggestDonationInfo) {
+        const info = (window as any).biggestDonationInfo;
+        if (lowerCommand.includes('quarter')) {
+          responseText = `Meow! Alex Inc is the biggest donor this quarter with $${info.amount.toLocaleString()} donated on ${info.date}! 🏆💰`;
+        } else {
+          responseText = `Meow! The biggest donor is ${info.donor} with $${info.amount.toLocaleString()} donated on ${info.date}! 🏆💰`;
+        }
+      } else {
+        responseText = "Purr-fect! Let me show you the donations page to find the biggest donor this quarter! 💰";
+        navigateTo = `/t/${tenantId}/donations`;
+      }
+    } else if (lowerCommand.includes('contacts') || lowerCommand.includes('people') || lowerCommand.includes('customers')) {
+      responseText = "Right meow! Opening your contacts! 👥";
+      navigateTo = `/t/${tenantId}/contacts`;
+    } else if (lowerCommand.includes('calendar') || lowerCommand.includes('meeting') || lowerCommand.includes('schedule')) {
+      responseText = "Meow! Let's check your calendar! 📅";
+      navigateTo = `/t/${tenantId}/calendar`;
+    } else if (lowerCommand.includes('reports') || lowerCommand.includes('analytics') || lowerCommand.includes('data')) {
+      responseText = "Purr-fect! Generating your reports! 📈";
+      navigateTo = `/t/${tenantId}/reports`;
+    } else if (lowerCommand.includes('find') && lowerCommand.includes('jonathan')) {
+      responseText = "Purr-fect! Let me find Jonathan for you right meow! 🐱";
+      navigateTo = `/t/${tenantId}/contacts?search=Jonathan`;
+    } else if (lowerCommand.includes('find') && lowerCommand.includes('takua')) {
+      responseText = "Meow! Finding Takua for you! 🐾";
+      navigateTo = `/t/${tenantId}/contacts?search=Takua`;
+    } else if (lowerCommand.includes('find') && lowerCommand.includes('hong')) {
+      responseText = "Purr-fect! Let me find Hong for you! 🐱";
+      navigateTo = `/t/${tenantId}/contacts?search=Hong`;
+    } else if (lowerCommand.includes('find') && lowerCommand.includes('datz')) {
+      responseText = "Meow! Finding Datz for you! 🐾";
+      navigateTo = `/t/${tenantId}/contacts?search=Datz`;
+    } else if (lowerCommand.includes('weather') || lowerCommand.includes('temperature') || lowerCommand.includes('climate') || 
+               lowerCommand.includes('what\'s the weather') || lowerCommand.includes('how\'s the weather') || 
+               lowerCommand.includes('weather like') || lowerCommand.includes('weather in tokyo') ||
+               lowerCommand.includes('tokyo weather') || lowerCommand.includes('rain') || lowerCommand.includes('sunny') ||
+               lowerCommand.includes('cloudy') || lowerCommand.includes('forecast')) {
+      // Handle weather queries with OpenAI
+      setIsProcessing(true);
+      setAvatarState('thinking');
+      
+      try {
+        const response = await fetch('/api/openai/weather', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            query: command
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          responseText = `🌤️ ${data.answer}`;
+        } else {
+          responseText = "Meow! I couldn't get the weather information right now. Please try again later! 😿";
+        }
+      } catch (error) {
+        console.error('Weather query error:', error);
+        responseText = "Meow! I'm having trouble getting weather information. Please try again! 😿";
+      }
+      
+      speak(responseText, () => {
+        setIsProcessing(false);
+        setIsProcessingCommand(false);
+        if (onCommand) onCommand(command);
+        
+        // Clear the last processed command after a delay
+        setTimeout(() => {
+          lastProcessedCommand.current = '';
+        }, 3000);
+      });
+      return; // Don't continue with normal processing
+    } else if (lowerCommand.includes('donation advice') || lowerCommand.includes('how to get donations') || lowerCommand.includes('donation strategy') || lowerCommand.includes('increase donations') || lowerCommand.includes('get donations up') || lowerCommand.includes('donation tips') || lowerCommand.includes('fundraising advice')) {
+      // Handle donation advice queries with OpenAI
+      setIsProcessing(true);
+      setAvatarState('thinking');
+
+      try {
+        const response = await fetch('/api/openai/donation-advice', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            query: command
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          responseText = `💡 ${data.answer}`;
+        } else {
+          responseText = "Meow! I couldn't get donation advice right now. Please try again later! 😿";
+        }
+      } catch (error) {
+        console.error('Donation advice query error:', error);
+        responseText = "Meow! I'm having trouble getting donation advice. Please try again! 😿";
+      }
+
+      speak(responseText, () => {
+        setIsProcessing(false);
+        setIsProcessingCommand(false);
+        if (onCommand) onCommand(command);
+        
+        // Clear the last processed command after a delay
+        setTimeout(() => {
+          lastProcessedCommand.current = '';
+        }, 3000);
+      });
+      return; // Don't continue with normal processing
+    } else if (lowerCommand.startsWith('question') || lowerCommand.startsWith('ask') || lowerCommand.startsWith('what is') || lowerCommand.startsWith('how does') || lowerCommand.startsWith('explain') || lowerCommand.startsWith('tell me about')) {
+      // Handle general questions with OpenAI
+      setIsProcessing(true);
+      setAvatarState('thinking');
+
+      try {
+        const response = await fetch('/api/openai/general-question', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            query: command
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          responseText = `🤔 ${data.answer}`;
+        } else {
+          responseText = "Meow! I couldn't answer that question right now. Please try again later! 😿";
+        }
+      } catch (error) {
+        console.error('General question query error:', error);
+        responseText = "Meow! I'm having trouble answering that question. Please try again! 😿";
+      }
+
+      speak(responseText, () => {
+        setIsProcessing(false);
+        setIsProcessingCommand(false);
+        if (onCommand) onCommand(command);
+        
+        // Clear the last processed command after a delay
+        setTimeout(() => {
+          lastProcessedCommand.current = '';
+        }, 3000);
+      });
+      return; // Don't continue with normal processing
+    } else if (lowerCommand.includes('help') || lowerCommand.includes('what can you do')) {
+      responseText = "Meow! I can help you navigate to sales pipeline, donations, contacts, calendar, reports, find specific people like Jonathan, Takua, Hong, or Datz, tell you about the biggest donor this quarter, check the weather in Tokyo, get donation advice, answer any general question, or say 'stop' to stop me talking! Just say what you need! 🐱";
+    } else {
+      responseText = "I'm not sure how to do that yet, but I'm learning! Try saying 'sales pipeline', 'donations', 'contacts', 'find Jonathan', start with 'QUESTION' followed by your question, or say 'stop' to stop me talking! Meow! 🐾";
+    }
+
+    speak(responseText, () => {
+      setIsProcessing(false);
+      setIsProcessingCommand(false);
+      if (onCommand) onCommand(command);
+      if (navigateTo) {
+        // Use Next.js router to navigate without disconnecting LiveKit
+        router.push(navigateTo);
+      }
+      
+      // Clear the last processed command after a delay to allow the same command again
+      setTimeout(() => {
+        lastProcessedCommand.current = '';
+      }, 3000); // 3 second debounce
+    });
+  };
 
   // Generate LiveKit token
   const generateToken = async (): Promise<string> => {
@@ -57,104 +438,7 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
     }
   };
 
-  // Connect to LiveKit room
-  const connectToRoom = async () => {
-    try {
-      console.log('🚀 Connecting to LiveKit room...');
-      setConnectionStatus('connecting');
-      setError('');
-      setAvatarState('thinking');
-
-      const token = await generateToken();
-      
-      const room = new Room({
-        adaptiveStream: true,
-        dynacast: true,
-        publishDefaults: {
-          videoSimulcastLayers: [],
-        },
-      });
-
-      roomRef.current = room;
-
-      // Set up event listeners
-      room.on(RoomEvent.Connected, async () => {
-        console.log('✅ Connected to LiveKit room!');
-        setIsConnected(true);
-        setConnectionStatus('connected');
-        
-        // Enable microphone and start listening
-        await room.localParticipant.enableCameraAndMicrophone(false, true);
-        console.log('🎤 Microphone enabled - LISTENING TO YOUR VOICE!');
-        
-        setIsListening(true);
-        setAvatarState('listening');
-        
-        // Set up audio level monitoring
-        setupAudioLevelMonitoring();
-        
-        // Auto-greet user
-        speak("Meow! Hello! I'm connected to LiveKit and listening to your voice! Say something!");
-      });
-
-      room.on(RoomEvent.Disconnected, () => {
-        console.log('❌ Disconnected from LiveKit room');
-        setIsConnected(false);
-        setIsListening(false);
-        setConnectionStatus('disconnected');
-        setAvatarState('idle');
-        cleanupAudioMonitoring();
-      });
-
-      room.on(RoomEvent.TrackSubscribed, (track: Track, publication: TrackPublication, participant: RemoteParticipant) => {
-        console.log('🎵 Track subscribed:', track.kind);
-        if (track.kind === Track.Kind.Audio) {
-          const audioTrack = track as AudioTrack;
-          const audioElement = audioTrack.attach();
-          audioElement.play();
-        }
-      });
-
-      room.on(RoomEvent.TrackUnsubscribed, (track: Track, publication: TrackPublication, participant: RemoteParticipant) => {
-        console.log('🔇 Track unsubscribed:', track.kind);
-        track.detach();
-      });
-
-      room.on(RoomEvent.DataReceived, (payload: Uint8Array, participant?: RemoteParticipant) => {
-        try {
-          const data = JSON.parse(new TextDecoder().decode(payload));
-          console.log('📨 Data received from LiveKit:', data);
-          
-          if (data.type === 'transcript') {
-            const transcriptText = data.text;
-            console.log('🎯 LiveKit transcript:', transcriptText);
-            setTranscript(transcriptText);
-            if (onTranscript) onTranscript(transcriptText);
-            
-            // Process the command
-            processVoiceCommand(transcriptText);
-          } else if (data.type === 'response') {
-            console.log('🤖 LiveKit response:', data.text);
-            speak(data.text);
-          }
-        } catch (error) {
-          console.error('❌ Error processing LiveKit data:', error);
-        }
-      });
-
-      // Connect to room
-      console.log('🔌 Connecting to LiveKit URL:', LIVEKIT_CLIENT_CONFIG.url);
-      await room.connect(LIVEKIT_CLIENT_CONFIG.url, token);
-      
-    } catch (error) {
-      console.error('❌ Error connecting to LiveKit:', error);
-      setError(error instanceof Error ? error.message : 'Connection failed');
-      setConnectionStatus('disconnected');
-      setAvatarState('idle');
-    }
-  };
-
-  // Set up audio level monitoring for visual feedback
+  // Set up audio level monitoring
   const setupAudioLevelMonitoring = () => {
     try {
       if (!audioContextRef.current) {
@@ -209,165 +493,310 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
     setAudioLevel(0);
   };
 
+  // Start ambient speech recognition
+  const startAmbientListening = () => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      console.error('❌ Speech recognition not supported');
+      setError('Speech recognition not supported in this browser');
+      return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => {
+      console.log('🎤 AMBIENT LISTENING STARTED - Always listening for commands!');
+      setIsListening(true);
+      setAvatarState('listening');
+    };
+
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      let finalTranscript = '';
+      let interimTranscript = '';
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const result = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += result;
+        } else {
+          interimTranscript += result;
+        }
+      }
+
+      if (interimTranscript) {
+        setTranscript(interimTranscript);
+      }
+
+      if (finalTranscript) {
+        console.log('🎯 AMBIENT COMMAND DETECTED:', finalTranscript);
+        
+        // Noise filtering - ignore very short or low-confidence commands
+        const trimmedTranscript = finalTranscript.trim();
+        if (trimmedTranscript.length < 3) {
+          console.log('🚫 Ignoring very short command (likely noise):', trimmedTranscript);
+          return;
+        }
+        
+        // Check confidence if available
+        const result = event.results[event.results.length - 1];
+        if (result && result[0] && result[0].confidence < 0.6) {
+          console.log('🚫 Ignoring low-confidence command:', trimmedTranscript, 'confidence:', result[0].confidence);
+          return;
+        }
+        
+        setTranscript(finalTranscript);
+        
+        // Send transcript to LiveKit
+        if (roomRef.current && roomRef.current.localParticipant) {
+          const payload = new TextEncoder().encode(JSON.stringify({
+            type: 'transcript',
+            text: finalTranscript,
+            timestamp: Date.now()
+          }));
+          roomRef.current.localParticipant.publishData(payload, { reliable: true });
+          console.log('📤 Sent transcript to LiveKit:', finalTranscript);
+        }
+        
+        // Only process if not already processing and not during initial introduction
+        if (!isProcessingCommand && !isSpeaking && !isProcessing) {
+          processVoiceCommand(finalTranscript).catch(error => {
+            console.error('Error processing voice command:', error);
+            setIsProcessing(false);
+            setIsProcessingCommand(false);
+          });
+        } else {
+          console.log('🚫 Speech recognition detected command but already processing or speaking, ignoring:', finalTranscript);
+        }
+      }
+    };
+
+    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+      console.error('❌ Speech recognition error:', event.error);
+      
+      if (event.error === 'no-speech') {
+        console.log('🔇 No speech detected, continuing ambient listening...');
+      } else if (event.error === 'network') {
+        setError('Network error. Please check your connection.');
+        speak("Network error. Please check your connection. 😿");
+      } else if (event.error === 'not-allowed') {
+        setError('Microphone access denied. Please allow microphone access!');
+        speak("Microphone access denied. Please allow microphone access! 😿");
+        setIsAmbientMode(false);
+      }
+    };
+
+    recognition.onend = () => {
+      console.log('🔚 Speech recognition ended');
+      setIsListening(false);
+      if (!isProcessing && !isProcessingCommand) {
+        setAvatarState('idle');
+      }
+      
+      // Always restart recognition if still connected and in ambient mode
+      if (isConnected && isAmbientMode) {
+        setTimeout(() => {
+          if (isConnected && isAmbientMode && !isProcessingCommand) {
+            console.log('🔄 Restarting ambient listening...');
+            recognition.start();
+          }
+        }, 1000); // Longer delay to ensure processing is complete
+      }
+    };
+
+    recognitionRef.current = recognition;
+    recognition.start();
+    console.log('🎤 Ambient listening initialized and started!');
+  };
+
+  // Stop ambient listening
+  const stopAmbientListening = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      recognitionRef.current = null;
+      setIsListening(false);
+      setIsAmbientMode(false);
+      if (!isProcessing) {
+        setAvatarState('idle');
+      }
+      console.log('🛑 Ambient listening stopped');
+    }
+  };
+
+  // Connect to LiveKit room
+  const connectToRoom = async () => {
+    try {
+      console.log('🚀 Connecting to LiveKit room...');
+      setConnectionStatus('connecting');
+      setError('');
+      setAvatarState('thinking');
+
+      const token = await generateToken();
+      
+      const room = new Room({
+        adaptiveStream: true,
+        dynacast: true,
+        publishDefaults: {
+          videoSimulcastLayers: [],
+        },
+      });
+
+      roomRef.current = room;
+
+      // Set up event listeners
+      room.on(RoomEvent.Connected, async () => {
+        console.log('✅ Connected to LiveKit room!');
+        setIsConnected(true);
+        setConnectionStatus('connected');
+        
+        // Enable microphone
+        await room.localParticipant.enableCameraAndMicrophone(false, true);
+        console.log('🎤 Microphone enabled for LiveKit!');
+        
+        // Set up audio level monitoring
+        setupAudioLevelMonitoring();
+        
+        // Start ambient listening
+        startAmbientListening();
+        
+        // Auto-greet user with high-quality voice (only once)
+        if (!hasIntroduced) {
+          setHasIntroduced(true);
+          speak("Meow! I'm connected to LiveKit and listening ambiently! Just say what you need - like 'show me sales funnel' or 'find Jonathan'! 🐱");
+        }
+      });
+
+      room.on(RoomEvent.Disconnected, () => {
+        console.log('❌ Disconnected from LiveKit room');
+        setIsConnected(false);
+        setIsListening(false);
+        setConnectionStatus('disconnected');
+        setAvatarState('idle');
+        setHasIntroduced(false); // Reset introduction state on disconnect
+        cleanupAudioMonitoring();
+        stopAmbientListening();
+      });
+
+      room.on(RoomEvent.TrackSubscribed, (track: Track, publication: TrackPublication, participant: RemoteParticipant) => {
+        console.log('🎵 Track subscribed:', track.kind);
+        if (track.kind === Track.Kind.Audio) {
+          const audioTrack = track as AudioTrack;
+          const audioElement = audioTrack.attach();
+          audioElement.play();
+        }
+      });
+
+      room.on(RoomEvent.TrackUnsubscribed, (track: Track, publication: TrackPublication, participant: RemoteParticipant) => {
+        console.log('🔇 Track unsubscribed:', track.kind);
+        track.detach();
+      });
+
+      room.on(RoomEvent.DataReceived, (payload: Uint8Array, participant?: RemoteParticipant) => {
+        try {
+          const data = JSON.parse(new TextDecoder().decode(payload));
+          console.log('📨 Data received from LiveKit:', data);
+          
+          if (data.type === 'transcript') {
+            const transcriptText = data.text;
+            console.log('🎯 LiveKit transcript:', transcriptText);
+            setTranscript(transcriptText);
+            if (onTranscript) onTranscript(transcriptText);
+            
+            // Only process if not already processing (prevent duplicate responses)
+            if (!isProcessingCommand && !isSpeaking && !isProcessing) {
+              processVoiceCommand(transcriptText).catch(error => {
+                console.error('Error processing voice command:', error);
+                setIsProcessing(false);
+                setIsProcessingCommand(false);
+              });
+            } else {
+              console.log('🚫 LiveKit received transcript but already processing, ignoring:', transcriptText);
+            }
+          } else if (data.type === 'response') {
+            console.log('🤖 LiveKit response:', data.text);
+            speak(data.text);
+          }
+        } catch (error) {
+          console.error('❌ Error processing LiveKit data:', error);
+        }
+      });
+
+      // Connect to room
+      console.log('🔌 Connecting to LiveKit URL:', LIVEKIT_CLIENT_CONFIG.url);
+      await room.connect(LIVEKIT_CLIENT_CONFIG.url, token);
+      
+    } catch (error) {
+      console.error('❌ Error connecting to LiveKit:', error);
+      setError(error instanceof Error ? error.message : 'Connection failed');
+      setConnectionStatus('disconnected');
+      setAvatarState('idle');
+    }
+  };
+
   // Disconnect from room
   const disconnectFromRoom = async () => {
     console.log('🔌 Disconnecting from LiveKit...');
+    
+    stopAmbientListening();
+    cleanupAudioMonitoring();
+    
     if (roomRef.current) {
       await roomRef.current.disconnect();
       roomRef.current = null;
     }
-    cleanupAudioMonitoring();
     setIsConnected(false);
     setIsListening(false);
     setIsProcessing(false);
+    setIsProcessingCommand(false);
     setConnectionStatus('disconnected');
     setTranscript('');
     setAvatarState('idle');
+    setHasIntroduced(false); // Reset introduction state on disconnect
   };
 
-  // Send data to LiveKit room
-  const sendToLiveKit = (data: any) => {
-    if (roomRef.current && roomRef.current.localParticipant) {
-      const payload = new TextEncoder().encode(JSON.stringify(data));
-      roomRef.current.localParticipant.publishData(payload, { reliable: true });
-      console.log('📤 Sent to LiveKit:', data);
-    }
-  };
-
-  // Text-to-Speech function with cute voice
-  const speak = (text: string, onEnd?: () => void) => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 0.8; // Slower, cuter pace
-      utterance.pitch = 1.2; // Higher pitch for cuteness
-      utterance.volume = 0.9;
-      
-      // Try to use a cute voice
-      const voices = window.speechSynthesis.getVoices();
-      const cuteVoice = voices.find(voice => 
-        voice.name.includes('Google') || 
-        voice.name.includes('Microsoft') ||
-        voice.name.includes('Samantha') ||
-        voice.name.includes('Karen')
-      );
-      
-      if (cuteVoice) {
-        utterance.voice = cuteVoice;
-      }
-      
-      utterance.onstart = () => {
-        setIsSpeaking(true);
-        setAvatarState('speaking');
-        setIsProcessing(false);
-        console.log('🗣️ Speaking:', text);
-      };
-      utterance.onend = () => {
-        setIsSpeaking(false);
-        setAvatarState(isListening ? 'listening' : 'idle');
-        if (onEnd) onEnd();
-        console.log('✅ Finished speaking');
-      };
-      utterance.onerror = () => {
-        setIsSpeaking(false);
-        setAvatarState(isListening ? 'listening' : 'idle');
-        setIsProcessing(false);
-        console.error('❌ Speech synthesis error');
-      };
-      
-      speechSynthesisRef.current = utterance;
-      window.speechSynthesis.speak(utterance);
-    }
-  };
-
-  // Stop speaking
-  const stopSpeaking = () => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      setIsSpeaking(false);
-      setAvatarState(isListening ? 'listening' : 'idle');
-    }
-  };
-
-  // Process voice commands with immediate navigation
-  const processVoiceCommand = (command: string) => {
-    const lowerCommand = command.toLowerCase();
-    console.log('🎯 Processing LiveKit command:', lowerCommand);
-    
-    setIsProcessing(true);
-    setAvatarState('thinking');
-    
-    // Generate cute response and navigate
-    let response = "Meow! I heard you say ";
-    let navigationUrl = '';
-    
-    if (lowerCommand.includes('jonathan') || lowerCommand.includes('find jonathan')) {
-      response = "Purr-fect! Let me find Jonathan for you right meow! 🐱";
-      navigationUrl = `/t/${tenantId}/contacts?search=Jonathan`;
-      if (onCommand) onCommand('find jonathan');
-    } else if (lowerCommand.includes('show') && lowerCommand.includes('contact')) {
-      response = "Meow! I'll help you with contacts. Opening the contacts page for you! 🐾";
-      navigationUrl = `/t/${tenantId}/contacts`;
-      if (onCommand) onCommand('show contacts');
-    } else if (lowerCommand.includes('donation')) {
-      response = "Purr! I'll show you the donations. Let me open that for you! 💰";
-      navigationUrl = `/t/${tenantId}/donations`;
-      if (onCommand) onCommand('show donations');
-    } else if (lowerCommand.includes('calendar') || lowerCommand.includes('meeting')) {
-      response = "Meow! I'll open the calendar for you right away! 📅";
-      navigationUrl = `/t/${tenantId}/calendar`;
-      if (onCommand) onCommand('show calendar');
-    } else if (lowerCommand.includes('report')) {
-      response = "Purr-fect! I'll generate a report for you! 📊";
-      navigationUrl = `/t/${tenantId}/reports`;
-      if (onCommand) onCommand('generate report');
-    } else if (lowerCommand.includes('hello') || lowerCommand.includes('hi')) {
-      response = "Meow! Hello there! How can this cute cat help you today? 🐱";
-    } else if (lowerCommand.includes('thank')) {
-      response = "Purr! You're so welcome! I'm happy to help! 🐾";
+  // Toggle ambient mode
+  const toggleAmbientMode = () => {
+    if (isAmbientMode) {
+      stopAmbientListening();
+      speak("Meow! I've stopped listening. Click the button to start ambient listening again! 🐾");
     } else {
-      response = "Meow! I heard you say: " + command + ". Let me help you with that! 🐱";
+      setIsAmbientMode(true);
+      startAmbientListening();
+      speak("Meow! I'm now listening ambiently! Just say what you need - like 'show me sales funnel' or 'find Jonathan'! 🐱");
     }
-    
-    // Send response back to LiveKit
-    sendToLiveKit({
-      type: 'response',
-      text: response,
-      timestamp: Date.now(),
-    });
-    
-    // Speak the response
-    speak(response, () => {
-      // Navigate after speaking
-      if (navigationUrl) {
-        console.log('🚀 Navigating to:', navigationUrl);
-        window.location.href = navigationUrl;
-      }
-      setIsProcessing(false);
-      setAvatarState(isListening ? 'listening' : 'idle');
-    });
-  };
-
-  // Simulate voice input for testing
-  const simulateVoiceInput = (text: string) => {
-    console.log('🎤 Simulating voice input:', text);
-    setTranscript(text);
-    processVoiceCommand(text);
   };
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
+      stopAmbientListening();
+      cleanupAudioMonitoring();
       if (roomRef.current) {
         roomRef.current.disconnect();
       }
-      cleanupAudioMonitoring();
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
       }
     };
   }, []);
+
+  // Periodic check to ensure speech recognition is running
+  useEffect(() => {
+    if (isConnected && isAmbientMode && !isProcessingCommand) {
+      const checkInterval = setInterval(() => {
+        if (isConnected && isAmbientMode && !isProcessingCommand && !isListening && !isSpeaking) {
+          console.log('🔄 Periodic check: Restarting speech recognition...');
+          startAmbientListening();
+        }
+      }, 5000); // Check every 5 seconds
+
+      return () => clearInterval(checkInterval);
+    }
+  }, [isConnected, isAmbientMode, isProcessingCommand, isListening, isSpeaking]);
 
   // Cute Cat Avatar Component with audio level visualization
   const CuteCatAvatar = () => {
@@ -376,120 +805,90 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
         {/* Cat Head */}
         <div className={`relative w-32 h-32 rounded-full transition-all duration-500 ${
           avatarState === 'listening' ? 'bg-gradient-to-br from-orange-300 to-orange-500 shadow-lg shadow-orange-200' :
-          avatarState === 'speaking' ? 'bg-gradient-to-br from-blue-300 to-purple-500 shadow-lg shadow-blue-200' :
-          avatarState === 'thinking' ? 'bg-gradient-to-br from-yellow-300 to-orange-500 shadow-lg shadow-yellow-200' :
-          'bg-gradient-to-br from-orange-200 to-orange-400'
+          avatarState === 'speaking' ? 'bg-gradient-to-br from-blue-300 to-blue-500 shadow-lg shadow-blue-200' :
+          avatarState === 'thinking' ? 'bg-gradient-to-br from-yellow-300 to-yellow-500 shadow-lg shadow-yellow-200' :
+          'bg-gradient-to-br from-gray-300 to-gray-500 shadow-lg shadow-gray-200'
         }`}>
-          
-          {/* Cat Ears */}
-          <div className="absolute -top-2 left-4 w-6 h-8 bg-orange-400 rounded-t-full transform rotate-12"></div>
-          <div className="absolute -top-2 right-4 w-6 h-8 bg-orange-400 rounded-t-full transform -rotate-12"></div>
+          {/* Ears */}
+          <div className="absolute -top-2 left-6 w-8 h-8 bg-orange-400 rounded-tl-full rounded-tr-full transform -rotate-12"></div>
+          <div className="absolute -top-2 right-6 w-8 h-8 bg-orange-400 rounded-tl-full rounded-tr-full transform rotate-12"></div>
           
           {/* Inner Ears */}
-          <div className="absolute -top-1 left-5 w-3 h-4 bg-pink-300 rounded-t-full transform rotate-12"></div>
-          <div className="absolute -top-1 right-5 w-3 h-4 bg-pink-300 rounded-t-full transform -rotate-12"></div>
+          <div className="absolute top-0 left-7 w-4 h-4 bg-pink-300 rounded-full transform -rotate-12"></div>
+          <div className="absolute top-0 right-7 w-4 h-4 bg-pink-300 rounded-full transform rotate-12"></div>
 
-          {/* Cat Eyes */}
-          <div className="absolute top-8 left-1/2 transform -translate-x-1/2 flex space-x-3">
-            <div className={`w-4 h-4 rounded-full transition-all duration-300 ${
-              avatarState === 'listening' ? 'bg-green-600 animate-pulse' :
-              avatarState === 'speaking' ? 'bg-blue-600 animate-bounce' :
-              avatarState === 'thinking' ? 'bg-yellow-600 animate-spin' :
-              'bg-green-700'
-            }`}>
-              <div className="w-2 h-2 bg-white rounded-full absolute top-1 left-1"></div>
-            </div>
-            <div className={`w-4 h-4 rounded-full transition-all duration-300 ${
-              avatarState === 'listening' ? 'bg-green-600 animate-pulse' :
-              avatarState === 'speaking' ? 'bg-blue-600 animate-bounce' :
-              avatarState === 'thinking' ? 'bg-yellow-600 animate-spin' :
-              'bg-green-700'
-            }`}>
-              <div className="w-2 h-2 bg-white rounded-full absolute top-1 left-1"></div>
-            </div>
+          {/* Eyes */}
+          <div className="absolute top-8 left-8 w-6 h-6 bg-white rounded-full flex items-center justify-center">
+            <div className={`w-3 h-3 rounded-full transition-all duration-300 ${
+              avatarState === 'listening' ? 'bg-green-500 animate-pulse' :
+              avatarState === 'speaking' ? 'bg-blue-500 animate-bounce' :
+              avatarState === 'thinking' ? 'bg-yellow-500 animate-spin' :
+              'bg-gray-600'
+            }`}></div>
+          </div>
+          <div className="absolute top-8 right-8 w-6 h-6 bg-white rounded-full flex items-center justify-center">
+            <div className={`w-3 h-3 rounded-full transition-all duration-300 ${
+              avatarState === 'listening' ? 'bg-green-500 animate-pulse' :
+              avatarState === 'speaking' ? 'bg-blue-500 animate-bounce' :
+              avatarState === 'thinking' ? 'bg-yellow-500 animate-spin' :
+              'bg-gray-600'
+            }`}></div>
           </div>
 
-          {/* Cat Nose */}
-          <div className="absolute top-12 left-1/2 transform -translate-x-1/2 w-3 h-2 bg-pink-400 rounded-full"></div>
+          {/* Nose */}
+          <div className="absolute top-12 left-1/2 transform -translate-x-1/2 w-4 h-3 bg-pink-500 rounded-full"></div>
+          
+          {/* Mouth */}
+          <div className="absolute top-16 left-1/2 transform -translate-x-1/2 w-8 h-4 border-b-2 border-gray-600 rounded-b-full"></div>
 
-          {/* Cat Mouth */}
-          <div className="absolute top-14 left-1/2 transform -translate-x-1/2">
-            {avatarState === 'listening' ? (
-              <div className="flex space-x-1">
-                <div className="w-1 h-1 bg-black rounded-full"></div>
-                <div className="w-1 h-1 bg-black rounded-full"></div>
-              </div>
-            ) : avatarState === 'speaking' ? (
-              <div className="w-6 h-3 bg-pink-300 rounded-full animate-pulse"></div>
-            ) : avatarState === 'thinking' ? (
-              <div className="w-4 h-1 bg-pink-400 rounded-full animate-pulse"></div>
-            ) : (
-              <div className="flex space-x-1">
-                <div className="w-1 h-1 bg-black rounded-full"></div>
-                <div className="w-1 h-1 bg-black rounded-full"></div>
-              </div>
-            )}
-          </div>
-
-          {/* Cat Whiskers */}
-          <div className="absolute top-10 left-2 w-8 h-0.5 bg-gray-600 rounded-full"></div>
-          <div className="absolute top-10 right-2 w-8 h-0.5 bg-gray-600 rounded-full"></div>
-          <div className="absolute top-12 left-1 w-6 h-0.5 bg-gray-600 rounded-full"></div>
-          <div className="absolute top-12 right-1 w-6 h-0.5 bg-gray-600 rounded-full"></div>
-
-          {/* LiveKit Microphone Icon for Listening */}
-          {avatarState === 'listening' && (
-            <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2">
-              <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center animate-pulse shadow-lg">
-                <span className="text-white text-sm">🎤</span>
-              </div>
-            </div>
-          )}
-
-          {/* Audio Level Visualization */}
-          {avatarState === 'listening' && audioLevel > 0 && (
-            <div className="absolute -right-3 top-1/2 transform -translate-y-1/2">
-              <div 
-                className="w-2 bg-green-400 rounded-full animate-pulse"
-                style={{ height: `${Math.min(audioLevel * 2, 40)}px` }}
-              ></div>
-            </div>
-          )}
-
-          {/* Sound Waves for Speaking */}
-          {avatarState === 'speaking' && (
-            <>
-              <div className="absolute -right-3 top-1/2 transform -translate-y-1/2">
-                <div className="w-2 h-10 bg-blue-300 rounded-full animate-pulse"></div>
-              </div>
-              <div className="absolute -right-5 top-1/2 transform -translate-y-1/2">
-                <div className="w-2 h-8 bg-blue-200 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-              </div>
-              <div className="absolute -right-7 top-1/2 transform -translate-y-1/2">
-                <div className="w-2 h-6 bg-blue-100 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
-              </div>
-            </>
-          )}
-
-          {/* Thinking Animation */}
-          {avatarState === 'thinking' && (
-            <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-              <div className="flex space-x-1">
-                <div className="w-1 h-1 bg-yellow-400 rounded-full animate-bounce"></div>
-                <div className="w-1 h-1 bg-yellow-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                <div className="w-1 h-1 bg-yellow-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-              </div>
-            </div>
-          )}
+          {/* Whiskers */}
+          <div className="absolute top-14 left-2 w-8 h-0.5 bg-gray-600 transform -rotate-12"></div>
+          <div className="absolute top-16 left-2 w-8 h-0.5 bg-gray-600 transform rotate-12"></div>
+          <div className="absolute top-14 right-2 w-8 h-0.5 bg-gray-600 transform rotate-12"></div>
+          <div className="absolute top-16 right-2 w-8 h-0.5 bg-gray-600 transform -rotate-12"></div>
         </div>
 
-        {/* Status Ring */}
-        <div className={`absolute inset-0 rounded-full border-4 transition-all duration-500 ${
-          avatarState === 'listening' ? 'border-green-300 animate-ping' :
-          avatarState === 'speaking' ? 'border-blue-300 animate-ping' :
-          avatarState === 'thinking' ? 'border-yellow-300 animate-ping' :
-          'border-orange-200'
-        }`}></div>
+        {/* Audio Level Visualization */}
+        {isConnected && isListening && audioLevel > 0 && (
+          <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+            <div className="flex space-x-1">
+              <div 
+                className="w-2 bg-green-400 rounded-full animate-bounce" 
+                style={{ height: `${Math.max(16, audioLevel / 4)}px` }}
+              ></div>
+              <div 
+                className="w-2 bg-green-400 rounded-full animate-bounce" 
+                style={{ height: `${Math.max(24, audioLevel / 3)}px`, animationDelay: '0.1s' }}
+              ></div>
+              <div 
+                className="w-2 bg-green-400 rounded-full animate-bounce" 
+                style={{ height: `${Math.max(16, audioLevel / 4)}px`, animationDelay: '0.2s' }}
+              ></div>
+            </div>
+          </div>
+        )}
+
+        {/* Speaking Animation */}
+        {avatarState === 'speaking' && (
+          <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+            <div className="flex space-x-1">
+              <div className="w-2 h-4 bg-blue-400 rounded-full animate-bounce"></div>
+              <div className="w-2 h-6 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+              <div className="w-2 h-4 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+            </div>
+          </div>
+        )}
+
+        {/* Thinking Animation */}
+        {avatarState === 'thinking' && (
+          <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+            <div className="flex space-x-1">
+              <div className="w-1 h-1 bg-yellow-400 rounded-full animate-bounce"></div>
+              <div className="w-1 h-1 bg-yellow-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+              <div className="w-1 h-1 bg-yellow-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+            </div>
+          </div>
+        )}
       </div>
     );
   };
@@ -498,8 +897,8 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
     <div className="voice-assistant-container bg-gradient-to-br from-orange-50 via-pink-50 to-purple-50 rounded-2xl p-6 shadow-xl border border-orange-200 max-w-md mx-auto">
       {/* Header */}
       <div className="text-center mb-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-1">🐱 LiveKit Cat Assistant</h3>
-        <p className="text-sm text-gray-600">Tokyo Voice AI Hackathon</p>
+        <h3 className="text-xl font-bold text-gray-900 mb-1">🐱 LiveKit + OpenAI TTS Cat</h3>
+        <p className="text-sm text-gray-600">High-Quality Voice • Always Listening</p>
       </div>
 
       {/* Cute Cat Avatar */}
@@ -511,123 +910,109 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
           avatarState === 'listening' ? 'bg-green-100 text-green-800' :
           avatarState === 'speaking' ? 'bg-blue-100 text-blue-800' :
           avatarState === 'thinking' ? 'bg-yellow-100 text-yellow-800' :
-          'bg-orange-100 text-orange-800'
+          'bg-gray-100 text-gray-800'
         }`}>
-          {avatarState === 'listening' && (
-            <>
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-2"></div>
-              🎤 LIVEKIT LISTENING! Speak now!
-            </>
-          )}
-          {avatarState === 'speaking' && (
-            <>
-              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse mr-2"></div>
-              🐱 Cat is speaking... Please wait
-            </>
-          )}
-          {avatarState === 'thinking' && (
-            <>
-              <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse mr-2"></div>
-              🤔 Processing your command...
-            </>
-          )}
-          {avatarState === 'idle' && (
-            <>
-              <div className="w-2 h-2 bg-orange-500 rounded-full mr-2"></div>
-              🐱 Ready to connect to LiveKit
-            </>
-          )}
+          {avatarState === 'listening' && '🎤 LiveKit Listening - Say Something!'}
+          {avatarState === 'speaking' && '🐱 OpenAI TTS Speaking...'}
+          {avatarState === 'thinking' && '🤔 Processing Your Command...'}
+          {avatarState === 'idle' && '😴 Idle - Click to Connect'}
         </div>
-      </div>
-
-      {/* Error Display */}
-      {error && (
-        <div className="mb-4 p-3 bg-red-100 border border-red-300 rounded-lg">
-          <p className="text-sm text-red-700">{error}</p>
-        </div>
-      )}
-
-      {/* Controls */}
-      <div className="space-y-3 mb-6">
-        {!isConnected ? (
-          <button
-            onClick={connectToRoom}
-            className="w-full px-6 py-4 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-xl hover:from-orange-600 hover:to-pink-600 transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
-          >
-            🎤 Connect to LiveKit
-          </button>
-        ) : (
-          <div className="flex space-x-3">
-            <button
-              onClick={disconnectFromRoom}
-              className="flex-1 px-4 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium"
-            >
-              Disconnect
-            </button>
-            
-            {isSpeaking && (
-              <button
-                onClick={stopSpeaking}
-                className="flex-1 px-4 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium"
-              >
-                Stop Speaking
-              </button>
-            )}
-          </div>
-        )}
       </div>
 
       {/* Transcript Display */}
       {transcript && (
-        <div className="mb-6 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
-          <h4 className="text-sm font-semibold text-gray-700 mb-2">LiveKit heard:</h4>
-          <p className="text-gray-900 italic">"{transcript}"</p>
+        <div className="mb-6 p-4 bg-white rounded-lg shadow-inner">
+          <p className="text-sm text-gray-700 italic">"{transcript}"</p>
         </div>
       )}
 
-      {/* Quick Commands */}
-      {isConnected && (
-        <div className="grid grid-cols-2 gap-3 mb-6">
-          <button
-            onClick={() => simulateVoiceInput("Find Jonathan")}
-            className="p-3 bg-blue-100 text-blue-800 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium shadow-sm hover:shadow-md"
-          >
-            👤 Find Jonathan
-          </button>
-          <button
-            onClick={() => simulateVoiceInput("Show contacts")}
-            className="p-3 bg-green-100 text-green-800 rounded-lg hover:bg-green-200 transition-colors text-sm font-medium shadow-sm hover:shadow-md"
-          >
-            📋 All Contacts
-          </button>
-          <button
-            onClick={() => simulateVoiceInput("Show donations")}
-            className="p-3 bg-yellow-100 text-yellow-800 rounded-lg hover:bg-yellow-200 transition-colors text-sm font-medium shadow-sm hover:shadow-md"
-          >
-            💰 Donations
-          </button>
-          <button
-            onClick={() => simulateVoiceInput("Show calendar")}
-            className="p-3 bg-purple-100 text-purple-800 rounded-lg hover:bg-purple-200 transition-colors text-sm font-medium shadow-sm hover:shadow-md"
-          >
-            📅 Calendar
-          </button>
+      {/* Error Display */}
+      {error && (
+        <div className="mb-6 p-4 bg-red-100 border border-red-300 rounded-lg">
+          <p className="text-sm text-red-700">{error}</p>
         </div>
       )}
 
-      {/* Instructions */}
-      {!isConnected && (
-        <div className="p-4 bg-orange-50 rounded-xl border border-orange-200">
-          <h4 className="text-sm font-semibold text-orange-900 mb-2">How to use:</h4>
-          <ul className="text-sm text-orange-800 space-y-1">
-            <li>• Click "Connect to LiveKit" to start</li>
-            <li>• LiveKit will listen to your voice in real-time</li>
-            <li>• Say "Find Jonathan" - LiveKit will process and respond!</li>
-            <li>• Watch the audio level indicator when you speak</li>
-            <li>• The cat shows LiveKit connection status!</li>
+      {/* Control Buttons */}
+      <div className="space-y-3">
+        {!isConnected ? (
+          <button
+            onClick={connectToRoom}
+            className="w-full px-6 py-3 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-full font-medium transition-all duration-300 hover:from-orange-600 hover:to-pink-600 shadow-lg hover:shadow-xl"
+          >
+            🎤 Connect LiveKit + Start Ambient Listening
+          </button>
+        ) : (
+          <>
+            <button
+              onClick={toggleAmbientMode}
+              className={`w-full px-6 py-3 rounded-full font-medium transition-all duration-300 ${
+                isAmbientMode 
+                  ? 'bg-red-500 hover:bg-red-600 text-white' 
+                  : 'bg-green-500 hover:bg-green-600 text-white'
+              }`}
+            >
+              {isAmbientMode ? '🛑 Stop Ambient Listening' : '🎤 Start Ambient Listening'}
+            </button>
+            
+            <button
+              onClick={disconnectFromRoom}
+              className="w-full px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-full font-medium transition-all duration-300"
+            >
+              🔌 Disconnect from LiveKit
+            </button>
+          </>
+        )}
+
+        {isSpeaking && (
+          <button
+            onClick={() => {
+              if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                setIsSpeaking(false);
+                setAvatarState('idle');
+              }
+            }}
+            className="w-full px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full font-medium transition-all duration-300"
+          >
+            🔕 Stop Speaking
+          </button>
+        )}
+      </div>
+
+      {/* Help Text */}
+      <div className="mt-6 space-y-4">
+        <div className="p-4 bg-blue-50 rounded-lg">
+          <h4 className="text-sm font-semibold text-blue-900 mb-2">🎤 LiveKit + OpenAI TTS Features:</h4>
+          <ul className="text-xs text-blue-800 space-y-1">
+            <li>• Real-time LiveKit WebRTC connection</li>
+            <li>• High-quality OpenAI TTS voices</li>
+            <li>• Ambient listening with speech recognition</li>
+            <li>• Audio level visualization</li>
+            <li>• Fallback to browser TTS if needed</li>
           </ul>
         </div>
-      )}
+        
+        <div className="p-4 bg-green-50 rounded-lg">
+          <h4 className="text-sm font-semibold text-green-900 mb-2">🗣️ Voice Commands:</h4>
+          <ul className="text-xs text-green-800 space-y-1">
+            <li>• "Show me sales pipeline" or "pipeline"</li>
+            <li>• "Donations this quarter" or "revenue"</li>
+            <li>• "Biggest donor this quarter"</li>
+            <li>• "Find Jonathan" or "contacts"</li>
+            <li>• "Calendar" or "meetings"</li>
+            <li>• "Reports" or "analytics"</li>
+            <li>• "What's the weather like in Tokyo?" 🌤️</li>
+            <li>• "How's the weather?" or "Weather forecast"</li>
+            <li>• "What would you suggest to get donations up?" 💡</li>
+            <li>• "Donation advice" or "Fundraising tips"</li>
+            <li>• "QUESTION: What is artificial intelligence?" 🤔</li>
+            <li>• "QUESTION: How does machine learning work?"</li>
+            <li>• "Stop" or "Stop talking" 🔕</li>
+            <li>• "Find Takua", "Find Hong", "Find Datz"</li>
+          </ul>
+        </div>
+      </div>
     </div>
   );
 }
