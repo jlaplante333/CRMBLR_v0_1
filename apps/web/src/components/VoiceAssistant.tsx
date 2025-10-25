@@ -219,7 +219,7 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
 
     const lowerCommand = command.toLowerCase();
     console.log('🔍 Lower command:', lowerCommand);
-    let responseText = "Purr-fect! Let me help you with that! 🐱";
+    let responseText = "Perfect! Let me help you with that!";
     let navigateTo: string | null = null;
 
     // Enhanced command recognition
@@ -230,44 +230,44 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
       setAvatarState('idle');
       return; // Don't continue processing
     } else if (lowerCommand.includes('sales') || lowerCommand.includes('funnel') || lowerCommand.includes('pipeline')) {
-      responseText = "Meow! Let me show you the sales pipeline! 📊";
+      responseText = "Let me show you the sales pipeline!";
       navigateTo = `/t/${tenantId}/pipeline`;
     } else if (lowerCommand.includes('donations') || lowerCommand.includes('quarter') || lowerCommand.includes('revenue')) {
-      responseText = "Purr-fect! Opening donations for this quarter! 💰";
+      responseText = "Perfect! Opening donations for this quarter!";
       navigateTo = `/t/${tenantId}/donations`;
     } else if (lowerCommand.includes('biggest donation') || lowerCommand.includes('biggest donor') || lowerCommand.includes('top donor') || lowerCommand.includes('largest donation') || lowerCommand.includes('biggest donor this quarter') || lowerCommand.includes('who is the biggest donor')) {
       // Check if we're on the donations page and can access the biggest donation info
       if (typeof window !== 'undefined' && (window as any).biggestDonationInfo) {
         const info = (window as any).biggestDonationInfo;
         if (lowerCommand.includes('quarter')) {
-          responseText = `Meow! Alex Inc is the biggest donor this quarter with $${info.amount.toLocaleString()} donated on ${info.date}! 🏆💰`;
+          responseText = `Alex Inc is the biggest donor this quarter with $${info.amount.toLocaleString()} donated on ${info.date}!`;
         } else {
-          responseText = `Meow! The biggest donor is ${info.donor} with $${info.amount.toLocaleString()} donated on ${info.date}! 🏆💰`;
+          responseText = `The biggest donor is ${info.donor} with $${info.amount.toLocaleString()} donated on ${info.date}!`;
         }
       } else {
-        responseText = "Purr-fect! Let me show you the donations page to find the biggest donor this quarter! 💰";
+        responseText = "Perfect! Let me show you the donations page to find the biggest donor this quarter!";
         navigateTo = `/t/${tenantId}/donations`;
       }
     } else if (lowerCommand.includes('contacts') || lowerCommand.includes('people') || lowerCommand.includes('customers')) {
-      responseText = "Right meow! Opening your contacts! 👥";
+      responseText = "Opening your contacts!";
       navigateTo = `/t/${tenantId}/contacts`;
     } else if (lowerCommand.includes('calendar') || lowerCommand.includes('meeting') || lowerCommand.includes('schedule')) {
-      responseText = "Meow! Let's check your calendar! 📅";
+      responseText = "Let's check your calendar!";
       navigateTo = `/t/${tenantId}/calendar`;
     } else if (lowerCommand.includes('reports') || lowerCommand.includes('analytics') || lowerCommand.includes('data')) {
-      responseText = "Purr-fect! Generating your reports! 📈";
+      responseText = "Perfect! Generating your reports!";
       navigateTo = `/t/${tenantId}/reports`;
     } else if (lowerCommand.includes('find') && lowerCommand.includes('jonathan')) {
-      responseText = "Purr-fect! Let me find Jonathan for you right meow! 🐱";
+      responseText = "Perfect! Let me find Jonathan for you!";
       navigateTo = `/t/${tenantId}/contacts?search=Jonathan`;
     } else if (lowerCommand.includes('find') && lowerCommand.includes('takua')) {
-      responseText = "Meow! Finding Takua for you! 🐾";
+      responseText = "Finding Takua for you!";
       navigateTo = `/t/${tenantId}/contacts?search=Takua`;
     } else if (lowerCommand.includes('find') && lowerCommand.includes('hong')) {
-      responseText = "Purr-fect! Let me find Hong for you! 🐱";
+      responseText = "Perfect! Let me find Hong for you!";
       navigateTo = `/t/${tenantId}/contacts?search=Hong`;
     } else if (lowerCommand.includes('find') && lowerCommand.includes('datz')) {
-      responseText = "Meow! Finding Datz for you! 🐾";
+      responseText = "Finding Datz for you!";
       navigateTo = `/t/${tenantId}/contacts?search=Datz`;
     } else if (lowerCommand.includes('weather') || lowerCommand.includes('temperature') || lowerCommand.includes('climate') || 
                lowerCommand.includes('what\'s the weather') || lowerCommand.includes('how\'s the weather') || 
@@ -291,13 +291,13 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
 
         if (response.ok) {
           const data = await response.json();
-          responseText = `🌤️ ${data.answer}`;
+          responseText = `${data.answer}`;
         } else {
-          responseText = "Meow! I couldn't get the weather information right now. Please try again later! 😿";
+          responseText = "I couldn't get the weather information right now. Please try again later!";
         }
       } catch (error) {
         console.error('Weather query error:', error);
-        responseText = "Meow! I'm having trouble getting weather information. Please try again! 😿";
+        responseText = "I'm having trouble getting weather information. Please try again!";
       }
       
       speak(responseText, () => {
@@ -329,13 +329,13 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
 
         if (response.ok) {
           const data = await response.json();
-          responseText = `💡 ${data.answer}`;
+          responseText = `${data.answer}`;
         } else {
-          responseText = "Meow! I couldn't get donation advice right now. Please try again later! 😿";
+          responseText = "I couldn't get donation advice right now. Please try again later!";
         }
       } catch (error) {
         console.error('Donation advice query error:', error);
-        responseText = "Meow! I'm having trouble getting donation advice. Please try again! 😿";
+        responseText = "I'm having trouble getting donation advice. Please try again!";
       }
 
       speak(responseText, () => {
@@ -367,13 +367,13 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
 
         if (response.ok) {
           const data = await response.json();
-          responseText = `🤔 ${data.answer}`;
+          responseText = `${data.answer}`;
         } else {
-          responseText = "Meow! I couldn't answer that question right now. Please try again later! 😿";
+          responseText = "I couldn't answer that question right now. Please try again later!";
         }
       } catch (error) {
         console.error('General question query error:', error);
-        responseText = "Meow! I'm having trouble answering that question. Please try again! 😿";
+        responseText = "I'm having trouble answering that question. Please try again!";
       }
 
       speak(responseText, () => {
@@ -388,9 +388,9 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
       });
       return; // Don't continue with normal processing
     } else if (lowerCommand.includes('help') || lowerCommand.includes('what can you do')) {
-      responseText = "Meow! I can help you navigate to sales pipeline, donations, contacts, calendar, reports, find specific people like Jonathan, Takua, Hong, or Datz, tell you about the biggest donor this quarter, check the weather in Tokyo, get donation advice, answer any general question, or say 'stop' to stop me talking! Just say what you need! 🐱";
+      responseText = "I can help you navigate to sales pipeline, donations, contacts, calendar, reports, find specific people like Jonathan, Takua, Hong, or Datz, tell you about the biggest donor this quarter, check the weather in Tokyo, get donation advice, answer any general question, or say 'stop' to stop me talking! Just say what you need!";
     } else {
-      responseText = "I'm not sure how to do that yet, but I'm learning! Try saying 'sales pipeline', 'donations', 'contacts', 'find Jonathan', start with 'QUESTION' followed by your question, or say 'stop' to stop me talking! Meow! 🐾";
+      responseText = "I'm not sure how to do that yet, but I'm learning! Try saying 'sales pipeline', 'donations', 'contacts', 'find Jonathan', start with 'QUESTION' followed by your question, or say 'stop' to stop me talking!";
     }
 
     speak(responseText, () => {
@@ -666,7 +666,7 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
         // Auto-greet user with high-quality voice (only once)
         if (!hasIntroduced) {
           setHasIntroduced(true);
-          speak("Meow! I'm connected to LiveKit and listening ambiently! Just say what you need - like 'show me sales funnel' or 'find Jonathan'! 🐱");
+          speak("I'm connected to LiveKit and listening ambiently! Just say what you need - like 'show me sales funnel' or 'find Jonathan'!");
         }
       });
 
@@ -762,11 +762,11 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
   const toggleAmbientMode = () => {
     if (isAmbientMode) {
       stopAmbientListening();
-      speak("Meow! I've stopped listening. Click the button to start ambient listening again! 🐾");
+      speak("I've stopped listening. Click the button to start ambient listening again!");
     } else {
       setIsAmbientMode(true);
       startAmbientListening();
-      speak("Meow! I'm now listening ambiently! Just say what you need - like 'show me sales funnel' or 'find Jonathan'! 🐱");
+      speak("I'm now listening ambiently! Just say what you need - like 'show me sales funnel' or 'find Jonathan'!");
     }
   };
 
@@ -897,7 +897,7 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
     <div className="voice-assistant-container bg-gradient-to-br from-orange-50 via-pink-50 to-purple-50 rounded-2xl p-6 shadow-xl border border-orange-200 max-w-md mx-auto">
       {/* Header */}
       <div className="text-center mb-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-1">🐱 LiveKit + OpenAI TTS Cat</h3>
+        <h3 className="text-xl font-bold text-gray-900 mb-1">LiveKit + OpenAI TTS Assistant</h3>
         <p className="text-sm text-gray-600">High-Quality Voice • Always Listening</p>
       </div>
 
@@ -912,10 +912,10 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
           avatarState === 'thinking' ? 'bg-yellow-100 text-yellow-800' :
           'bg-gray-100 text-gray-800'
         }`}>
-          {avatarState === 'listening' && '🎤 LiveKit Listening - Say Something!'}
-          {avatarState === 'speaking' && '🐱 OpenAI TTS Speaking...'}
-          {avatarState === 'thinking' && '🤔 Processing Your Command...'}
-          {avatarState === 'idle' && '😴 Idle - Click to Connect'}
+          {avatarState === 'listening' && 'LiveKit Listening - Say Something!'}
+          {avatarState === 'speaking' && 'OpenAI TTS Speaking...'}
+          {avatarState === 'thinking' && 'Processing Your Command...'}
+          {avatarState === 'idle' && 'Idle - Click to Connect'}
         </div>
       </div>
 
@@ -940,7 +940,7 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
             onClick={connectToRoom}
             className="w-full px-6 py-3 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-full font-medium transition-all duration-300 hover:from-orange-600 hover:to-pink-600 shadow-lg hover:shadow-xl"
           >
-            🎤 Connect LiveKit + Start Ambient Listening
+            Connect LiveKit + Start Ambient Listening
           </button>
         ) : (
           <>
@@ -952,7 +952,7 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
                   : 'bg-green-500 hover:bg-green-600 text-white'
               }`}
             >
-              {isAmbientMode ? '🛑 Stop Ambient Listening' : '🎤 Start Ambient Listening'}
+              {isAmbientMode ? 'Stop Ambient Listening' : 'Start Ambient Listening'}
             </button>
             
             <button
@@ -975,7 +975,7 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
             }}
             className="w-full px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full font-medium transition-all duration-300"
           >
-            🔕 Stop Speaking
+            Stop Speaking
           </button>
         )}
       </div>
@@ -983,7 +983,7 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
       {/* Help Text */}
       <div className="mt-6 space-y-4">
         <div className="p-4 bg-blue-50 rounded-lg">
-          <h4 className="text-sm font-semibold text-blue-900 mb-2">🎤 LiveKit + OpenAI TTS Features:</h4>
+          <h4 className="text-sm font-semibold text-blue-900 mb-2">LiveKit + OpenAI TTS Features:</h4>
           <ul className="text-xs text-blue-800 space-y-1">
             <li>• Real-time LiveKit WebRTC connection</li>
             <li>• High-quality OpenAI TTS voices</li>
@@ -994,7 +994,7 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
         </div>
         
         <div className="p-4 bg-green-50 rounded-lg">
-          <h4 className="text-sm font-semibold text-green-900 mb-2">🗣️ Voice Commands:</h4>
+          <h4 className="text-sm font-semibold text-green-900 mb-2">Voice Commands:</h4>
           <ul className="text-xs text-green-800 space-y-1">
             <li>• "Show me sales pipeline" or "pipeline"</li>
             <li>• "Donations this quarter" or "revenue"</li>
@@ -1002,13 +1002,13 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
             <li>• "Find Jonathan" or "contacts"</li>
             <li>• "Calendar" or "meetings"</li>
             <li>• "Reports" or "analytics"</li>
-            <li>• "What's the weather like in Tokyo?" 🌤️</li>
+            <li>• "What's the weather like in Tokyo?"</li>
             <li>• "How's the weather?" or "Weather forecast"</li>
-            <li>• "What would you suggest to get donations up?" 💡</li>
+            <li>• "What would you suggest to get donations up?"</li>
             <li>• "Donation advice" or "Fundraising tips"</li>
-            <li>• "QUESTION: What is artificial intelligence?" 🤔</li>
+            <li>• "QUESTION: What is artificial intelligence?"</li>
             <li>• "QUESTION: How does machine learning work?"</li>
-            <li>• "Stop" or "Stop talking" 🔕</li>
+            <li>• "Stop" or "Stop talking"</li>
             <li>• "Find Takua", "Find Hong", "Find Datz"</li>
           </ul>
         </div>
