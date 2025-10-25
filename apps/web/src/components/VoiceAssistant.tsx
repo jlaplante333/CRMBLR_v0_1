@@ -209,6 +209,13 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
       return;
     }
     
+    // Additional validation - ensure it's a real command
+    const commandWords = normalizedCommand.split(' ');
+    if (commandWords.length < 2 && !normalizedCommand.includes('help') && !normalizedCommand.includes('stop')) {
+      console.log('🚫 Command too short or not specific enough:', command);
+      return;
+    }
+    
     console.log('🎯 Processing command:', command);
     lastProcessedCommand.current = normalizedCommand;
     setIsProcessingCommand(true);
@@ -390,7 +397,7 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
     } else if (lowerCommand.includes('help') || lowerCommand.includes('what can you do')) {
       responseText = "I can help you navigate to sales pipeline, donations, contacts, calendar, reports, find specific people like Jonathan, Takua, Hong, or Datz, tell you about the biggest donor this quarter, check the weather in Tokyo, get donation advice, answer any general question, or say 'stop' to stop me talking! Just say what you need!";
     } else {
-      responseText = "I'm not sure how to do that yet, but I'm learning! Try saying 'sales pipeline', 'donations', 'contacts', 'find Jonathan', start with 'QUESTION' followed by your question, or say 'stop' to stop me talking!";
+      responseText = "I didn't quite catch that. Try saying 'sales pipeline', 'donations', 'contacts', 'find Jonathan', or ask a question starting with 'QUESTION'.";
     }
 
     speak(responseText, () => {
@@ -537,15 +544,34 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
         
         // Noise filtering - ignore very short or low-confidence commands
         const trimmedTranscript = finalTranscript.trim();
-        if (trimmedTranscript.length < 3) {
+        if (trimmedTranscript.length < 5) { // Increased from 3 to 5 characters
           console.log('🚫 Ignoring very short command (likely noise):', trimmedTranscript);
           return;
         }
         
         // Check confidence if available
         const result = event.results[event.results.length - 1];
-        if (result && result[0] && result[0].confidence < 0.6) {
+        if (result && result[0] && result[0].confidence < 0.8) { // Increased from 0.6 to 0.8
           console.log('🚫 Ignoring low-confidence command:', trimmedTranscript, 'confidence:', result[0].confidence);
+          return;
+        }
+        
+        // Additional noise filtering - ignore common noise patterns
+        const lowerTranscript = trimmedTranscript.toLowerCase();
+        const noisePatterns = [
+          'uh', 'um', 'ah', 'eh', 'oh', 'mm', 'hmm', 'huh',
+          'yeah', 'yes', 'no', 'ok', 'okay', 'right', 'sure',
+          'hello', 'hi', 'hey', 'test', 'testing', 'mic', 'microphone'
+        ];
+        
+        if (noisePatterns.includes(lowerTranscript)) {
+          console.log('🚫 Ignoring common noise pattern:', trimmedTranscript);
+          return;
+        }
+        
+        // Ignore single words that are likely noise
+        if (lowerTranscript.split(' ').length === 1 && lowerTranscript.length < 8) {
+          console.log('🚫 Ignoring single word (likely noise):', trimmedTranscript);
           return;
         }
         
@@ -564,11 +590,16 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
         
         // Only process if not already processing and not during initial introduction
         if (!isProcessingCommand && !isSpeaking && !isProcessing) {
-          processVoiceCommand(finalTranscript).catch(error => {
-            console.error('Error processing voice command:', error);
-            setIsProcessing(false);
-            setIsProcessingCommand(false);
-          });
+          // Add a small delay to prevent immediate processing of ambient noise
+          setTimeout(() => {
+            if (!isProcessingCommand && !isSpeaking && !isProcessing) {
+              processVoiceCommand(finalTranscript).catch(error => {
+                console.error('Error processing voice command:', error);
+                setIsProcessing(false);
+                setIsProcessingCommand(false);
+              });
+            }
+          }, 500); // 500ms delay to filter out quick ambient noise
         } else {
           console.log('🚫 Speech recognition detected command but already processing or speaking, ignoring:', finalTranscript);
         }
