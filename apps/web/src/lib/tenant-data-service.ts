@@ -193,13 +193,13 @@ const TENANT_DATA_CONFIGS: Record<string, Partial<TenantDashboardData>> = {
 
   'tokyo-voice-ai': {
     metrics: {
-      yearToDate: 25000,
-      last30Days: 15000,
-      totalDonors: 7,
+      yearToDate: 30000,
+      last30Days: 20000,
+      totalDonors: 8,
       avgEngagementScore: 95,
     },
     requiresAttention: {
-      count: 3,
+      count: 4,
       message: "hackathon participants and sponsors need follow-up",
     },
     grantDeadlines: [
@@ -207,20 +207,23 @@ const TENANT_DATA_CONFIGS: Record<string, Partial<TenantDashboardData>> = {
       { name: "Voice AI Innovation Grant", applicationDate: "Nov 15, 2025", daysRemaining: 21 },
       { name: "Ameba Partnership Proposal", applicationDate: "Dec 01, 2025", daysRemaining: 37 },
       { name: "Alex.Inc Collaboration", applicationDate: "Nov 30, 2025", daysRemaining: 36 },
+      { name: "CyberAce Security Partnership", applicationDate: "Dec 15, 2025", daysRemaining: 51 },
     ],
     donorCultivation: [
       { name: "Buddy.AI", lastContact: "Today", action: "Schedule partnership meeting" },
       { name: "Alex.Inc", lastContact: "Today", action: "Follow up on collaboration proposal" },
       { name: "Bye: AI", lastContact: "Today", action: "Schedule technical integration call" },
+      { name: "CyberAce", lastContact: "Today", action: "Discuss security integration partnership" },
       { name: "Yosuke Yasuda", lastContact: "Today", action: "Review dual role as hacker/sponsor" },
       { name: "Jonathan (Team Lead)", lastContact: "Today", action: "Review demo presentation" },
     ],
     pipelineOverview: {
-      identified: 7,
-      inCultivation: 4,
+      identified: 8,
+      inCultivation: 5,
       atRisk: 0,
     },
     recentDonations: [
+      { donorName: "CyberAce (Sponsor)", amount: 5000, date: "October 25, 2025" },
       { donorName: "Yosuke Yasuda (Sponsor)", amount: 5000, date: "October 25, 2025" },
       { donorName: "Alex.Inc (Sponsor)", amount: 4000, date: "October 25, 2025" },
       { donorName: "Bye: AI (Sponsor)", amount: 3000, date: "October 25, 2025" },
@@ -228,7 +231,7 @@ const TENANT_DATA_CONFIGS: Record<string, Partial<TenantDashboardData>> = {
       { donorName: "Hackathon Prize Pool", amount: 3000, date: "October 25, 2025" },
     ],
     activeCampaigns: [
-      { name: "Voice AI Hackathon Campaign", currentAmount: 25000, targetAmount: 30000, progressPercentage: 83 },
+      { name: "Voice AI Hackathon Campaign", currentAmount: 30000, targetAmount: 35000, progressPercentage: 86 },
     ],
   },
 };
