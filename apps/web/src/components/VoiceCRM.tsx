@@ -14,6 +14,31 @@ export function VoiceCRM({ tenantId }: VoiceCRMProps) {
   const [isListening, setIsListening] = useState(false);
   const [manualCommand, setManualCommand] = useState('');
 
+  // Function to extract contact name from voice command
+  const extractContactName = (command: string): string | null => {
+    // Common patterns for contact queries
+    const patterns = [
+      /show me contact (\w+)/i,
+      /show contact (\w+)/i,
+      /find contact (\w+)/i,
+      /search contact (\w+)/i,
+      /look for contact (\w+)/i,
+      /contact (\w+)/i,
+      /show me (\w+)/i,
+      /find (\w+)/i,
+      /search (\w+)/i,
+    ];
+    
+    for (const pattern of patterns) {
+      const match = command.match(pattern);
+      if (match && match[1]) {
+        return match[1];
+      }
+    }
+    
+    return null;
+  };
+
   const handleVoiceCommand = (command: string) => {
     console.log('Voice command received:', command);
     
@@ -32,15 +57,33 @@ export function VoiceCRM({ tenantId }: VoiceCRMProps) {
       window.location.href = `/t/${tenantId}/contacts?action=create`;
     }
     
+    // Enhanced contact queries - handle specific contact names
     if (command.includes('show') && command.includes('contact')) {
-      window.location.href = `/t/${tenantId}/contacts`;
+      // Extract contact name from command
+      const contactName = extractContactName(command);
+      if (contactName) {
+        // Navigate to contacts page with search parameter
+        window.location.href = `/t/${tenantId}/contacts?search=${encodeURIComponent(contactName)}`;
+      } else {
+        // General contacts page
+        window.location.href = `/t/${tenantId}/contacts`;
+      }
     }
     
-    if (command.includes('search') && command.includes('contact')) {
-      // Focus on search input
-      const searchInput = document.querySelector('input[type="search"]') as HTMLInputElement;
-      if (searchInput) {
-        searchInput.focus();
+    // Handle "find contact" or "search contact" with specific names
+    if ((command.includes('find') || command.includes('search')) && command.includes('contact')) {
+      const contactName = extractContactName(command);
+      if (contactName) {
+        window.location.href = `/t/${tenantId}/contacts?search=${encodeURIComponent(contactName)}`;
+      } else {
+        // Focus on search input
+        setTimeout(() => {
+          const searchInput = document.querySelector('input[type="search"]') as HTMLInputElement;
+          if (searchInput) {
+            searchInput.focus();
+          }
+        }, 1000);
+        window.location.href = `/t/${tenantId}/contacts`;
       }
     }
 
@@ -153,6 +196,12 @@ export function VoiceCRM({ tenantId }: VoiceCRMProps) {
           📞 New Contact
         </button>
         <button
+          onClick={() => handleVoiceCommand('show me contact Jonathan')}
+          className="p-3 bg-blue-100 text-blue-800 rounded-lg hover:bg-blue-200 transition-colors text-sm"
+        >
+          👤 Find Jonathan
+        </button>
+        <button
           onClick={() => handleVoiceCommand('show donations')}
           className="p-3 bg-green-100 text-green-800 rounded-lg hover:bg-green-200 transition-colors text-sm"
         >
@@ -169,6 +218,12 @@ export function VoiceCRM({ tenantId }: VoiceCRMProps) {
           className="p-3 bg-orange-100 text-orange-800 rounded-lg hover:bg-orange-200 transition-colors text-sm"
         >
           📊 Reports
+        </button>
+        <button
+          onClick={() => handleVoiceCommand('show contacts')}
+          className="p-3 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition-colors text-sm"
+        >
+          📋 All Contacts
         </button>
       </div>
     </div>
