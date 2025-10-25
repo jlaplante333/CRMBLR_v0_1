@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Room, RoomEvent, RemoteParticipant, LocalParticipant } from 'livekit-client';
 import { LiveKitRoom, VideoConference, GridLayout, ParticipantTile, ControlBar, useTracks } from '@livekit/components-react';
-import '@livekit/components-styles';
+// import '@livekit/components-styles'; // Removed - causing module resolution error
 
 interface VoiceAssistantProps {
   tenantId: string;
