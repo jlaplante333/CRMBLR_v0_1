@@ -118,6 +118,27 @@ export const DEMO_WEBSITE_BRANDING: Record<string, WebsiteBranding> = {
     },
     logoUrl: homeboyLogo.src,
     tagline: 'Jobs Not Jails - Social Enterprise'
+  },
+  
+  'tokyo-voice-ai': {
+    // Tokyo Voice AI Hackathon - "Hack the Daily Life at Ameba"
+    primary: '#ff6b35',      // Vibrant orange from hackathon theme
+    secondary: '#f7931e',    // Golden orange
+    accent: '#06ffa5',       // Electric green accent
+    background: '#f8fafc',   // Clean white background
+    text: '#1a202c',         // Dark text
+    muted: '#4a5568',        // Muted text
+    border: '#e2e8f0',       // Light border
+    success: '#06ffa5',      // Electric green for success
+    warning: '#ffd23f',      // Bright yellow for warnings
+    error: '#ff6b35',        // Orange-red for errors
+    fonts: {
+      heading: 'Inter, system-ui, sans-serif',
+      body: 'Inter, system-ui, sans-serif',
+      numeric: 'Inter, system-ui, sans-serif'
+    },
+    logoUrl: '/brand/tokyo-voice-ai.svg',
+    tagline: 'Hack the Daily Life at Ameba - Voice AI Innovation'
   }
 };
 

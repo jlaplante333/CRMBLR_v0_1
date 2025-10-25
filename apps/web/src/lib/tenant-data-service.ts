@@ -190,6 +190,41 @@ const TENANT_DATA_CONFIGS: Record<string, Partial<TenantDashboardData>> = {
       { name: "Jobs Not Jails Campaign", currentAmount: 45000, targetAmount: 75000, progressPercentage: 60 },
     ],
   },
+
+  'tokyo-voice-ai': {
+    metrics: {
+      yearToDate: 15000,
+      last30Days: 5000,
+      totalDonors: 4,
+      avgEngagementScore: 95,
+    },
+    requiresAttention: {
+      count: 2,
+      message: "hackathon participants need follow-up",
+    },
+    grantDeadlines: [
+      { name: "Hackathon Demo Day", applicationDate: "Oct 25, 2025", daysRemaining: 0 },
+      { name: "Voice AI Innovation Grant", applicationDate: "Nov 15, 2025", daysRemaining: 21 },
+      { name: "Ameba Partnership Proposal", applicationDate: "Dec 01, 2025", daysRemaining: 37 },
+    ],
+    donorCultivation: [
+      { name: "Buddy.AI", lastContact: "Today", action: "Schedule partnership meeting" },
+      { name: "Jonathan (Team Lead)", lastContact: "Today", action: "Review demo presentation" },
+    ],
+    pipelineOverview: {
+      identified: 4,
+      inCultivation: 2,
+      atRisk: 0,
+    },
+    recentDonations: [
+      { donorName: "Buddy.AI (Sponsor)", amount: 10000, date: "October 25, 2025" },
+      { donorName: "Hackathon Prize Pool", amount: 3000, date: "October 25, 2025" },
+      { donorName: "Ameba Innovation Fund", amount: 2000, date: "October 24, 2025" },
+    ],
+    activeCampaigns: [
+      { name: "Voice AI Hackathon Campaign", currentAmount: 15000, targetAmount: 20000, progressPercentage: 75 },
+    ],
+  },
 };
 
 // Default fallback data

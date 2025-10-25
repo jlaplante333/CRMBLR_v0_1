@@ -439,4 +439,16 @@ export const DEMO_TENANTS: DemoTenantConfig[] = [
       { email: 'viewer@homeboy.org', password: 'Demo!Homeboy', role: UserRole.VIEWER },
     ],
   },
+  {
+    name: 'Tokyo Voice AI CRM - Hack the Daily Life at Ameba',
+    slug: 'tokyo-voice-ai',
+    palette: ['#ff6b35', '#f7931e', '#ffd23f', '#06ffa5', '#118ab2'],
+    logoUrl: '/brand/tokyo-voice-ai.svg',
+    users: [
+      { email: 'jonathan@tokyo-voice-ai.com', password: 'Demo!Tokyo', role: UserRole.OWNER },
+      { email: 'amit@tokyo-voice-ai.com', password: 'Demo!Tokyo', role: UserRole.ADMIN },
+      { email: 'tatsuya@tokyo-voice-ai.com', password: 'Demo!Tokyo', role: UserRole.EDITOR },
+      { email: 'natsuko@tokyo-voice-ai.com', password: 'Demo!Tokyo', role: UserRole.EDITOR },
+    ],
+  },
 ];
