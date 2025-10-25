@@ -12,6 +12,7 @@ export function VoiceCRM({ tenantId }: VoiceCRMProps) {
   const { currentUser } = useCurrentUser();
   const [voiceCommands, setVoiceCommands] = useState<string[]>([]);
   const [isListening, setIsListening] = useState(false);
+  const [manualCommand, setManualCommand] = useState('');
 
   const handleVoiceCommand = (command: string) => {
     console.log('Voice command received:', command);
@@ -19,8 +20,10 @@ export function VoiceCRM({ tenantId }: VoiceCRMProps) {
     // Add command to history
     setVoiceCommands(prev => [...prev.slice(-9), command]);
     
-    // Process command
-    processVoiceCommand(command.toLowerCase());
+    // Process command after a short delay to allow for speech response
+    setTimeout(() => {
+      processVoiceCommand(command.toLowerCase());
+    }, 1500); // Wait 1.5 seconds for the voice response to finish
   };
 
   const processVoiceCommand = (command: string) => {
@@ -109,6 +112,37 @@ export function VoiceCRM({ tenantId }: VoiceCRMProps) {
           </div>
         </div>
       )}
+
+      {/* Manual Command Input */}
+      <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+        <h4 className="text-xs font-semibold text-gray-700 mb-2">Try a voice command:</h4>
+        <div className="flex space-x-2">
+          <input
+            type="text"
+            value={manualCommand}
+            onChange={(e) => setManualCommand(e.target.value)}
+            placeholder="e.g., 'create new contact'"
+            className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onKeyPress={(e) => {
+              if (e.key === 'Enter' && manualCommand.trim()) {
+                handleVoiceCommand(manualCommand.trim());
+                setManualCommand('');
+              }
+            }}
+          />
+          <button
+            onClick={() => {
+              if (manualCommand.trim()) {
+                handleVoiceCommand(manualCommand.trim());
+                setManualCommand('');
+              }
+            }}
+            className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
+          >
+            Send
+          </button>
+        </div>
+      </div>
 
       {/* Quick Actions */}
       <div className="mt-4 grid grid-cols-2 gap-2">

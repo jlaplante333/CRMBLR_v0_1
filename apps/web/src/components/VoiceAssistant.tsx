@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Room, RoomEvent, RemoteParticipant, LocalParticipant } from 'livekit-client';
 import { LiveKitRoom, VideoConference, GridLayout, ParticipantTile, ControlBar, useTracks } from '@livekit/components-react';
 import '@livekit/components-styles';
@@ -17,6 +17,68 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
   const [isMuted, setIsMuted] = useState(true);
   const [transcript, setTranscript] = useState<string>('');
   const [room, setRoom] = useState<Room | null>(null);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [hasGreeted, setHasGreeted] = useState(false);
+  const speechSynthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
+
+  // Text-to-Speech function
+  const speak = (text: string, onEnd?: () => void) => {
+    if ('speechSynthesis' in window) {
+      // Cancel any ongoing speech
+      window.speechSynthesis.cancel();
+      
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.9;
+      utterance.pitch = 1;
+      utterance.volume = 0.8;
+      
+      utterance.onstart = () => setIsSpeaking(true);
+      utterance.onend = () => {
+        setIsSpeaking(false);
+        if (onEnd) onEnd();
+      };
+      utterance.onerror = () => setIsSpeaking(false);
+      
+      speechSynthesisRef.current = utterance;
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  // Stop speaking
+  const stopSpeaking = () => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+    }
+  };
+
+  // Generate conversational response
+  const getConversationalResponse = (command: string): string => {
+    const responses = [
+      "Yes, let's look at that!",
+      "Absolutely! I'll help you with that.",
+      "Great idea! Let me take you there.",
+      "Perfect! Opening that for you now.",
+      "Excellent! I'll navigate to that page.",
+      "Sure thing! Let's check that out.",
+      "Of course! I'll show you that right away.",
+      "Wonderful! Let me help you with that."
+    ];
+    
+    return responses[Math.floor(Math.random() * responses.length)];
+  };
+
+  // Auto-greet when component mounts
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!hasGreeted) {
+        speak("Hello! How are you? What would you like to do today?");
+        setHasGreeted(true);
+      }
+    }, 2000); // Wait 2 seconds after component mounts
+
+    return () => clearTimeout(timer);
+  }, [hasGreeted]);
 
   const connectToRoom = async () => {
     try {
@@ -90,6 +152,15 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
         }))
       );
     }
+    
+    // Provide conversational response
+    const response = getConversationalResponse(command);
+    speak(response, () => {
+      // After speaking, trigger the command processing
+      if (onCommand) {
+        onCommand(command);
+      }
+    });
   };
 
   useEffect(() => {
@@ -109,6 +180,12 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
           <span className="text-sm font-medium">
             {isConnected ? 'Connected' : 'Disconnected'}
           </span>
+          {isSpeaking && (
+            <div className="flex items-center space-x-1">
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+              <span className="text-xs text-blue-600">Speaking...</span>
+            </div>
+          )}
         </div>
 
         {/* Control Buttons */}
@@ -139,6 +216,16 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
                 Disconnect
               </button>
             </>
+          )}
+          
+          {/* Stop Speaking Button */}
+          {isSpeaking && (
+            <button
+              onClick={stopSpeaking}
+              className="px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors"
+            >
+              Stop Speaking
+            </button>
           )}
         </div>
 
