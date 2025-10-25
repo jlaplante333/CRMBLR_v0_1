@@ -4,9 +4,9 @@ import { LIVEKIT_CONFIG } from '@/lib/livekit-config';
 
 export async function POST(request: NextRequest) {
   try {
-    const { tenantId, userId, roomName } = await request.json();
+    const { roomName, participantName, participantIdentity } = await request.json();
 
-    if (!tenantId || !userId || !roomName) {
+    if (!roomName || !participantName || !participantIdentity) {
       return NextResponse.json(
         { error: 'Missing required parameters' },
         { status: 400 }
@@ -15,7 +15,8 @@ export async function POST(request: NextRequest) {
 
     // Create access token
     const token = new AccessToken(LIVEKIT_CONFIG.apiKey, LIVEKIT_CONFIG.apiSecret, {
-      identity: userId,
+      identity: participantIdentity,
+      name: participantName,
       ttl: '1h',
     });
 
@@ -30,8 +31,8 @@ export async function POST(request: NextRequest) {
 
     // Add metadata
     token.metadata = JSON.stringify({
-      tenantId,
-      userId,
+      participantName,
+      participantIdentity,
       role: 'participant',
     });
 
