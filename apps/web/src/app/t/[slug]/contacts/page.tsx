@@ -9,6 +9,9 @@ import { getTenantBranding } from '@/lib/branding-service';
 export default function ContactsPage() {
   const params = useParams();
   const slug = params.slug as string;
+  const [selectedContact, setSelectedContact] = useState<any>(null);
+  const [showContactModal, setShowContactModal] = useState(false);
+  
   // Find tenant directly
   const tenant = DEMO_TENANTS.find(t => t.slug === slug);
 
@@ -17,6 +20,22 @@ export default function ContactsPage() {
 
   // Mock contacts data
   const mockContacts = [
+    { 
+      id: 'jonathan', 
+      firstName: 'Jonathan', 
+      lastName: 'Laplante', 
+      email: 'jonathan@tokyo-voice-ai.com', 
+      phone: '(555) 123-4567',
+      score: 98,
+      stage: 'Stewarded',
+      lifetimeValue: 15000,
+      imageUrl: '/avatars/jonathan.svg',
+      title: 'Tokyo Voice AI Hackathon Winner',
+      company: 'V-CRM Team',
+      notes: 'Lead developer of the Tokyo Voice AI CRM system. Passionate about voice technology and AI innovation.',
+      lastContact: '2024-10-25',
+      source: 'Tokyo Voice AI Hackathon'
+    },
     { 
       id: '1', 
       firstName: 'Sarah', 
@@ -72,6 +91,11 @@ export default function ContactsPage() {
   if (!tenant) {
     return <div>Tenant not found</div>;
   }
+
+  const handleContactClick = (contact: any) => {
+    setSelectedContact(contact);
+    setShowContactModal(true);
+  };
 
   const getStageColor = (stage: string) => {
     switch (stage) {
@@ -162,10 +186,30 @@ export default function ContactsPage() {
               </thead>
               <tbody>
                 {mockContacts.map((contact) => (
-                  <tr key={contact.id} className="border-b hover:bg-gray-50">
+                  <tr key={contact.id} className="border-b hover:bg-gray-50 cursor-pointer" onClick={() => handleContactClick(contact)}>
                     <td className="py-3">
-                      <div className="font-medium text-gray-900" style={{ fontFamily: branding.fonts.body }}>
-                        {contact.firstName} {contact.lastName}
+                      <div className="flex items-center space-x-3">
+                        {contact.imageUrl ? (
+                          <img 
+                            src={contact.imageUrl} 
+                            alt={`${contact.firstName} ${contact.lastName}`}
+                            className="w-10 h-10 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
+                            <span className="text-gray-600 font-medium">
+                              {contact.firstName.charAt(0)}{contact.lastName.charAt(0)}
+                            </span>
+                          </div>
+                        )}
+                        <div>
+                          <div className="font-medium text-gray-900" style={{ fontFamily: branding.fonts.body }}>
+                            {contact.firstName} {contact.lastName}
+                          </div>
+                          {contact.title && (
+                            <div className="text-sm text-gray-500">{contact.title}</div>
+                          )}
+                        </div>
                       </div>
                     </td>
                     <td className="py-3 text-gray-600">{contact.email}</td>
@@ -210,6 +254,131 @@ export default function ContactsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Contact Detail Modal */}
+      {showContactModal && selectedContact && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              {/* Header */}
+              <div className="flex items-start justify-between mb-6">
+                <div className="flex items-center space-x-4">
+                  {selectedContact.imageUrl ? (
+                    <img 
+                      src={selectedContact.imageUrl} 
+                      alt={`${selectedContact.firstName} ${selectedContact.lastName}`}
+                      className="w-20 h-20 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-20 h-20 rounded-full bg-gray-300 flex items-center justify-center">
+                      <span className="text-gray-600 font-medium text-2xl">
+                        {selectedContact.firstName.charAt(0)}{selectedContact.lastName.charAt(0)}
+                      </span>
+                    </div>
+                  )}
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900" style={{ fontFamily: branding.fonts.heading }}>
+                      {selectedContact.firstName} {selectedContact.lastName}
+                    </h2>
+                    {selectedContact.title && (
+                      <p className="text-lg text-gray-600">{selectedContact.title}</p>
+                    )}
+                    {selectedContact.company && (
+                      <p className="text-sm text-gray-500">{selectedContact.company}</p>
+                    )}
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowContactModal(false)}
+                  className="text-gray-400 hover:text-gray-600 text-2xl"
+                >
+                  ×
+                </button>
+              </div>
+
+              {/* Contact Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Email</label>
+                    <p className="text-gray-900">{selectedContact.email}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Phone</label>
+                    <p className="text-gray-900">{selectedContact.phone}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Source</label>
+                    <p className="text-gray-900">{selectedContact.source || 'Unknown'}</p>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Score</label>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-2xl font-bold text-gray-900" style={{ fontFamily: branding.fonts.numeric }}>
+                        {selectedContact.score}
+                      </span>
+                      <div className="w-20 bg-gray-200 rounded-full h-2">
+                        <div 
+                          className="bg-blue-600 h-2 rounded-full" 
+                          style={{ width: `${selectedContact.score}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Stage</label>
+                    <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getStageColor(selectedContact.stage)}`}>
+                      {selectedContact.stage}
+                    </span>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Lifetime Value</label>
+                    <p className="text-2xl font-bold text-green-600" style={{ fontFamily: branding.fonts.numeric }}>
+                      ${selectedContact.lifetimeValue.toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Notes */}
+              {selectedContact.notes && (
+                <div className="mb-6">
+                  <label className="text-sm font-medium text-gray-500">Notes</label>
+                  <p className="text-gray-900 mt-1 p-4 bg-gray-50 rounded-lg">
+                    {selectedContact.notes}
+                  </p>
+                </div>
+              )}
+
+              {/* Last Contact */}
+              {selectedContact.lastContact && (
+                <div className="mb-6">
+                  <label className="text-sm font-medium text-gray-500">Last Contact</label>
+                  <p className="text-gray-900">{new Date(selectedContact.lastContact).toLocaleDateString()}</p>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex space-x-3 pt-6 border-t border-gray-200">
+                <Button 
+                  className="flex-1"
+                  style={{ backgroundColor: branding.colors.primary }}
+                >
+                  Edit Contact
+                </Button>
+                <Button variant="outline" className="flex-1">
+                  Send Email
+                </Button>
+                <Button variant="outline" className="flex-1">
+                  Schedule Meeting
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
