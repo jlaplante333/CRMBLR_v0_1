@@ -227,7 +227,8 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
     
     // Additional validation - ensure it's a real command
     const commandWords = normalizedCommand.split(' ');
-    if (commandWords.length < 2 && !normalizedCommand.includes('help') && !normalizedCommand.includes('stop')) {
+    const allowedSingleWords = ['help', 'stop', 'donations', 'contacts', 'calendar', 'reports', 'pipeline'];
+    if (commandWords.length < 2 && !allowedSingleWords.some(word => normalizedCommand.includes(word))) {
       console.log('🚫 Command too short or not specific enough:', command);
       return;
     }
@@ -265,6 +266,7 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
       responseText = "Let me show you the sales pipeline!";
       navigateTo = `/t/${tenantId}/pipeline`;
     } else if (lowerCommand.includes('donations') || lowerCommand.includes('quarter') || lowerCommand.includes('revenue')) {
+      console.log('🎯 DONATIONS COMMAND DETECTED:', command);
       responseText = "Perfect! Opening donations for this quarter!";
       navigateTo = `/t/${tenantId}/donations`;
     } else if (lowerCommand.includes('biggest donation') || lowerCommand.includes('biggest donor') || lowerCommand.includes('top donor') || lowerCommand.includes('largest donation') || lowerCommand.includes('biggest donor this quarter') || lowerCommand.includes('who is the biggest donor')) {
