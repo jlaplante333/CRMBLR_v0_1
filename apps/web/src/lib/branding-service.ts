@@ -141,6 +141,27 @@ export const DEMO_WEBSITE_BRANDING: Record<string, WebsiteBranding> = {
     tagline: 'Hack the Daily Life at Ameba - Voice AI Innovation'
   },
   
+  'alex-ai': {
+    // Alex.Ai CRM - AI-Powered Business Solutions
+    primary: '#1e40af',      // Deep blue primary
+    secondary: '#3b82f6',    // Blue secondary
+    accent: '#60a5fa',       // Light blue accent
+    background: '#f8fafc',   // Clean white background
+    text: '#1e293b',         // Dark slate text
+    muted: '#64748b',        // Muted slate
+    border: '#e2e8f0',       // Light border
+    success: '#10b981',      // Emerald for success
+    warning: '#f59e0b',      // Amber for warnings
+    error: '#ef4444',        // Red for errors
+    fonts: {
+      heading: 'Inter, system-ui, sans-serif',
+      body: 'Inter, system-ui, sans-serif',
+      numeric: 'Inter, system-ui, sans-serif'
+    },
+    logoUrl: '/brand/alex-ai.svg',
+    tagline: 'AI-Powered Business Solutions - Enterprise Ready'
+  },
+  
   'alex-inc-ai': {
     // Alex.Inc AI CRM - Advanced AI Solutions
     primary: '#6366f1',      // Indigo primary

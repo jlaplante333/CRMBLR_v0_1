@@ -237,6 +237,50 @@ const TENANT_DATA_CONFIGS: Record<string, Partial<TenantDashboardData>> = {
       { name: "Voice AI Hackathon Campaign", currentAmount: 30000, targetAmount: 35000, progressPercentage: 86 },
     ],
   },
+
+  'alex-ai': {
+    metrics: {
+      yearToDate: 125000,
+      last30Days: 25000,
+      totalDonors: 8,
+      avgEngagementScore: 88,
+    },
+    requiresAttention: {
+      count: 5,
+      message: "enterprise clients need technical demos",
+    },
+    grantDeadlines: [
+      { name: "AI Innovation Grant", applicationDate: "Nov 20, 2025", daysRemaining: 26 },
+      { name: "Enterprise Partnership Proposal", applicationDate: "Dec 10, 2025", daysRemaining: 46 },
+      { name: "Series A Funding Round", applicationDate: "Jan 15, 2026", daysRemaining: 82 },
+      { name: "TechCrunch Disrupt Application", applicationDate: "Nov 30, 2025", daysRemaining: 36 },
+    ],
+    donorCultivation: [
+      { name: "Microsoft Azure", lastContact: "Today", action: "Schedule AI integration demo" },
+      { name: "Google Cloud", lastContact: "Today", action: "Follow up on partnership proposal" },
+      { name: "Amazon AWS", lastContact: "Today", action: "Technical architecture review" },
+      { name: "Salesforce", lastContact: "Today", action: "CRM integration discussion" },
+      { name: "HubSpot", lastContact: "Today", action: "Marketing automation partnership" },
+      { name: "Alex (CEO)", lastContact: "Today", action: "Review Q4 strategy" },
+      { name: "CTO Team", lastContact: "Today", action: "Product roadmap alignment" },
+      { name: "Sales Team", lastContact: "Today", action: "Enterprise client pipeline review" },
+    ],
+    pipelineOverview: {
+      identified: 8,
+      inCultivation: 6,
+      atRisk: 1,
+    },
+    recentDonations: [
+      { donorName: "Microsoft Azure Partnership", amount: 50000, date: "October 20, 2025" },
+      { donorName: "Google Cloud Collaboration", amount: 35000, date: "October 18, 2025" },
+      { donorName: "Amazon AWS Integration", amount: 25000, date: "October 15, 2025" },
+      { donorName: "Salesforce Partnership", amount: 15000, date: "October 12, 2025" },
+    ],
+    activeCampaigns: [
+      { name: "Enterprise AI Solutions Campaign", currentAmount: 125000, targetAmount: 200000, progressPercentage: 63 },
+      { name: "Series A Funding Campaign", currentAmount: 500000, targetAmount: 1000000, progressPercentage: 50 },
+    ],
+  },
 };
 
 // Default fallback data

@@ -409,6 +409,20 @@ export const DEMO_TENANTS: DemoTenantConfig[] = [
     ],
   },
   {
+    name: 'Alex.Ai CRM - AI-Powered Business Solutions',
+    slug: 'alex-ai',
+    palette: ['#1e40af', '#3b82f6', '#60a5fa', '#93c5fd', '#dbeafe'],
+    logoUrl: '/brand/alex-ai.svg',
+    users: [
+      { email: 'alex@alex-ai.com', password: 'Demo!AlexAi', role: UserRole.OWNER },
+      { email: 'ceo@alex-ai.com', password: 'Demo!AlexAi', role: UserRole.ADMIN },
+      { email: 'cto@alex-ai.com', password: 'Demo!AlexAi', role: UserRole.ADMIN },
+      { email: 'sales@alex-ai.com', password: 'Demo!AlexAi', role: UserRole.EDITOR },
+      { email: 'marketing@alex-ai.com', password: 'Demo!AlexAi', role: UserRole.EDITOR },
+      { email: 'support@alex-ai.com', password: 'Demo!AlexAi', role: UserRole.VIEWER },
+    ],
+  },
+  {
     name: 'Alex.Inc AI CRM - Advanced AI Solutions',
     slug: 'alex-inc-ai',
     palette: ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'],

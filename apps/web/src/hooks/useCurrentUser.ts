@@ -75,8 +75,9 @@ export function useCurrentUser(): User | null {
             email: userEmail,
             name: emailToName[userEmail] || 'Super User',
             tenants: userEmail === 'jon@vcrm.com' ? [
-              // For jon@vcrm.com, only show Tokyo AI and Alex Inc tenants
+              // For jon@vcrm.com, show Tokyo AI, Alex.Ai, and Alex Inc tenants
               { tenantId: 'tokyo-voice-ai', role: 'admin' },
+              { tenantId: 'alex-ai', role: 'admin' },
               { tenantId: 'alex-inc-ai', role: 'admin' }
             ] : [
               // For other superusers, show all tenants
@@ -85,6 +86,7 @@ export function useCurrentUser(): User | null {
               { tenantId: 'demo-fallenfruit', role: 'admin' },
               { tenantId: 'demo-homeboy', role: 'admin' },
               { tenantId: 'tokyo-voice-ai', role: 'admin' },
+              { tenantId: 'alex-ai', role: 'admin' },
               { tenantId: 'alex-inc-ai', role: 'admin' }
             ]
           };
