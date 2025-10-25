@@ -12,8 +12,14 @@ export default function TenantDashboard() {
   const params = useParams();
   const slug = params.slug as string;
   
+  // Debug logging
+  console.log('TenantDashboard - slug:', slug);
+  console.log('TenantDashboard - DEMO_TENANTS:', DEMO_TENANTS);
+  console.log('TenantDashboard - available slugs:', DEMO_TENANTS.map(t => t.slug));
+  
   // Find tenant directly
   const tenant = DEMO_TENANTS.find(t => t.slug === slug);
+  console.log('TenantDashboard - found tenant:', tenant);
 
   // Get dynamic branding based on tenant's website
   const branding = getTenantBranding(slug);

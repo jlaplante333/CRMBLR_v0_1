@@ -1,9 +1,6 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Room, RoomEvent, RemoteParticipant, LocalParticipant } from 'livekit-client';
-import { LiveKitRoom, VideoConference, GridLayout, ParticipantTile, ControlBar, useTracks } from '@livekit/components-react';
-// import '@livekit/components-styles'; // Removed - causing module resolution error
 
 interface VoiceAssistantProps {
   tenantId: string;
@@ -16,7 +13,6 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
   const [isConnected, setIsConnected] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [transcript, setTranscript] = useState<string>('');
-  const [room, setRoom] = useState<Room | null>(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [hasGreeted, setHasGreeted] = useState(false);
   const speechSynthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
@@ -24,21 +20,17 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
   // Text-to-Speech function
   const speak = (text: string, onEnd?: () => void) => {
     if ('speechSynthesis' in window) {
-      // Cancel any ongoing speech
       window.speechSynthesis.cancel();
-      
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.rate = 0.9;
       utterance.pitch = 1;
       utterance.volume = 0.8;
-      
       utterance.onstart = () => setIsSpeaking(true);
       utterance.onend = () => {
         setIsSpeaking(false);
         if (onEnd) onEnd();
       };
       utterance.onerror = () => setIsSpeaking(false);
-      
       speechSynthesisRef.current = utterance;
       window.speechSynthesis.speak(utterance);
     }
@@ -64,7 +56,6 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
       "Of course! I'll show you that right away.",
       "Wonderful! Let me help you with that."
     ];
-    
     return responses[Math.floor(Math.random() * responses.length)];
   };
 
@@ -75,101 +66,57 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
         speak("Hello! How are you? What would you like to do today?");
         setHasGreeted(true);
       }
-    }, 2000); // Wait 2 seconds after component mounts
-
+    }, 2000);
     return () => clearTimeout(timer);
   }, [hasGreeted]);
 
+  // Simplified connection function (mock for now)
   const connectToRoom = async () => {
-    try {
-      const newRoom = new Room({
-        adaptiveStream: true,
-        dynacast: true,
-        publishDefaults: {
-          videoSimulcastLayers: [
-            { resolution: VideoQuality.HIGH, encoding: { maxBitrate: 2000000 } },
-            { resolution: VideoQuality.MEDIUM, encoding: { maxBitrate: 1000000 } },
-            { resolution: VideoQuality.LOW, encoding: { maxBitrate: 500000 } },
-          ],
-        },
-      });
-
-      // Set up event listeners
-      newRoom.on(RoomEvent.Connected, () => {
-        console.log('Connected to LiveKit room');
-        setIsConnected(true);
-      });
-
-      newRoom.on(RoomEvent.Disconnected, () => {
-        console.log('Disconnected from LiveKit room');
-        setIsConnected(false);
-      });
-
-      newRoom.on(RoomEvent.TrackSubscribed, (track, publication, participant) => {
-        console.log('Track subscribed:', track.kind);
-      });
-
-      // Connect to room
-      const token = await getLiveKitToken(tenantId, userId);
-      await newRoom.connect('wss://jonathan-s23kluo9.livekit.cloud', token);
-      
-      setRoom(newRoom);
-    } catch (error) {
-      console.error('Failed to connect to LiveKit room:', error);
-    }
-  };
-
-  const disconnectFromRoom = async () => {
-    if (room) {
-      await room.disconnect();
-      setRoom(null);
-      setIsConnected(false);
-    }
-  };
-
-  const toggleMute = async () => {
-    if (room) {
-      if (isMuted) {
-        await room.localParticipant.enableCameraAndMicrophone();
-        setIsMuted(false);
-      } else {
-        await room.localParticipant.setMicrophoneEnabled(false);
-        setIsMuted(true);
-      }
-    }
-  };
-
-  const sendVoiceCommand = async (command: string) => {
-    if (room && room.localParticipant) {
-      // Send command as data message
-      await room.localParticipant.publishData(
-        new TextEncoder().encode(JSON.stringify({
-          type: 'voice_command',
-          command,
-          timestamp: Date.now(),
-          userId,
-          tenantId
-        }))
-      );
-    }
+    console.log('Connecting to voice room...');
+    setIsConnected(true);
+    setIsMuted(false);
     
-    // Provide conversational response
+    // Simulate connection
+    setTimeout(() => {
+      if (onCommand) {
+        onCommand('connected');
+      }
+    }, 1000);
+  };
+
+  // Simplified mute toggle
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+    console.log('Mute toggled:', !isMuted);
+  };
+
+  // Simplified disconnect
+  const disconnectFromRoom = () => {
+    console.log('Disconnecting from voice room...');
+    setIsConnected(false);
+    setIsMuted(true);
+    setTranscript('');
+  };
+
+  // Mock voice command processing
+  const sendVoiceCommand = async (command: string) => {
+    console.log('Processing voice command:', command);
     const response = getConversationalResponse(command);
     speak(response, () => {
-      // After speaking, trigger the command processing
       if (onCommand) {
         onCommand(command);
       }
     });
   };
 
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (room) {
-        room.disconnect();
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
       }
     };
-  }, [room]);
+  }, []);
 
   return (
     <div className="voice-assistant-container">
@@ -202,8 +149,8 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
               <button
                 onClick={toggleMute}
                 className={`px-4 py-2 rounded-md transition-colors ${
-                  isMuted 
-                    ? 'bg-red-600 text-white hover:bg-red-700' 
+                  isMuted
+                    ? 'bg-red-600 text-white hover:bg-red-700'
                     : 'bg-green-600 text-white hover:bg-green-700'
                 }`}
               >
@@ -217,7 +164,7 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
               </button>
             </>
           )}
-          
+
           {/* Stop Speaking Button */}
           {isSpeaking && (
             <button
@@ -236,45 +183,6 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
           </div>
         )}
       </div>
-
-      {/* Voice Commands Help */}
-      <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-        <h3 className="text-sm font-semibold text-blue-900 mb-2">Voice Commands</h3>
-        <div className="text-xs text-blue-800 space-y-1">
-          <p>• "Create new contact" - Add a new contact</p>
-          <p>• "Show donations" - View donation records</p>
-          <p>• "Schedule meeting" - Open calendar</p>
-          <p>• "Generate report" - Create analytics report</p>
-          <p>• "Search contacts" - Find contacts</p>
-        </div>
-      </div>
     </div>
   );
-}
-
-// Helper function to get LiveKit token
-async function getLiveKitToken(tenantId: string, userId: string): Promise<string> {
-  try {
-    const response = await fetch('/api/livekit/token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        tenantId,
-        userId,
-        roomName: `crm-${tenantId}`,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to get LiveKit token');
-    }
-
-    const data = await response.json();
-    return data.token;
-  } catch (error) {
-    console.error('Error getting LiveKit token:', error);
-    throw error;
-  }
 }
