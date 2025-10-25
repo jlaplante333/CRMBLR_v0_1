@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Room, RoomEvent, RemoteParticipant, LocalParticipant, Track } from 'livekit-client';
+import { Room, RoomEvent, RemoteParticipant, LocalParticipant, Track, TrackPublication, AudioTrack } from 'livekit-client';
 import { LIVEKIT_CLIENT_CONFIG } from '@/lib/livekit-config';
 
 interface VoiceAssistantProps {
@@ -20,91 +20,18 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
   const [error, setError] = useState<string>('');
   const [avatarState, setAvatarState] = useState<'idle' | 'listening' | 'speaking' | 'thinking'>('idle');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [audioLevel, setAudioLevel] = useState(0);
   
   const roomRef = useRef<Room | null>(null);
   const speechSynthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Initialize Speech Recognition
-  useEffect(() => {
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      const recognition = new SpeechRecognition();
-      
-      recognition.continuous = false; // Stop after user stops talking
-      recognition.interimResults = true;
-      recognition.lang = 'en-US';
-      recognition.maxAlternatives = 1;
-      
-      recognition.onstart = () => {
-        console.log('🎤 Speech recognition started - LISTENING TO YOUR VOICE!');
-        setIsListening(true);
-        setAvatarState('listening');
-        setIsProcessing(false);
-      };
-      
-      recognition.onresult = (event) => {
-        let finalTranscript = '';
-        let interimTranscript = '';
-        
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const transcript = event.results[i][0].transcript;
-          if (event.results[i].isFinal) {
-            finalTranscript += transcript;
-          } else {
-            interimTranscript += transcript;
-          }
-        }
-        
-        // Show interim results
-        if (interimTranscript) {
-          setTranscript(interimTranscript);
-        }
-        
-        // Process final transcript
-        if (finalTranscript) {
-          console.log('🎯 Final transcript:', finalTranscript);
-          setTranscript(finalTranscript);
-          setIsProcessing(true);
-          setAvatarState('thinking');
-          
-          // Process the command immediately
-          processVoiceCommand(finalTranscript);
-        }
-      };
-      
-      recognition.onerror = (event) => {
-        console.error('❌ Speech recognition error:', event.error);
-        setIsListening(false);
-        setIsProcessing(false);
-        setAvatarState('idle');
-        
-        if (event.error === 'no-speech') {
-          speak("I didn't hear anything. Please try again!");
-        } else if (event.error === 'network') {
-          speak("Network error. Please check your connection.");
-        }
-      };
-      
-      recognition.onend = () => {
-        console.log('🔚 Speech recognition ended');
-        setIsListening(false);
-        if (!isProcessing) {
-          setAvatarState('idle');
-        }
-      };
-      
-      recognitionRef.current = recognition;
-    } else {
-      console.error('❌ Speech recognition not supported');
-      setError('Speech recognition not supported in this browser');
-    }
-  }, [isProcessing]);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
 
   // Generate LiveKit token
   const generateToken = async (): Promise<string> => {
     try {
+      console.log('🔑 Generating LiveKit token...');
       const response = await fetch('/api/livekit/token', {
         method: 'POST',
         headers: {
@@ -118,13 +45,14 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
       });
 
       if (!response.ok) {
-        throw new Error('Failed to generate token');
+        throw new Error(`Failed to generate token: ${response.status}`);
       }
 
       const data = await response.json();
+      console.log('✅ LiveKit token generated successfully');
       return data.token;
     } catch (error) {
-      console.error('Error generating token:', error);
+      console.error('❌ Error generating LiveKit token:', error);
       throw error;
     }
   };
@@ -132,6 +60,7 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
   // Connect to LiveKit room
   const connectToRoom = async () => {
     try {
+      console.log('🚀 Connecting to LiveKit room...');
       setConnectionStatus('connecting');
       setError('');
       setAvatarState('thinking');
@@ -150,15 +79,22 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
 
       // Set up event listeners
       room.on(RoomEvent.Connected, async () => {
-        console.log('✅ Connected to LiveKit room');
+        console.log('✅ Connected to LiveKit room!');
         setIsConnected(true);
         setConnectionStatus('connected');
         
-        // Enable microphone
+        // Enable microphone and start listening
         await room.localParticipant.enableCameraAndMicrophone(false, true);
+        console.log('🎤 Microphone enabled - LISTENING TO YOUR VOICE!');
+        
+        setIsListening(true);
+        setAvatarState('listening');
+        
+        // Set up audio level monitoring
+        setupAudioLevelMonitoring();
         
         // Auto-greet user
-        speak("Meow! Hello there! I'm your cute cat assistant! Say 'Find Jonathan' and I'll help you!");
+        speak("Meow! Hello! I'm connected to LiveKit and listening to your voice! Say something!");
       });
 
       room.on(RoomEvent.Disconnected, () => {
@@ -167,31 +103,120 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
         setIsListening(false);
         setConnectionStatus('disconnected');
         setAvatarState('idle');
+        cleanupAudioMonitoring();
+      });
+
+      room.on(RoomEvent.TrackSubscribed, (track: Track, publication: TrackPublication, participant: RemoteParticipant) => {
+        console.log('🎵 Track subscribed:', track.kind);
+        if (track.kind === Track.Kind.Audio) {
+          const audioTrack = track as AudioTrack;
+          const audioElement = audioTrack.attach();
+          audioElement.play();
+        }
+      });
+
+      room.on(RoomEvent.TrackUnsubscribed, (track: Track, publication: TrackPublication, participant: RemoteParticipant) => {
+        console.log('🔇 Track unsubscribed:', track.kind);
+        track.detach();
+      });
+
+      room.on(RoomEvent.DataReceived, (payload: Uint8Array, participant?: RemoteParticipant) => {
+        try {
+          const data = JSON.parse(new TextDecoder().decode(payload));
+          console.log('📨 Data received from LiveKit:', data);
+          
+          if (data.type === 'transcript') {
+            const transcriptText = data.text;
+            console.log('🎯 LiveKit transcript:', transcriptText);
+            setTranscript(transcriptText);
+            if (onTranscript) onTranscript(transcriptText);
+            
+            // Process the command
+            processVoiceCommand(transcriptText);
+          } else if (data.type === 'response') {
+            console.log('🤖 LiveKit response:', data.text);
+            speak(data.text);
+          }
+        } catch (error) {
+          console.error('❌ Error processing LiveKit data:', error);
+        }
       });
 
       // Connect to room
+      console.log('🔌 Connecting to LiveKit URL:', LIVEKIT_CLIENT_CONFIG.url);
       await room.connect(LIVEKIT_CLIENT_CONFIG.url, token);
       
     } catch (error) {
-      console.error('Error connecting to LiveKit:', error);
+      console.error('❌ Error connecting to LiveKit:', error);
       setError(error instanceof Error ? error.message : 'Connection failed');
       setConnectionStatus('disconnected');
       setAvatarState('idle');
     }
   };
 
+  // Set up audio level monitoring for visual feedback
+  const setupAudioLevelMonitoring = () => {
+    try {
+      if (!audioContextRef.current) {
+        audioContextRef.current = new AudioContext();
+      }
+      
+      const audioContext = audioContextRef.current;
+      const analyser = audioContext.createAnalyser();
+      analyser.fftSize = 256;
+      analyserRef.current = analyser;
+      
+      // Get microphone stream
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+          const source = audioContext.createMediaStreamSource(stream);
+          source.connect(analyser);
+          
+          // Monitor audio levels
+          const dataArray = new Uint8Array(analyser.frequencyBinCount);
+          
+          const updateAudioLevel = () => {
+            analyser.getByteFrequencyData(dataArray);
+            const average = dataArray.reduce((sum, value) => sum + value, 0) / dataArray.length;
+            setAudioLevel(average);
+            
+            if (isListening) {
+              animationFrameRef.current = requestAnimationFrame(updateAudioLevel);
+            }
+          };
+          
+          updateAudioLevel();
+        })
+        .catch(error => {
+          console.error('❌ Error accessing microphone:', error);
+        });
+    } catch (error) {
+      console.error('❌ Error setting up audio monitoring:', error);
+    }
+  };
+
+  // Cleanup audio monitoring
+  const cleanupAudioMonitoring = () => {
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+    if (audioContextRef.current) {
+      audioContextRef.current.close();
+      audioContextRef.current = null;
+    }
+    analyserRef.current = null;
+    setAudioLevel(0);
+  };
+
   // Disconnect from room
   const disconnectFromRoom = async () => {
+    console.log('🔌 Disconnecting from LiveKit...');
     if (roomRef.current) {
       await roomRef.current.disconnect();
       roomRef.current = null;
     }
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-    }
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
+    cleanupAudioMonitoring();
     setIsConnected(false);
     setIsListening(false);
     setIsProcessing(false);
@@ -200,18 +225,12 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
     setAvatarState('idle');
   };
 
-  // Start listening
-  const startListening = () => {
-    if (recognitionRef.current && !isListening) {
-      console.log('🎤 Starting to listen to your voice...');
-      recognitionRef.current.start();
-    }
-  };
-
-  // Stop listening
-  const stopListening = () => {
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
+  // Send data to LiveKit room
+  const sendToLiveKit = (data: any) => {
+    if (roomRef.current && roomRef.current.localParticipant) {
+      const payload = new TextEncoder().encode(JSON.stringify(data));
+      roomRef.current.localParticipant.publishData(payload, { reliable: true });
+      console.log('📤 Sent to LiveKit:', data);
     }
   };
 
@@ -242,16 +261,19 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
         setIsSpeaking(true);
         setAvatarState('speaking');
         setIsProcessing(false);
+        console.log('🗣️ Speaking:', text);
       };
       utterance.onend = () => {
         setIsSpeaking(false);
-        setAvatarState('idle');
+        setAvatarState(isListening ? 'listening' : 'idle');
         if (onEnd) onEnd();
+        console.log('✅ Finished speaking');
       };
       utterance.onerror = () => {
         setIsSpeaking(false);
-        setAvatarState('idle');
+        setAvatarState(isListening ? 'listening' : 'idle');
         setIsProcessing(false);
+        console.error('❌ Speech synthesis error');
       };
       
       speechSynthesisRef.current = utterance;
@@ -264,14 +286,17 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       setIsSpeaking(false);
-      setAvatarState('idle');
+      setAvatarState(isListening ? 'listening' : 'idle');
     }
   };
 
   // Process voice commands with immediate navigation
   const processVoiceCommand = (command: string) => {
     const lowerCommand = command.toLowerCase();
-    console.log('🎯 Processing command:', lowerCommand);
+    console.log('🎯 Processing LiveKit command:', lowerCommand);
+    
+    setIsProcessing(true);
+    setAvatarState('thinking');
     
     // Generate cute response and navigate
     let response = "Meow! I heard you say ";
@@ -305,6 +330,13 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
       response = "Meow! I heard you say: " + command + ". Let me help you with that! 🐱";
     }
     
+    // Send response back to LiveKit
+    sendToLiveKit({
+      type: 'response',
+      text: response,
+      timestamp: Date.now(),
+    });
+    
     // Speak the response
     speak(response, () => {
       // Navigate after speaking
@@ -312,7 +344,16 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
         console.log('🚀 Navigating to:', navigationUrl);
         window.location.href = navigationUrl;
       }
+      setIsProcessing(false);
+      setAvatarState(isListening ? 'listening' : 'idle');
     });
+  };
+
+  // Simulate voice input for testing
+  const simulateVoiceInput = (text: string) => {
+    console.log('🎤 Simulating voice input:', text);
+    setTranscript(text);
+    processVoiceCommand(text);
   };
 
   // Cleanup on unmount
@@ -321,19 +362,14 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
       if (roomRef.current) {
         roomRef.current.disconnect();
       }
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-      }
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
+      cleanupAudioMonitoring();
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
       }
     };
   }, []);
 
-  // Cute Cat Avatar Component
+  // Cute Cat Avatar Component with audio level visualization
   const CuteCatAvatar = () => {
     return (
       <div className="relative w-32 h-32 mx-auto mb-6">
@@ -401,12 +437,22 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
           <div className="absolute top-12 left-1 w-6 h-0.5 bg-gray-600 rounded-full"></div>
           <div className="absolute top-12 right-1 w-6 h-0.5 bg-gray-600 rounded-full"></div>
 
-          {/* Microphone Icon for Listening */}
+          {/* LiveKit Microphone Icon for Listening */}
           {avatarState === 'listening' && (
             <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2">
               <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center animate-pulse shadow-lg">
                 <span className="text-white text-sm">🎤</span>
               </div>
+            </div>
+          )}
+
+          {/* Audio Level Visualization */}
+          {avatarState === 'listening' && audioLevel > 0 && (
+            <div className="absolute -right-3 top-1/2 transform -translate-y-1/2">
+              <div 
+                className="w-2 bg-green-400 rounded-full animate-pulse"
+                style={{ height: `${Math.min(audioLevel * 2, 40)}px` }}
+              ></div>
             </div>
           )}
 
@@ -452,7 +498,7 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
     <div className="voice-assistant-container bg-gradient-to-br from-orange-50 via-pink-50 to-purple-50 rounded-2xl p-6 shadow-xl border border-orange-200 max-w-md mx-auto">
       {/* Header */}
       <div className="text-center mb-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-1">🐱 Cute Cat Assistant</h3>
+        <h3 className="text-xl font-bold text-gray-900 mb-1">🐱 LiveKit Cat Assistant</h3>
         <p className="text-sm text-gray-600">Tokyo Voice AI Hackathon</p>
       </div>
 
@@ -470,7 +516,7 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
           {avatarState === 'listening' && (
             <>
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-2"></div>
-              🎤 LISTENING TO YOUR VOICE! Speak now!
+              🎤 LIVEKIT LISTENING! Speak now!
             </>
           )}
           {avatarState === 'speaking' && (
@@ -488,7 +534,7 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
           {avatarState === 'idle' && (
             <>
               <div className="w-2 h-2 bg-orange-500 rounded-full mr-2"></div>
-              🐱 Ready to listen
+              🐱 Ready to connect to LiveKit
             </>
           )}
         </div>
@@ -508,7 +554,7 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
             onClick={connectToRoom}
             className="w-full px-6 py-4 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-xl hover:from-orange-600 hover:to-pink-600 transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
           >
-            🐱 Connect Cute Cat Assistant
+            🎤 Connect to LiveKit
           </button>
         ) : (
           <div className="flex space-x-3">
@@ -518,24 +564,6 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
             >
               Disconnect
             </button>
-            
-            {!isListening && !isSpeaking && !isProcessing && (
-              <button
-                onClick={startListening}
-                className="flex-1 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
-              >
-                🎤 LISTEN NOW
-              </button>
-            )}
-            
-            {isListening && (
-              <button
-                onClick={stopListening}
-                className="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
-              >
-                Stop Listening
-              </button>
-            )}
             
             {isSpeaking && (
               <button
@@ -552,7 +580,7 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
       {/* Transcript Display */}
       {transcript && (
         <div className="mb-6 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
-          <h4 className="text-sm font-semibold text-gray-700 mb-2">You said:</h4>
+          <h4 className="text-sm font-semibold text-gray-700 mb-2">LiveKit heard:</h4>
           <p className="text-gray-900 italic">"{transcript}"</p>
         </div>
       )}
@@ -561,41 +589,25 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
       {isConnected && (
         <div className="grid grid-cols-2 gap-3 mb-6">
           <button
-            onClick={() => {
-              const command = "Find Jonathan";
-              setTranscript(command);
-              processVoiceCommand(command);
-            }}
+            onClick={() => simulateVoiceInput("Find Jonathan")}
             className="p-3 bg-blue-100 text-blue-800 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium shadow-sm hover:shadow-md"
           >
             👤 Find Jonathan
           </button>
           <button
-            onClick={() => {
-              const command = "Show contacts";
-              setTranscript(command);
-              processVoiceCommand(command);
-            }}
+            onClick={() => simulateVoiceInput("Show contacts")}
             className="p-3 bg-green-100 text-green-800 rounded-lg hover:bg-green-200 transition-colors text-sm font-medium shadow-sm hover:shadow-md"
           >
             📋 All Contacts
           </button>
           <button
-            onClick={() => {
-              const command = "Show donations";
-              setTranscript(command);
-              processVoiceCommand(command);
-            }}
+            onClick={() => simulateVoiceInput("Show donations")}
             className="p-3 bg-yellow-100 text-yellow-800 rounded-lg hover:bg-yellow-200 transition-colors text-sm font-medium shadow-sm hover:shadow-md"
           >
             💰 Donations
           </button>
           <button
-            onClick={() => {
-              const command = "Show calendar";
-              setTranscript(command);
-              processVoiceCommand(command);
-            }}
+            onClick={() => simulateVoiceInput("Show calendar")}
             className="p-3 bg-purple-100 text-purple-800 rounded-lg hover:bg-purple-200 transition-colors text-sm font-medium shadow-sm hover:shadow-md"
           >
             📅 Calendar
@@ -608,11 +620,11 @@ export function VoiceAssistant({ tenantId, userId, onTranscript, onCommand }: Vo
         <div className="p-4 bg-orange-50 rounded-xl border border-orange-200">
           <h4 className="text-sm font-semibold text-orange-900 mb-2">How to use:</h4>
           <ul className="text-sm text-orange-800 space-y-1">
-            <li>• Click "Connect Cute Cat Assistant" to start</li>
-            <li>• Click "LISTEN NOW" to start voice recognition</li>
-            <li>• Say "Find Jonathan" - I'll actually listen and navigate!</li>
-            <li>• Say "Show contacts" to view all contacts</li>
-            <li>• Watch the cute cat - it shows who's talking!</li>
+            <li>• Click "Connect to LiveKit" to start</li>
+            <li>• LiveKit will listen to your voice in real-time</li>
+            <li>• Say "Find Jonathan" - LiveKit will process and respond!</li>
+            <li>• Watch the audio level indicator when you speak</li>
+            <li>• The cat shows LiveKit connection status!</li>
           </ul>
         </div>
       )}
