@@ -24,7 +24,13 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\""
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
     "@turbo/gen": "^1.10.12",
+    "@types/jest": "^29.5.8",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^30.2.0",
     "prettier": "^3.0.3",
     "turbo": "^1.10.12",
     "typescript": "^5.2.2"

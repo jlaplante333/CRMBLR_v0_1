@@ -8,6 +8,7 @@ import { getIntegrations, isPaymentsConnected } from '@/lib/payments';
 import Link from 'next/link';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { NotificationDropdown, useNotifications } from '@/components/NotificationDropdown';
+import { VoiceCRM } from '@/components/VoiceCRM';
 
 interface TenantLayoutProps {
   children: React.ReactNode;
@@ -209,6 +210,11 @@ export default function TenantLayout({ children }: TenantLayoutProps) {
               Directory
             </Link>
           </nav>
+
+          {/* Voice Assistant */}
+          <div className="mt-8 p-4 bg-gray-800 rounded-lg">
+            <VoiceCRM tenantId={slug} />
+          </div>
         </div>
       </div>
 
